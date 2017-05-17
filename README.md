@@ -3,7 +3,13 @@
 Motivation
 ----------
 
-Git was created as a distributed version control system, in contrast to the popular systems which denote one replica as the canonical upstream master source. Existing project hosting websites soon began supporting git and some new ones sprung up as well; but they all used the traditional "hub" paradigm that people were accustomed to. This type of website facilitates collaboration and end-user participation but is not at all in the spirit of git. The goal of this project is to support the familiar collaborative features of the centralized web hosts with a decentralized design that, like git itself, does not rely on a central host and can be self-hosted by anyone, with all such independent peers cooperating to form a larger logical network.
+Git was created as a distributed version control system (VCS), in contrast to the VCS systems that were most widely used at the time, which denote one replica as the canonical upstream master source.  Existing project hosting websites soon began supporting git and some new ones sprung up as well; but even the new ones were modelled upon the traditional "hub" paradigm; with a single canonical upstream replica and all other replicas implicitly and permantly relegated as "forks".  This type of website well serves the traditional purpose of facilitating collaboration and end-user participation; but not at all, in the decentralized spirit of Git.
+
+Indeed, it is usually the case, even with Git, that one replica will be designated as the canonical upstream; so this retro-fitting of Git upon the tradition hub model is not often contested.  Philisphically speaking though, this has the, often undesirable, effect of casting all software projects and development teams as hierarchical in nature, antithetical to truly open project "structures" such as adhocracy.
+
+Furthermore, the centralized infrastructure, which, in nearly all current instances, is operated by a commercial entity and contingent on it's profitability, is a liability to anyone depending on it for the long-term.  Remeber Google Code?
+
+The goal of this project is to support the familiar collaborative features of the centralized web hosts with a decentralized design that, like Git itself, does not rely on a central host and can be self-hosted by anyone; with all such independent peers cooperating to form a larger logical network.  Also, becasue this system is intended to be operated by anyone on their personal computers, ultra efficiency and security are also high-priority goals.  For example, no long-running processes will be allowed; instead, all Git operations will be fully preemptible to prevent the "slow loris" bottle-necks; which are a serious limitation and security issue for existing self-hosted solutions such as Gogs, the system that NotABug is currently using.
 
 
 Design Goals
@@ -11,13 +17,16 @@ Design Goals
 
 * transparent authentication and collaboration across federated instances
 * participating servers may be private access or public
-* installing a home server and complying with licensing should be trivial to setup and maintain
-* users should not need to trust any server in the network other than their home server
-* users never send any contact details to, nor run any javascript on the other servers
-* fully API accessible - even the reference website is just another client - this would naturally allow for adapters to other services that expose a similar API such as github
+* server operators may be decide whether or not to allow public registrations
+* installing a home server should be trivial to setup and maintain
+* licensing compliance should be trivial to maintain
+* users should never need to trust any server in the network other than their home server
+* users never send any contact details to other participating servers
+* users should never need to run any javascript from other participating servers
+* fully API accessible - even the reference website which will be the NotABug front-end will be just another API client - this would naturally allow for adapters to other services that expose a similar API such as github
 * users can interact with foreign repos in all of the typical collaborative ways just as if they had an account on each foreign host
 * allow most or ideally all collaborative interactions without a web browser (e.g. custom clients or email)
-* the closely related preceding three bullet points are intended to allow interfaces to be maximally customizable - so that, for example, people who rely on accessibility features could run a home instance which is particularly well suited to screen readers - the cool kids can use or create snazzy CSS websites - yet others could interact with the service on a headless server using mutt
+* the preceding, closely related, three bullet points are intended to allow interfaces to be maximally customizable - so that, for example, people who rely on accessibility features could run a home instance which is particularly well suited to screen readers - the cool kids can use or create snazzy CSS websites - yet others could interact with the service on a headless server using mutt
 
 
 How It Works
@@ -26,16 +35,16 @@ How It Works
 * everyone can view repos on public hosts without logging in just as you would expect
 * users can create an account on any public instance or may host their own
 * users can create repos on their home server only
-* users can fork foreign repos to their home server without logging in to the remote host
-* users can send merge requests, open issues, post comments, subscribe to updates, and "star" repos without logging in to the remote host
-* allow the above interactions without a web browser via email
+* users can fork foreign repos to their home server without logging in to the foreign host
+* users can send merge requests, open issues, post comments, subscribe to updates, and "star" repos without logging in to the foreign host
+* all of the above interactions will be possible without a web browser (e.g. via email)
 * savvy admins can interact with the system by implementing the protocols in custom clients
-* remote hosts validate the identity of foreign users with that user's home server
-* instances will verify and vouch for the identity of it's users using the server SSL signature
-* authentication is entirely based on bearer tokens that the foreign server can validate were minted by the user's home server
+* participating hosts validate the identity of foreign users with that user's home server
+* server instances will verify and vouch for the identity of it's users using the server SSL signature
+* authentication is entirely based on bearer tokens that the foreign server can validate as being minted by the user's home server
 * instances can optionally send the user's GPG public key for verifying commits/comments
-* instances can optionally sign commits/comments automatically using the local GPG keychain
-* instances will occasionally poll other instances for updates of issues to which their local users are subscribed in order to notify their local users (e.g. on-site alerts, email alerts) - delivery is determined by the notification settings controlled *entirely* by each user's home server
+* instances can optionally sign commits/comments automatically on their user's behalf using a local GPG keychain
+* instances will occasionally poll other instances for updates of issues to which their local users are subscribed in order to notify their local users (e.g. on-site alerts, email alerts) - delivery of which is determined by the user-specified notification settings controlled *entirely* by each user's home server
 
 
 Example User Stories
