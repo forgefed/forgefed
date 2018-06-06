@@ -10,7 +10,9 @@ Gogs, Gitea).
 
 ## Collaboration
 
-A specification like this must be agreed upon by at least some of Git web service implementations. If you are a developer of such a software, please [open an issue][issue-tracker]. We'll simply add you as a collaborator.
+A specification like this must be agreed upon by at least some of Git web service implementations.
+If you are a developer of such a software, please [join our discussion][work-group-discussion] and speak up.
+We'll simply add you to the work group.
 
 If you are experienced in writing specifications, you're also welcomed to join the effort.
 
@@ -22,4 +24,4 @@ components in this specification are licensed to MIT License. You may obtain a c
 license [here](LICENSE/SOFTWARE_LICENSE.md).
 
 [w3c-document-license]: https://www.w3.org/Consortium/Legal/2015/doc-license
-[issue-tracker]: https://github.com/git-federation/gitpub/issues
+[work-group-discussion]: https://github.com/git-federation/gitpub/issues/5
