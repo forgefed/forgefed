@@ -5,11 +5,11 @@ Motivation
 
 Git was created as a distributed version control system (VCS), in contrast to the VCS systems that were most widely used at the time, which denote one replica as the canonical upstream master source.  Existing project hosting websites soon began supporting git and some new ones sprung up as well; but even the new ones were modelled upon the traditional "hub" paradigm; with a single canonical upstream replica and all other replicas implicitly and permantly relegated as "forks".  This type of website well serves the traditional purpose of facilitating collaboration and end-user participation; but not at all, in the decentralized spirit of Git.
 
-Indeed, it is usually the case, even with Git, that one replica will be designated as the canonical upstream; so this retro-fitting of Git upon the tradition hub model is not often contested.  Philisphically speaking though, this has the, often undesirable, effect of casting all software projects and development teams as hierarchical in nature, antithetical to truly open project "structures" such as adhocracy.
+Indeed, it is usually the case, even with Git, that one replica will be designated as the canonical upstream; so this retro-fitting of Git upon the tradition hub model is not often contested.  Philisphically speaking though, this has the consequence of casting all software projects and development teams as hierarchical in nature; which is often undesirable, as it is antithetical to truly open project "structures" such as adhocracy.
 
-Furthermore, the centralized infrastructure, which, in nearly all current instances, is operated by a commercial entity and contingent on it's profitability, is a liability to anyone depending on it for the long-term.  Remeber Google Code?
+Furthermore, the centralized infrastructure, which in nearly all current public instances, is operated by a commercial third-party and contingent on it's profitability, is a liability to anyone relying on it for their long-term infrastructure.  Remember Google Code?
 
-The goal of this project is to support the familiar collaborative features of the centralized web hosts with a decentralized design that, like Git itself, does not rely on a central host and can be self-hosted by anyone; with all such independent peers cooperating to form a larger logical network.  Also, becasue this system is intended to be operated by anyone on their personal computers, ultra efficiency and security are also high-priority goals.  For example, no long-running processes will be allowed; instead, all Git operations will be fully preemptible to prevent the "slow loris" bottle-necks; which are a serious limitation and security issue for existing self-hosted solutions such as Gogs, the system that NotABug is currently using.
+The goal of this project is to support the familiar collaborative features of the centralized web hosts with a decentralized design that, like Git itself, does not rely on a central host and can be self-hosted by anyone; with all such independent peers cooperating to form a larger logical network of inter-operable services.  Also, becasue this system is intended to be operated by anyone, even on modest hardware such as their personal computers, ultra efficiency and security are also high-priority goals.  For example, no long-running processes will be allowed; instead, all Git operations will be fully preemptible to prevent the "slow loris" bottle-necks; which are a serious limitation and security issue for existing self-hosted solutions such as Gogs, the system that NotABug is currently using.
 
 
 Design Goals
@@ -18,33 +18,33 @@ Design Goals
 * transparent authentication and collaboration across federated instances
 * participating servers may be private access or public
 * server operators may be decide whether or not to allow public registrations
-* installing a home server should be trivial to setup and maintain
+* installing a home-server should be trivial to setup and maintain
 * licensing compliance should be trivial to maintain
-* users should never need to trust any server in the network other than their home server
+* users should never need to trust any server in the network other than their home-server
 * users never send any contact details to other participating servers
 * users should never need to run any javascript from other participating servers
-* fully API accessible - even the reference website which will be the NotABug front-end will be just another API client - this would naturally allow for adapters to other services that expose a similar API such as github
+* fully API accessible - even the reference website (which will be the NotABug-2.0 front-end) will be just another API client - this would naturally allow for adapters to other services that expose a similar API such as github, gogs, and pagure
 * users can interact with foreign repos in all of the typical collaborative ways just as if they had an account on each foreign host
-* allow most or ideally all collaborative interactions without a web browser (e.g. custom clients or email)
-* the preceding, closely related, three bullet points are intended to allow interfaces to be maximally customizable - so that, for example, people who rely on accessibility features could run a home instance which is particularly well suited to screen readers - the cool kids can use or create snazzy CSS websites - yet others could interact with the service on a headless server using mutt
+* allow most (or ideally all) collaborative interactions with or without a web browser (e.g. via email, custom clients, etc)
+* the preceding, closely related, three bullet points are intended to allow interfaces to be maximally customizable; so that for examples: A) people who rely on accessibility features could run a home instance which is particularly well suited to screen readers - B) the cool kids can use or create snazzy CSS websites - C) yet others could interact with the service on a headless server using mutt
 
 
 How It Works
 ------------
 
-* everyone can view repos on public hosts without logging in just as you would expect
-* users can create an account on any public instance or may host their own
-* users can create repos on their home server only
-* users can fork foreign repos to their home server without logging in to the foreign host
+* everyone can view repos on public hosts without logging in (just as you would expect)
+* users can create an account on any public instance or may host their own - (this server will be henceforth referred to as your "home-server")
+* users can create repos on their home-server only
+* users can fork foreign repos to their home-server without logging in to the foreign host
 * users can send merge requests, open issues, post comments, subscribe to updates, and "star" repos without logging in to the foreign host
-* all of the above interactions will be possible without a web browser (e.g. via email)
+* all of the above interactions will be possible with or without a web browser (e.g. via email)
 * savvy admins can interact with the system by implementing the protocols in custom clients
-* participating hosts validate the identity of foreign users with that user's home server
+* participating hosts validate the identity of foreign users against that user's home-server
 * server instances will verify and vouch for the identity of it's users using the server SSL signature
-* authentication is entirely based on bearer tokens that the foreign server can validate as being minted by the user's home server
+* authentication is entirely based on bearer tokens that the foreign server can validate as being minted by the user's home-server
 * instances can optionally send the user's GPG public key for verifying commits/comments
 * instances can optionally sign commits/comments automatically on their user's behalf using a local GPG keychain
-* instances will occasionally poll other instances for updates of issues to which their local users are subscribed in order to notify their local users (e.g. on-site alerts, email alerts) - delivery of which is determined by the user-specified notification settings controlled *entirely* by each user's home server
+* instances will occasionally poll other instances for updates of issues to which their local users are subscribed in order to notify their local users (e.g. on-site alerts, email alerts) - delivery of such alerts is determined by the user-specified notification settings controlled *entirely* by each user's home-server
 
 
 Example User Stories
@@ -63,8 +63,8 @@ Then: user 'barney' creates a repo 'barney.com/barney/barney-made-this'
 Scenario: user forks a foreign repo
 When: fred visits 'barney.com/barney/barney-made-this'
 And: fred presses the 'fork' button
-Then: fred is asked to enter (or select) the domain of his home server
-When: fred indicates the domain of his home server as 'fred.org'
+Then: fred is asked to enter (or select) the domain of his home-server
+When: fred indicates the domain of his home-server as 'fred.org'
 Then: fred is redirected to 'fred.org/login' which is a pass-through if he is already signed in
 When: fred is authenticated
 Then: the 'fred.org' server clones the 'barney-made-this repo' into fred's namespace
@@ -90,8 +90,8 @@ And: fred is redirected to the 'PR' type issue at 'barney.com/barney/barney-made
 Scenario: user posts a comment on a foreign repo issue
 When: fred visits 'barney.com/barney/barney-made-this/issues/42'
 And: fred fills the 'comment' textbox and presses the 'send' button
-Then: fred is asked to enter (or select) the domain of his home server
-When: fred indicates the domain of his home server as 'fred.org'
+Then: fred is asked to enter (or select) the domain of his home-server
+When: fred indicates the domain of his home-server as 'fred.org'
 Then: fred is redirected to 'fred.org/login' which is a pass-through if he is already signed in
 When: fred is authenticated
 Then: the 'fred.org' server posts a notification addressed to the 'barney.com' server indicating that user 'fred@fred.org' has posted a comment to the repo issue at 'barney.com/barney/barney-made-this/issues/42'
@@ -105,7 +105,7 @@ Scenario: user receives notifications for important events
 Given: user 'fred@fred.org' has posted a merge request to the repo 'barney/barney-made-this'
 Then: the 'unseen-alerts' db array for user 'barney' contains a reference to the 'PR' type issue with ID# '42' as posted by user 'fred@fred.org'
 And: barney optionally receives an email notification with a link to 'barney.com/barney/barney-made-this/issues/42'
-When: barney logs into his home server 'barney.com'
+When: barney logs into his home-server 'barney.com'
 Then: he sees a notification icon which is a link to 'barney.com/barney/barney-made-this/notifications'
 When: barney visits 'barney.com/barney/barney-made-this/notifications'
 Then: barney sees a link to the PR issue from user 'fred@fred.org' 'barney.com/barney/barney-made-this/issues/42'
@@ -123,15 +123,15 @@ only some potentially confusing cross-server use-cases are addressed here - but 
 
     [(click here to comment on RFC #1)][RFC-1]
 
-2. all example workflows above are entirely autonomous - ie. regardless of which user initialtes an event or, which client is used, or which project is the source or target - the initialting user's home server mediates every interaction - all instances have full authority over their own data and zero authority over data onother instances
+2. all example workflows above are entirely autonomous - ie. regardless of which user initialtes an event or, which client is used, or which project is the source or target - the initialting user's home-server mediates every interaction - all instances have full authority over their own data and zero authority over data onother instances
 
     [(click here to comment on RFC #2)][RFC-2]
 
-3. all example workflows above are entirely symetrical - ie. every occurance of 'fred' and 'fred's home server' could be replaced with 'barney' and 'barney's home server' with no loss of generality - no server has any more or less capability than or authority over any other
+3. all example workflows above are entirely symetrical - ie. every occurance of 'fred' and 'fred's home-server' could be replaced with 'barney' and 'barney's home-server' with no loss of generality - no server has any more or less capability than or authority over any other
 
     [(click here to comment on RFC #3)][RFC-3]
 
-4. the "user forks a foreign repo" scenario above is a streamlined version of the one originally suggested that had fred press the "login" button on the foreign site - that immediately would be a source of confusion - no one will press the 'login' on a site where they know they have no credentials - it then had fred being redirected to a dummy page on his homeserver 'fred.org/remotes/barney.com/barney/barney-made-this' where he could then press the 'fork' button - that seems like a unnecessary redirect to an unnecessary page which represents data that the home server does not yet have - the user should be able to simply press the 'fork' button on the foreign site and be redirected immediately to the newly created fork on the home server (guarded by the pass-through login check)
+4. the "user forks a foreign repo" scenario above is a streamlined version of the one originally suggested that had fred press the "login" button on the foreign site - that immediately would be a source of confusion - no one will press the 'login' on a site where they know they have no credentials - it then had fred being redirected to a dummy page on his homeserver 'fred.org/remotes/barney.com/barney/barney-made-this' where he could then press the 'fork' button - that seems like a unnecessary redirect to an unnecessary page which represents data that the home-server does not yet have - the user should be able to simply press the 'fork' button on the foreign site and be redirected immediately to the newly created fork on the home-server (guarded by the pass-through login check)
 
     [(click here to comment on RFC #4)][RFC-4]
 
