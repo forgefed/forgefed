@@ -16,6 +16,14 @@ We'll simply add you to the work group.
 
 If you are experienced in writing specifications, you're also welcomed to join the effort.
 
+## Mailing List Archive
+
+We're still waiting for all the tentive work group member to join the mailing list.
+
+All major discussion and decision making will happen in our [Famalistes](https://framalistes.org/)
+[mailing list](https://framalistes.org/sympa/info/git-federation). You may send us a mail at
+git-federation@framalistes.org. We do not garuntee to read all the mail but we would try.
+
 ## License
 
 The specification documents are licensed to a variation of [W3C Document License][w3c-document-license]. 
