@@ -16,13 +16,15 @@ We'll simply add you to the work group.
 
 If you are experienced in writing specifications, you're also welcome to join the effort.
 
-## Mailing List Archive
+## Mailing List
 
 We're still waiting for all the tentative work group members to join the mailing list.
 
-All major discussion and decision making will happen in our [Framalistes](https://framalistes.org/)
-[mailing list](https://framalistes.org/sympa/info/git-federation). You may send us a mail at
-git-federation@framalistes.org. We do not guarantee to read all the mail but we will try.
+All major discussion and decision making will happen in our Framalistes
+[mailing list][mailing-list-archive].
+Non-members may use the GitHub issue tracker or send us a mail at:
+[git-federation@framalistes.org][mailing-list-address].
+We can not guarantee to read all mail or GitHub comments; but we will try.
 
 ## License
 
@@ -33,3 +35,5 @@ license [here](LICENSE/SOFTWARE_LICENSE.md).
 
 [w3c-document-license]: https://www.w3.org/Consortium/Legal/2015/doc-license
 [work-group-discussion]: https://github.com/git-federation/gitpub/issues/5
+[mailing-list-archive]: https://framalistes.org/sympa/arc/git-federation
+[mailing-list-address]: mailto://git-federation@framalistes.org
