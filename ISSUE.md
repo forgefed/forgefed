@@ -41,7 +41,7 @@ for now, to get an idea of what it may look like.
       "to": "https://notabug.org/zPlus/freepost",
       "actor": "https://notabug.org/fr33domlover",
       "object": {
-          "type": "rfv:Note",
+          "type": "rfv:Issue",
           "id": "https://notabug.org/zPlus/freepost/issues/217",
           "attributedTo": "https://notabug.org/fr33domlover",
           "to": "https://notabug.org/zPlus/freepost",
