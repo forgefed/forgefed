@@ -28,3 +28,15 @@ For a property:
 - Domain (e.g. in "A loves B", A probably has to be a person, or at least some
   living being)
 - Range (e.g. in "A lives at B", B has to be a Location/Place)
+
+The file `VOCABULARY.md` contains these 2 lists. Other files such as `ISSUE.md`
+have plans and ideas and info, based on which the vocabulary is gradually
+written.
+
+The intention is to reuse properties and classes in the RDFiverse and
+ActivityPub! Some things in VOCABULARY.md may be removed in favor of existing
+entities defined in such places. As a result, though, we need to provide
+guidelines for the stuff that should be included in JSON-LD data sent between
+servers! For example, if we reuse `dc:author` from the Dublin Core ontology,
+eventually `ISSUE.md` should have an example for a JSON-LD issue object, to
+show the use of `dc:author` there.
