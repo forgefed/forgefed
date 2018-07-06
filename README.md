@@ -40,3 +40,15 @@ guidelines for the stuff that should be included in JSON-LD data sent between
 servers! For example, if we reuse `dc:author` from the Dublin Core ontology,
 eventually `ISSUE.md` should have an example for a JSON-LD issue object, to
 show the use of `dc:author` there.
+
+We may need a base URI for the ActivityPub extension. I suggest we add the
+following mapping to the JSON-LD context:
+
+`"rfv": "https://peers.community/ns/repo-fed-vocab#"`
+
+And we can put in this namespace everything that doesn't come from other
+places. Later that mapping could be changed into a remote context URL, but,
+let's leave that cosmetic detail for later (also I must say, I don't like this
+pretentious cramming of everything into 1 remote context like AP does; I like
+the general RDF way where you just freely add namespace prefixes and use
+whatever you like from the RDFiverse).
