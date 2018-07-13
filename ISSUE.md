@@ -52,3 +52,16 @@ for now, to get an idea of what it may look like.
           "rfv:creation-time": "2018-07-06 14:28:57"
         }
     }
+
+How to create a new issue:
+
+1. Joe writes the issue details locally on his laptop
+2. Joe uses a client-to-server API to send the issue to his server A
+3. Server A creates a JSON-LD issue object wrapped in a Create activity
+4. Server A sends that Create activity to server B, targetting the specific
+   issue tracker where he wants to open the issue
+5. Server B accepts the new issue, adds it to the issue tracker's collection of
+   issues and notifies relevant users (project members, project followers and
+   so on)
+6. Server A adds the activity to Joe's outbox and notifies relevant people: Joe
+   and his followers and so on
