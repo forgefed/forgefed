@@ -4,7 +4,7 @@ By using and/or copying the **licensed document**, includes this document or oth
 
 Permission to copy, and distribute the contents of the licensed document in any medium for any purpose and without fee or royalty is hereby granted, provided that you include the following on *ALL* copies of the document, or portionsthereof, that you use:
 
-- A link or URL to the original W3C document.
+- A link or URL to the original document.
 - The pre-existing copyright notice of the original author.
 
 When space permits, inclusion of the full text of this **NOTICE** should be provided. We request that authorship attribution be provided in anysoftware, documents, or other items or products that you create pursuant to the implementation of the contents of this document, or any portion thereof.
