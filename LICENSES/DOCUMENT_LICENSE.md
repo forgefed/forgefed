@@ -15,7 +15,7 @@ In addition, "Code Components" — includes markup (HTML, CSS, etc.) and compute
 
 The notice is:
 
-> "Copyright © 2018 GitPub Authors."
+> "Copyright © 2018 ForgeFed Authors."
 
 ## Disclaimers
 

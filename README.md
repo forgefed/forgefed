@@ -1,6 +1,6 @@
-# GitPub: federating Git services
+# ForgeFed: federating Git services
 
-GitPub is a decentralized federation protocol based on the W3C's [ActivityPub][ActivityPub], which
+ForgeFed (formerly GitPub) is a decentralized federation protocol based on the W3C's [ActivityPub][ActivityPub], which
 extends [ActivityStream 2.0][ActivityStream2]. It provides a server to server API for pull request,
 forking and subscription of repositories provided by Git web services (services like GitHub, GitLab, 
 Gogs, Gitea).
@@ -34,6 +34,6 @@ components in this specification are licensed under the MIT License. You may obt
 license [here](LICENSE/SOFTWARE_LICENSE.md).
 
 [w3c-document-license]: https://www.w3.org/Consortium/Legal/2015/doc-license
-[work-group-discussion]: https://github.com/git-federation/gitpub/issues/5
+[work-group-discussion]: https://github.com/forgefed/forgefed/issues/5
 [mailing-list-archive]: https://framalistes.org/sympa/arc/git-federation
 [mailing-list-address]: mailto://git-federation@framalistes.org
