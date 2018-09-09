@@ -1,6 +1,6 @@
-# ForgeNet - Work-group for Federated Forge Services
+# ForgeFed - Work-group for Federated Forge Services
 
-ForgeNet is a federation protocol extending the W3C's [ActivityPub][activity-pub] protocol to provide a uniform server-to-server API for interoperability between networked version control services, with limited Pub/Sub access for messaging and notifications to and from the larger Fediverse. It allows users of any compliant service to interact with other compliant forge services without being a registered user of that foreign service, just as if they were. In this way, users that choose to self-host have the additional benefit/responsibility of being in full control of their own authentication/identity and their own data.
+ForgeFed is a federation protocol extending the W3C's [ActivityPub][activity-pub] protocol to provide a uniform server-to-server API for interoperability between networked version control services, with limited Pub/Sub access for messaging and notifications to and from the larger Fediverse. It allows users of any compliant service to interact with other compliant forge services without being a registered user of that foreign service, just as if they were. In this way, users that choose to self-host have the additional benefit/responsibility of being in full control of their own authentication/identity and their own data.
 
 All of the most common user interactions are supported such as: cloning/forking, merge-requests/patches, bug-reports/code-review, subscriptions/favorites with VCS-agnostic and service-agnostic genericity.
 
@@ -13,6 +13,7 @@ The artifacts produced by this work-group are still in the early stages; and the
 
 Services currently represented in the discussions:
 
+* [Git-Dit][git-dit]
 * [GitLab][gitlab]
 * [GitTea][gittea]
 * [Gogs][gogs]
@@ -30,9 +31,10 @@ All artifacts produced by this work-group are freely available under the [CC0 1.
 [activity-pub]:   https://www.w3.org/TR/activitypub/
 [mailing-list]:   mailto://git-federation@framalistes.org
 [mail-archive]:   https://framalistes.org/sympa/arc/git-federation
-[github-issues]:  https://github.com/git-federation/gitpub/issues
-[notabug-issues]: https://notabug.org/peers/forge-net/issues
+[github-issues]:  https://github.com/forgefed/forgefed/issues
+[notabug-issues]: https://notabug.org/peers/forgefed/issues
 [cc0]:            https://creativecommons.org/publicdomain/zero/1.0/
+[git-dit]:        https://github.com/neithernut/git-dit
 [gitlab]:         https://about.gitlab.com/
 [gittea]:         https://gitea.io/en-us/
 [gogs]:           https://gogs.io/
