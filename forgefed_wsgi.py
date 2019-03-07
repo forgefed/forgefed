@@ -7,24 +7,38 @@ from activitypub.manager  import Manager
 from activitypub.database import ListDatabase
 
 
-def inbox_handler(env):     return [ '200 OK' , "inbox"     ]
-def followers_handler(env): return [ '200 OK' , "followers" ]
-def following_handler(env): return [ '200 OK' , "following" ]
-def liked_handler(env):     return [ '200 OK' , "liked"     ]
-def likes_handler(env):     return [ '200 OK' , "likes"     ]
-def outbox_handler(env):    return [ '200 OK' , "outbox"    ]
+def inbox_get_handler(env):      return [ '200 OK' , "GET/inbox"      ]
+def followers_get_handler(env):  return [ '200 OK' , "GET/followers"  ]
+def following_get_handler(env):  return [ '200 OK' , "GET/following"  ]
+def liked_get_handler(env):      return [ '200 OK' , "GET/liked"      ]
+def likes_get_handler(env):      return [ '200 OK' , "GET/likes"      ]
+def outbox_get_handler(env):     return [ '200 OK' , "GET/outbox"     ]
+def inbox_post_handler(env):     return [ '200 OK' , "POST/inbox"     ]
+def followers_post_handler(env): return [ '200 OK' , "POST/followers" ]
+def following_post_handler(env): return [ '200 OK' , "POST/following" ]
+def liked_post_handler(env):     return [ '200 OK' , "POST/liked"     ]
+def likes_post_handler(env):     return [ '200 OK' , "POST/likes"     ]
+def outbox_post_handler(env):    return [ '200 OK' , "POST/outbox"    ]
 ROUTES = {
-  '/inbox'     : inbox_handler     ,
-  '/followers' : followers_handler ,
-  '/following' : following_handler ,
-  '/liked'     : liked_handler     ,
-  '/likes'     : likes_handler     ,
-  '/outbox'    : outbox_handler
+  'GET/inbox'      : inbox_get_handler      ,
+  'GET/followers'  : followers_get_handler  ,
+  'GET/following'  : following_get_handler  ,
+  'GET/liked'      : liked_get_handler      ,
+  'GET/likes'      : likes_get_handler      ,
+  'GET/outbox'     : outbox_get_handler     ,
+  'POST/inbox'     : inbox_post_handler     ,
+  'POST/followers' : followers_post_handler ,
+  'POST/following' : following_post_handler ,
+  'POST/liked'     : liked_post_handler     ,
+  'POST/likes'     : likes_post_handler     ,
+  'POST/outbox'    : outbox_post_handler
 }
 
 
 def application(env , start_response):
   # DEBUG BEGIN
+  import json
+
   #status  = '200 OK'
   #body    = 'Hello World!'
   #body    = 'Hello World!\n' + str(alice.to_dict())
@@ -37,7 +51,8 @@ def application(env , start_response):
   path         = env.get('PATH_INFO').replace('/forge-fed/' , '/')
   method       = env.get('REQUEST_METHOD')
   query        = env.get('QUERY_STRING')
-  route_fn     = ROUTES.get(path)
+  routes_key   = method + path
+  route_fn     = ROUTES.get(routes_key)
   is_valid_req = route_fn != None
   resp         = route_fn(env) if is_valid_req else [ '404 NOT FOUND' , '_4_0_4_' ]
   status       = resp[0]
@@ -49,11 +64,12 @@ def application(env , start_response):
 
 
   # DEBUG BEGIN
-  print('path   = ' + path   + '\n' + \
-        'method = ' + method + '\n' + \
-        'query  = ' + query  + '\n' + \
-        'status = ' + status + '\n' + \
-        'body   = ' + body   + '\n' )
+  print('path     = ' + path          + '\n' + \
+        'method   = ' + method        + '\n' + \
+        'query    = ' + query         + '\n' + \
+        'route_fn = ' + str(route_fn) + '\n' + \
+        'status   = ' + status        + '\n' + \
+        'body     = ' + body          + '\n' )
   # DEBUG END
 
 
