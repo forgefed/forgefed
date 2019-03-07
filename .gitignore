@@ -1,6 +1,10 @@
 *
 !.gitignore
 !COPYING
+!forgefed_constants.py
+!forgefed_model.py
+!forgefed_controller.py
+!forgefed_wsgi.py
 !post-bogus-ap-note
 !README.md
 !run-dev-server
