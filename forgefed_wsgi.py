@@ -1,5 +1,6 @@
 # $ sudo pacman -S python-jinja python-pip
 # $ pip install activitypub --user
+# $ pip install requests-http-signature --user
 #import site ; site.addsitedir('~/.local/lib/python3.7/site-packages/')
 
 
@@ -7,18 +8,18 @@ from activitypub.manager  import Manager
 from activitypub.database import ListDatabase
 
 
-def inbox_get_handler(env):      return [ '200 OK' , "GET/inbox"      ]
-def followers_get_handler(env):  return [ '200 OK' , "GET/followers"  ]
-def following_get_handler(env):  return [ '200 OK' , "GET/following"  ]
-def liked_get_handler(env):      return [ '200 OK' , "GET/liked"      ]
-def likes_get_handler(env):      return [ '200 OK' , "GET/likes"      ]
-def outbox_get_handler(env):     return [ '200 OK' , "GET/outbox"     ]
-def inbox_post_handler(env):     return [ '200 OK' , "POST/inbox"     ]
-def followers_post_handler(env): return [ '200 OK' , "POST/followers" ]
-def following_post_handler(env): return [ '200 OK' , "POST/following" ]
-def liked_post_handler(env):     return [ '200 OK' , "POST/liked"     ]
-def likes_post_handler(env):     return [ '200 OK' , "POST/likes"     ]
-def outbox_post_handler(env):    return [ '200 OK' , "POST/outbox"    ]
+def inbox_get_handler(env):      return [ STATUS_OK , "GET/inbox"      ]
+def followers_get_handler(env):  return [ STATUS_OK , "GET/followers"  ]
+def following_get_handler(env):  return [ STATUS_OK , "GET/following"  ]
+def liked_get_handler(env):      return [ STATUS_OK , "GET/liked"      ]
+def likes_get_handler(env):      return [ STATUS_OK , "GET/likes"      ]
+def outbox_get_handler(env):     return [ STATUS_OK , "GET/outbox"     ]
+def inbox_post_handler(env):     return [ STATUS_OK , "POST/inbox"     ]
+def followers_post_handler(env): return [ STATUS_OK , "POST/followers" ]
+def following_post_handler(env): return [ STATUS_OK , "POST/following" ]
+def liked_post_handler(env):     return [ STATUS_OK , "POST/liked"     ]
+def likes_post_handler(env):     return [ STATUS_OK , "POST/likes"     ]
+def outbox_post_handler(env):    return [ STATUS_OK , "POST/outbox"    ]
 ROUTES = {
   'GET/inbox'      : inbox_get_handler      ,
   'GET/followers'  : followers_get_handler  ,
@@ -39,7 +40,7 @@ def application(env , start_response):
   # DEBUG BEGIN
   import json
 
-  #status  = '200 OK'
+  #status  = STATUS_OK
   #body    = 'Hello World!'
   #body    = 'Hello World!\n' + str(alice.to_dict())
   #body    = 'Hello World!\n</pre>' + json.dumps(str(alice.to_dict()) , sort_keys=True , indent=2 , separators=(', ', ': ')) + '<pre>'
@@ -54,7 +55,7 @@ def application(env , start_response):
   routes_key   = method + path
   route_fn     = ROUTES.get(routes_key)
   is_valid_req = route_fn != None
-  resp         = route_fn(env) if is_valid_req else [ '404 NOT FOUND' , '_4_0_4_' ]
+  resp         = route_fn(env) if is_valid_req else RESP_NOT_FOUND
   status       = resp[0]
   body         = resp[1]
   content_type = 'text/plain'
