@@ -1,8 +1,25 @@
-PATH_REGEX              = r'^/forge-fed/'
-EXPECTED_PATH_SPLIT_LEN = 3 # (/NAME/CHANNEL?k=v)
+LOCAL_CONFIG =                                               \
+{                                                            \
+  "$SCHEME"           : "https"                            , \
+  "$HOST"             : "example.net"                      , \
 
-DB_ID_PREFIX     = 'http://localhost:5000/'
-GLOBAL_ID_SUFFIX = '@localhost'
+  "Person.id"         : "$id@$HOST"                        , \
+  "Person.likes"      : "$id/likes"                        , \
+  "Person.following"  : "$id/following"                    , \
+  "Person.followers"  : "$id/followers"                    , \
+  "Person.liked"      : "$id/liked"                        , \
+  "Person.inbox"      : "$id/inbox"                        , \
+  "Person.outbox"     : "$id/outbox"                       , \
+  "Person.url"        : "$DOMAIN/$id"                      , \
+
+  "Note.id"           : "$temp_uuid"                       , \
+  'Note.attributedTo' : "$from_id"                         , \
+  'Note.content'      : "<p>$source.content</p>"           , \
+  'Note.published'    : "$NOW"                             , \
+  'Note.url'          : "$DOMAIN/$from_id/note/$temp_uuid"
+}
+
+PATH_REGEX = r'^/forge-fed/'
 
 STATUS_OK        = '200 OK'
 STATUS_NOT_FOUND = '404 NOT FOUND'

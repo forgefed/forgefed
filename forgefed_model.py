@@ -1,23 +1,16 @@
 from activitypub.database import ListDatabase
 from activitypub.manager  import Manager
 
-from forgefed_constants import *
+from forgefed_constants import LOCAL_CONFIG
 
 
-def DbId(id):
-  return DB_ID_PREFIX + id
+## getters/setters ##
 
-
-def MakeGlobalId(id):
-  return id + GLOBAL_ID_SUFFIX
-
-
-def CreatePerson(id):
-  person = GetPerson(id)
+def CreatePerson(person_id):
+  person = GetPerson(person_id)
 
   if not person:
-    person           = ApManager.Person(id=id)
-    person.global_id = MakeGlobalId(id)
+    person = ApManager.Person(id=person_id)
 
     Db.actors.insert_one(person.to_dict())
     print("created Person(" + person.id + ")")
@@ -25,30 +18,31 @@ def CreatePerson(id):
   return person
 
 
-def GetPerson(id):
-  return Db.actors.find_one({'id' : DbId(id)})
+def CreateNote(from_id , to_id , body , media_type='text/plain'):
+  note = ApManager.Note(**{'from_id'   : from_id                      , \
+                           'to'        : [ to_id ]                    , \
+                           'cc'        : [ from_id + "/followers" ]   , \
+                           'tag'       : []                           , \
+                           'source'    : { 'mediaType' : media_type ,
+                                           'content'   : body       } , \
+                           'sensitive' : False                        , \
+                           'temp_uuid' : "$UUID"                      , \
+                           'temp_text' : body                         } )
+  Db.activities.insert_one(note.to_dict())
+  print("created Note(" + note.id + ") " + from_id + " -> " + to_id)
+
+  return note
 
 
-## main entry ##
+def GetPerson(person_id):
+  return Db.actors.find_one({'id' : person_id})
+
+
+def GetActivity(activity_id):
+  return Db.activities.find_one({'id' : activity_id})
+
+
+## setup ##
 
 Db        = ListDatabase()
-ApManager = Manager(database=Db)
-Alice     = CreatePerson(id='alice')
-AliceNote = ApManager.Note(**{ 'sensitive'   : False                                              , \
-                               'attributedTo': 'http://localhost:5000'                            , \
-                               'cc'          : [ 'http://localhost:5005/followers' ]              , \
-                               'to'          : [ 'https://www.w3.org/ns/activitystreams#Public']  , \
-                               'content'     : '<p>$source.content</p>'                           , \
-                               'tag'         : []                                                 , \
-                               'source'      : { 'mediaType' : 'text/markdown' ,                    \
-                                                 'content'   : '$temp_text'    }                  , \
-                               'published'   : '$NOW'                                             , \
-                               'temp_uuid'   : "$UUID"                                            , \
-                               'temp_text'   : 'Hello'                                            , \
-                               'id'          : 'http://localhost:5005/outbox/$temp_uuid/activity' , \
-                               'url'         : 'http://localhost:5005/note/$temp_uuid'            } )
-
-
-# DEBUG BEGIN
-print("init Alice=" + str(Alice) + " => " + str(GetPerson('alice')))
-# DEBUG END
+ApManager = Manager(defaults=LOCAL_CONFIG , database=Db)
