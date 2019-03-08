@@ -1,0 +1,150 @@
+#!/bin/sh
+
+# local dev only
+# $ sudo pacman -S gunicorn
+
+
+# dev run - calls application() fn in forgefed_wsgi.py
+gunicorn --reload forgefed_wsgi:application
+
+
+## example data ##
+
+read -r -d '' DB_OBJ <<-'DBOBJ'
+{
+  '_tables':
+  {
+    'activities':
+    [
+      {
+        '@context'     : 'https://www.w3.org/ns/activitystreams'                            ,
+        'attributedTo' : 'alice@example.net'                                                ,
+        'cc'           : [ 'alice@example.net/followers' ]                                  ,
+        'content'      : '<p>Hello Note</p>'                                                ,
+        'id'           : '12a8a47295735f7e'                                                 ,
+        'published'    : '2019-03-08T21:09:14Z'                                             ,
+        'sensitive'    : False                                                              ,
+        'source'       : { 'mediaType' : 'text/plain', 'content': 'Hello Note' }            ,
+        'tag'          : []                                                                 ,
+        'to'           : [ 'bob@example.net' ]                                              ,
+        'type'         : 'Note'                                                             ,
+        'url'          : 'https://example.net:5000/alice@example.net/note/12a8a47295735f7e' ,
+        '_id'          : ObjectId('5c8300f946d13f16edc1c77a')
+      }
+    ] ,
+    'actors':
+    [
+      {
+        '@context'  : 'https://www.w3.org/ns/activitystreams'      ,
+        'endpoints' : {}                                           ,
+        'followers' : 'alice@example.net/followers'                ,
+        'following' : 'alice@example.net/following'                ,
+        'id'        : 'alice@example.net'                          ,
+        'inbox'     : 'alice@example.net/inbox'                    ,
+        'liked'     : 'alice@example.net/liked'                    ,
+        'likes'     : 'alice@example.net/likes'                    ,
+        'outbox'    : 'alice@example.net/outbox'                   ,
+        'type'      : 'Person'                                     ,
+        'url'       : 'https://example.net:5000/alice@example.net' ,
+        '_id'       : ObjectId('5c8300f946d13f16edc1c779')
+      }
+      {
+        '@context'  : 'https://www.w3.org/ns/activitystreams'    ,
+        'endpoints' : {}                                         ,
+        'followers' : 'bob@example.net/followers'                ,
+        'following' : 'bob@example.net/following'                ,
+        'id'        : 'bob@example.net'                          ,
+        'inbox'     : 'bob@example.net/inbox'                    ,
+        'liked'     : 'bob@example.net/liked'                    ,
+        'likes'     : 'bob@example.net/likes'                    ,
+        'outbox'    : 'bob@example.net/outbox'                   ,
+        'type'      : 'Person'                                   ,
+        'url'       : 'https://example.net:5000/bob@example.net' ,
+        '_id'       : ObjectId('5c8300f946d13f16edc1c77a')
+      }
+    ]
+  }
+}
+DBOBJ
+
+
+read -r -d '' REQ_ENV <<-'REQENV'
+env =>{ 'wsgi.errors': <gunicorn.http.wsgi.WSGIErrorsWrapper object at 0x7f2f9a283ac8>,
+	 'wsgi.version': (1,
+	 0),
+	 'wsgi.multithread': False,
+	 'wsgi.multiprocess': False,
+	 'wsgi.run_once': False,
+	 'wsgi.file_wrapper': <class 'gunicorn.http.wsgi.FileWrapper'>,
+	 'SERVER_SOFTWARE': 'gunicorn/19.9.0',
+	 'wsgi.input': <gunicorn.http.body.Body object at 0x7f2f98aa82e8>,
+	 'gunicorn.socket': <socket.socket fd=9,
+	 family=AddressFamily.AF_INET,
+	 type=SocketKind.SOCK_STREAM,
+	 proto=0,
+	 laddr=('127.0.0.1',
+	 8000),
+	 raddr=('127.0.0.1',
+	 43436)>,
+	 'REQUEST_METHOD': 'GET',
+	 'QUERY_STRING': '',
+	 'RAW_URI': '/inbox',
+	 'SERVER_PROTOCOL': 'HTTP/1.1',
+	 'HTTP_HOST': '127.0.0.1:8000',
+	 'HTTP_USER_AGENT': 'Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0 Iceape/2.49.4',
+	 'HTTP_ACCEPT': 'text/html,
+	application/xhtml+xml,
+	application/xml;q=0.9,
+	*/*;q=0.8',
+	 'HTTP_ACCEPT_LANGUAGE': 'en-US,
+	en;q=0.5',
+	 'HTTP_ACCEPT_ENCODING': 'gzip,
+	 deflate',
+	 'HTTP_DNT': '1',
+	 'HTTP_CONNECTION': 'keep-alive',
+	 'HTTP_UPGRADE_INSECURE_REQUESTS': '1',
+	 'HTTP_CACHE_CONTROL': 'max-age=0',
+	 'wsgi.url_scheme': 'http',
+	 'REMOTE_ADDR': '127.0.0.1',
+	 'REMOTE_PORT': '43436',
+	 'SERVER_NAME': '127.0.0.1',
+	 'SERVER_PORT': '8000',
+	 'PATH_INFO': '/inbox',
+	 'SCRIPT_NAME': '' }
+REQENV
+
+
+# outgoing requests
+# $ pip install requests-http-signature --user
+# $ sudo pacman -S python-cryptography python-requests
+# resolving dependencies...
+# looking for conflicting packages...
+#
+# Packages (5) python-asn1crypto-0.24.0-2  python-cffi-1.12.2-1  python-ply-3.11-2
+#              python-pycparser-2.19-1  python-cryptography-2.6.1-1
+
+
+# flaskmanager experiments
+# $ sudo pacman -S python-html2text python-bleach
+# $ pip install  libsass  --user
+# $ sudo pacman -S python-flask
+# Packages (4) python-click-7.0-1  python-itsdangerous-1.1.0-1  python-werkzeug-0.14.1-3
+#              python-flask-1.0.2-2
+# $ sudo pacman -S python-flask-wtf
+# Packages (2) python-wtforms-2.2.1-4  python-flask-wtf-0.14.2-2
+# log/(master![0<-->0]) 2018-07-28 Update README.md
+# $ sudo pacman -S python-sqlalchemy
+
+
+
+# pip install codecov mdx_linkify pyld --user
+# sudo pacman -S python-pytest python-pytest-cov python-httpretty python-black flake8 mypy python-bleach python-requests python-markdown python-pycryptodome python-html2text python-regex
+# Packages (28) python-apipkg-1.5-1  python-atomicwrites-1.3.0-1  python-attrs-18.2.0-1
+#               python-coverage-4.5.2-1  python-entrypoints-0.3-1  python-iniconfig-1.0.0-2
+#               python-mccabe-0.6.1-2  python-more-itertools-4.3.0-1  python-mypy_extensions-0.4.1-1
+#               python-pluggy-0.9.0-1  python-psutil-5.5.0-1  python-py-1.7.0-1
+#               python-pycodestyle-2.5.0-1  python-pyflakes-2.1.1-1  python-toml-0.10.0-1
+#               python-typed-ast-1.2.0-1  flake8-1:3.7.7-1  mypy-0.660-1  python-black-18.9b0-3
+#               python-bleach-3.1.0-1  python-html2text-2018.1.9-2  python-httpretty-0.9.6-1
+#               python-markdown-3.0.1-2  python-pycryptodome-3.7.3-1  python-pytest-4.3.0-1
+#               python-pytest-cov-2.6.1-1  python-regex-2019.02.18-1  python-requests-2.21.0-1

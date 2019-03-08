@@ -1,7 +1,9 @@
 *
 !.gitignore
 !COPYING
+!post-bogus-ap-note
 !README.md
+!run-dev-server
 
 !doc
 doc/*

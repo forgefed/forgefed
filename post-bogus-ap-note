@@ -1,0 +1,28 @@
+#!/bin/sh
+
+readonly TARGET_INBOX_URL=localhost:8000/forge-fed/alice@example.net/inbox/
+# readonly TARGET_INBOX_URL=https://forge.angeley.es/inbox
+read -r -d '' BOGUS_AP_NOTE <<-'BOGUSAPNOTE'
+{
+  "@context"     : "https://www.w3.org/ns/activitystreams"                              ,
+  "attributedTo" : "charlie@example.net"                                                ,
+  "cc"           : [ "alice@example.net/followers" ]                                    ,
+  "content"      : "<p>Hello Note</p>"                                                  ,
+  "id"           : "0123456789ABCDEF"                                                   ,
+  "published"    : "2019-03-08T21:09:14Z"                                               ,
+  "sensitive"    : "False"                                                              ,
+  "source"       : { "mediaType" : "text/plain", "content": "Hello Note" }              ,
+  "tag"          : []                                                                   ,
+  "to"           : [ "alice@example.net" ]                                              ,
+  "type"         : "Note"                                                               ,
+  "url"          : "https://example.net:5000/charlie@example.net/note/0123456789ABCDEF"
+}
+BOGUSAPNOTE
+
+
+# curl -X POST --data '{"k1":"v1","k2":"v2"}' $TARGET_INBOX_URL
+# curl -X POST --data @NOSUCHFILE $TARGET_INBOX_URL
+curl -w "%{http_code}\\n"                              \
+     -H "Content-Type: application/activity+json"      \
+     -H "Accept: application/json"                     \
+     -X POST --data "$BOGUS_AP_NOTE" $TARGET_INBOX_URL
