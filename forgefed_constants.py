@@ -20,7 +20,10 @@ LOCAL_CONFIG =                                               \
 }
 
 PATH_REGEX = r'^/forge-fed/'
+AP_NS_URL  = 'https://www.w3.org/ns/activitystreams'
 
-STATUS_OK        = '200 OK'
-STATUS_NOT_FOUND = '404 NOT FOUND'
-RESP_NOT_FOUND   = [ STATUS_NOT_FOUND , '_4_0_4_' ]
+STATUS_OK             = '200 OK'
+STATUS_NOT_FOUND      = '404 NOT FOUND'
+RESP_NOT_FOUND        = [ STATUS_NOT_FOUND , '{ "message" : "resource not found" }'            ]
+RESP_INVALID_JSON     = [ STATUS_OK        , '{ "message" : "invalid JSON struct" }'           ]
+RESP_INVALID_ACTIVITY = [ STATUS_OK        , '{ "message" : "invalid activity-pub activity" }' ]

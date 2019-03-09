@@ -4,6 +4,7 @@
 #import site ; site.addsitedir('~/.local/lib/python3.7/site-packages/')
 
 
+import json
 import re
 
 from forgefed_constants  import PATH_REGEX , RESP_NOT_FOUND
@@ -39,19 +40,46 @@ def application(env , start_response):
   # DEBUG END
 
 
-  full_path    = env.get('PATH_INFO')
-  method       = env.get('REQUEST_METHOD')
-  query        = env.get('QUERY_STRING')
-  path         = re.sub(PATH_REGEX , '/' , full_path).split('/')
-  person_id    = path[1] if len(path) >= 2 else ''
-  channel      = path[2] if len(path) >= 3 else ''
-  person       = GetPerson(person_id)
-  routes_key   = method + '-' + channel if person != None else ''
-  route_fn     = ROUTES.get(routes_key)
-  is_valid_req = route_fn != None
-  resp         = route_fn(person_id , query) if is_valid_req else RESP_NOT_FOUND
-  status       = resp[0]
-  body         = resp[1]
+  ## parse request ##
+
+  full_path = env.get('PATH_INFO'     )
+  method    = env.get('REQUEST_METHOD')
+
+  if   method == 'GET' : ap_dict = ''
+  elif method == 'POST':
+    try:
+      req_body_len = int(env.get('CONTENT_LENGTH' , 0))
+      req_body     = env['wsgi.input'].read(req_body_len).decode('utf8')
+      ap_dict      = json.loads(req_body)
+    except (ValueError):
+      method   = 'INVALID_JSON_POST' # invalidate the request route
+      req_body = None
+      ap_dict  = None
+
+  path             = re.sub(PATH_REGEX , '/' , full_path).split('/')
+  person_id        = path[1] if len(path) >= 2 else ''
+  channel          = path[2] if len(path) >= 3 else ''
+  person           = GetPerson(person_id)
+  routes_key       = method + '-' + channel if person != None else ''
+  route_fn         = ROUTES.get(routes_key)
+  is_valid_req     = route_fn != None
+  is_valid_payload = IsValidActivity(ap_dict)
+
+
+  # DEBUG BEGIN
+  reqbody_dbg = req_body if req_body != None else 'INVALID'
+  apdict_dbg  = ap_dict  if ap_dict  != None else { 'INVALID' : 'INVALID' }
+  DbgTraceReq(full_path , path , person_id , channel , method , reqbody_dbg , apdict_dbg , routes_key , route_fn)
+  # DEBUG END
+
+
+  ## handle request ##
+
+  resp         = route_fn(person_id , ap_dict) if is_valid_req and is_valid_payload else \
+                 RESP_INVALID_ACTIVITY         if is_valid_req                      else \
+                 RESP_NOT_FOUND
+  status       = resp[0] if len(resp) == 2 else '442 BORKED'
+  body         = resp[1] if len(resp) == 2 else 'INVALID_RESP'
   content_type = 'text/plain'
   content_len  = str(len(body))
   headers      = [ ('Content-type'   , content_type) ,
@@ -71,8 +99,6 @@ def application(env , start_response):
 
 
 # DEBUG BEGIN
-import json
-
 def DbgTraceReq(full_path , path , person_id , channel , method , req_body , ap_dict , routes_key , route_fn):
   print("full_path  = " + full_path     )
   print("path       = " + '/'.join(path))
