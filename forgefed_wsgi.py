@@ -1,4 +1,4 @@
-# $ sudo pacman -S python-jinja python-pip
+# $ sudo pacman -S python-cryptography python-jinja python-pip python-requests
 # $ pip install activitypub --user
 # $ pip install requests-http-signature --user
 #import site ; site.addsitedir('~/.local/lib/python3.7/site-packages/')
@@ -67,9 +67,8 @@ def application(env , start_response):
 
 
   # DEBUG BEGIN
-  reqbody_dbg = req_body if req_body != None else 'INVALID'
-  apdict_dbg  = ap_dict  if ap_dict  != None else { 'INVALID' : 'INVALID' }
-  DbgTraceReq(full_path , path , person_id , channel , method , reqbody_dbg , apdict_dbg , routes_key , route_fn)
+  if method != 'POST': req_body = ''
+  DbgTraceReq(full_path , path , person_id , channel , method , req_body , ap_dict , routes_key , route_fn)
   # DEBUG END
 
 

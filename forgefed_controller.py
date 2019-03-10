@@ -1,5 +1,7 @@
-from forgefed_constants import RESP_NOT_FOUND , STATUS_OK
-from forgefed_model     import ApManager , GetPerson , IsValidActivity , IsValidNoteActivity
+import requests
+
+from forgefed_constants import AP_POST_HEADERS , HTTP_SIG_AUTH , RESP_NOT_FOUND , STATUS_OK
+from forgefed_model     import ApManager , CreateNote , GetPerson , IsValidActivity , IsValidNoteActivity
 
 
 def user_get_handler(person_id , ap_dict):
@@ -53,11 +55,38 @@ def likes_post_handler(person_id , ap_dict):     return [ STATUS_OK , "POST/like
 def outbox_post_handler(person_id , ap_dict):    return [ STATUS_OK , "POST/outbox"    ]
 
 
+def SignedGetReq(url):
+  resp = requests.get(url , auth=HTTP_SIG_AUTH)
+
+
+  # DEBUG BEGIN
+  print("SignedGetReq() url=" + url + " resp=" + resp.text)
+  # DEBUG END
+
+
+def SignedPostReq(url , a_dict):
+  post_body = str(a_dict).encode()
+  resp      = requests.post(url , headers=AP_POST_HEADERS , data=post_body , auth=HTTP_SIG_AUTH)
+
+
+  # DEBUG BEGIN
+  print("SignedPostReq() url=" + url + "\n\tpost_body=" + str(post_body) + "\n\tresp=" + resp.text)
+  # DEBUG END
+
+
+# WIP BEGIN
+#def key_resolver(key_id, algorithm):
+  #return public_keys[key_id]
+
+#HTTPSignatureAuth.verify(request, key_resolver=key_resolver)
+# WIP END
+
+
 print("ready")
 
 
 # DEBUG BEGIN
-from forgefed_model import CreateNote , CreatePerson
+from forgefed_model import CreatePerson
 
 Alice     = CreatePerson(person_id='alice')
 Bob       = CreatePerson(person_id='bob')
@@ -68,4 +97,10 @@ AliceNote = CreateNote(from_id=Alice.id , to_id=Bob.id , body='Hello Note')
 #print("Bob="       + str(Bob      ) + " => " + str(GetPerson  (Bob      .id)))
 #print("AliceNote=" + str(AliceNote) + " => " + str(GetActivity(AliceNote.id)))
 #from forgefed_model import Db ; from pprint import pprint ; print("Db=") ; pprint(vars(Db))
+
+from forgefed_constants import TEST_REMOTE_INBOX_URL
+from forgefed_model import GetActivity
+#SignedGetReq(TEST_REMOTE_ACTOR_URL)
+#SignedPostReq(TEST_REMOTE_INBOX_URL , {"k1":"v1"})
+SignedPostReq(TEST_REMOTE_INBOX_URL , GetActivity(AliceNote.id))
 # DEBUG END
