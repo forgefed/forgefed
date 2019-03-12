@@ -7,7 +7,7 @@ from forgefed_model     import ApManager , CreateNote , GetPerson , IsValidActiv
 def user_get_handler(person_id , ap_dict):
   person = GetPerson(person_id)
 
-  return [ STATUS_OK , "this is " + person_id ] if person != None else RESP_NOT_FOUND
+  return [ STATUS_OK , json.dumps(person['ap-dict']) ] if person != None else RESP_NOT_FOUND
 
 
 def inbox_get_handler(person_id , ap_dict):      return [ STATUS_OK , "GET/inbox"      ]

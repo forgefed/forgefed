@@ -1,7 +1,7 @@
 from activitypub.database import ListDatabase
 from activitypub.manager  import Manager
 
-from forgefed_constants import AP_NS_URL , LOCAL_CONFIG
+from forgefed_constants import AP_NS_URL , LOCAL_CONFIG , PUBLIC_KEY
 
 
 ## getters/setters ##
@@ -10,7 +10,14 @@ def CreatePerson(person_id):
   person = GetPerson(person_id)
 
   if not person:
-    person = ApManager.Person(id=person_id)
+    # TODO: publicKey belongs in the activitypub library
+    person           = ApManager.Person(id=person_id)
+    person.publicKey =                                \
+    {                                                 \
+      "id"           : person.url + "/http-sig-key" , \
+      "owner"        : person.url                   , \
+      "publicKeyPem" : str(PUBLIC_KEY)                \
+    }
 
     Db.actors.insert_one(person.to_dict())
     print("created Person(" + person.id + ")")
