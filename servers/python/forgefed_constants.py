@@ -1,23 +1,24 @@
+import os
 from requests_http_signature import HTTPSignatureHeaderAuth
 
 
-PROTOCOL     = 'https'
-HOSTNAME     = 'example.net'
-TCP_PORT     = 8888
+PROTOCOL     = os.environ['FORGEFED_PROTOCOL'] if 'FORGEFED_PROTOCOL' in os.environ else 'https'
+HOSTNAME     = os.environ['FORGEFED_HOSTNAME'] if 'FORGEFED_HOSTNAME' in os.environ else 'example.net'
+TCP_PORT     = os.environ['FORGEFED_TCP_PORT'] if 'FORGEFED_TCP_PORT' in os.environ else 80
 LOCAL_CONFIG =                                               \
 {                                                            \
   "$SCHEME"           : PROTOCOL                           , \
   "$HOST"             : HOSTNAME                           , \
   "$PORT"             : TCP_PORT                           , \
 
-  "Person.id"         : "$id@$HOST"                        , \
-  "Person.likes"      : "$id/likes"                        , \
-  "Person.following"  : "$id/following"                    , \
-  "Person.followers"  : "$id/followers"                    , \
-  "Person.liked"      : "$id/liked"                        , \
-  "Person.inbox"      : "$id/inbox"                        , \
-  "Person.outbox"     : "$id/outbox"                       , \
-  "Person.url"        : "$DOMAIN/$id"                      , \
+  "Person.id"         : "$DOMAIN/$id"                      , \
+  "Person.likes"      : "$id/likes"                , \
+  "Person.following"  : "$id/following"            , \
+  "Person.followers"  : "$id/followers"            , \
+  "Person.liked"      : "$id/liked"                , \
+  "Person.inbox"      : "$id/inbox"                , \
+  "Person.outbox"     : "$id/outbox"               , \
+  "Person.url"        : "$id"                      , \
 
   "Note.id"           : "$temp_uuid"                       , \
   'Note.attributedTo' : "$from_id"                         , \
@@ -26,7 +27,13 @@ LOCAL_CONFIG =                                               \
   'Note.url'          : "$DOMAIN/$from_id/note/$temp_uuid"
 }
 
-#TEST_REMOTE_ACTOR_URL = 'https://forge.angeley.es/' # vervis
+PATH_REGEX       = r'^/forge-fed/'
+LOCAL_ID_REGEX   = r'[^0-9a-zA-Z_-]+'
+FOREIGN_ID_REGEX = r'[0-9a-zA-Z_-]+@[0-9a-zA-Z-][0-9a-zA-Z.-]*[0-9a-zA-Z-]\.[a-z]+'
+AP_NS_URL        = 'https://www.w3.org/ns/activitystreams'
+
+TEST_REMOTE_ACTOR_ID  = 'bob@forge.angeley.es'
+TEST_REMOTE_ACTOR_URL = 'https://forge.angeley.es/'      # vervis
 TEST_REMOTE_INBOX_URL = 'https://forge.angeley.es/inbox' # vervis
 HTTP_SIG_PUB_KEY_FILE = 'public.pem'
 HTTP_SIG_PVT_KEY_FILE = 'private.pem'
@@ -37,18 +44,15 @@ with open(HTTP_SIG_PVT_KEY_FILE , 'rb') as private_key_file:
 AP_POST_HEADERS       = { 'Content-Type'      : 'application/activity+json'                  ,
                           'Accept'            : 'application/json'                           ,
                           'ActivityPub-Actor' : PROTOCOL + '://' + HOSTNAME + '/dummy-actor' } # vervis extension
-AP_SIGN_HEADERS       = [ '(request-target)' , 'host' , 'date' , 'ActivityPub-Actor' ] # vervis extension (ActivityPub-Actor)
+AP_SIGN_HEADERS       = [ '(request-target)' , 'host' , 'date' , 'ActivityPub-Actor' ]         # vervis extension (ActivityPub-Actor)
 AP_SIGN_ALGORITHM     = 'rsa-sha256'
-HTTP_SIG_KEY_ID       = HOSTNAME
+HTTP_SIG_KEY_ID       = PROTOCOL + '://' + HOSTNAME + '/forge-fed/alice@' + HOSTNAME
 KEYFILE_PUB_HEADER    = b'-----BEGIN PUBLIC KEY-----\n'
 KEYFILE_PUB_FOOTER    = b'-----END PUBLIC KEY-----\n'
 KEYFILE_PVT_HEADER    = b'-----BEGIN RSA PRIVATE KEY-----\n'
 KEYFILE_PVT_FOOTER    = b'-----END RSA PRIVATE KEY-----\n'
 HTTP_SIG_AUTH         = HTTPSignatureHeaderAuth(headers=AP_SIGN_HEADERS , algorithm=AP_SIGN_ALGORITHM , \
                                                 key_id=HTTP_SIG_KEY_ID  , key=PRIVATE_KEY             )
-
-PATH_REGEX = r'^/forge-fed/'
-AP_NS_URL  = 'https://www.w3.org/ns/activitystreams'
 
 STATUS_OK             = '200 OK'
 STATUS_NOT_FOUND      = '404 NOT FOUND'
@@ -59,6 +63,8 @@ RESP_INVALID_ACTIVITY = [ STATUS_OK        , '{ "message" : "invalid activity-pu
 
 # DEBUG BEGIN
 #from pprint import pprint ; print("HTTP_SIG_AUTH=") ; pprint(vars(HTTP_SIG_AUTH))
+DBG_COLOR_INCOMING = 'red'
+DBG_COLOR_OUTGOING = 'green'
 # DEBUG END
 
 

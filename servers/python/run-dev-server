@@ -1,11 +1,23 @@
 #!/bin/sh
 
+# outgoing requests
+# $ pip install requests-http-signature --user
+# $ sudo pacman -S python-cryptography python-requests
+# resolving dependencies...
+# looking for conflicting packages...
+#
+# Packages (5) python-asn1crypto-0.24.0-2  python-cffi-1.12.2-1  python-ply-3.11-2
+#              python-pycparser-2.19-1  python-cryptography-2.6.1-1
+#
+# $ sudo pacman -S python-termcolor
+# Packages (1) python-termcolor-1.1.0-6
+
 # local dev only
 # $ sudo pacman -S gunicorn
 
 
 # dev run - calls application() fn in forgefed_wsgi.py
-gunicorn --reload forgefed_wsgi:application
+gunicorn --workers 2 --threads 2 --reload forgefed_wsgi:application
 
 
 ## example data ##
@@ -112,16 +124,6 @@ env =>{ 'wsgi.errors': <gunicorn.http.wsgi.WSGIErrorsWrapper object at 0x7f2f9a2
 	 'PATH_INFO': '/inbox',
 	 'SCRIPT_NAME': '' }
 REQENV
-
-
-# outgoing requests
-# $ pip install requests-http-signature --user
-# $ sudo pacman -S python-cryptography python-requests
-# resolving dependencies...
-# looking for conflicting packages...
-#
-# Packages (5) python-asn1crypto-0.24.0-2  python-cffi-1.12.2-1  python-ply-3.11-2
-#              python-pycparser-2.19-1  python-cryptography-2.6.1-1
 
 
 # flaskmanager experiments

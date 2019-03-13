@@ -1,47 +1,71 @@
+import re
 from activitypub.database import ListDatabase
 from activitypub.manager  import Manager
 
-from forgefed_constants import AP_NS_URL , LOCAL_CONFIG , PUBLIC_KEY
+from forgefed_constants import AP_NS_URL , HOSTNAME , FOREIGN_ID_REGEX , LOCAL_CONFIG , \
+                               LOCAL_ID_REGEX , PROTOCOL , PUBLIC_KEY
 
 
 ## getters/setters ##
 
-def CreatePerson(person_id):
+def CreatePerson(person_id , actor_url='' , inbox_url=''):
+  if   actor_url == '' and inbox_url == '':      # local actor
+    person_id     = re.sub(LOCAL_ID_REGEX , '' , person_id) + '@' + HOSTNAME
+    person_params = { 'id' : person_id }
+  elif actor_url != '' and inbox_url != '' and \
+       re.search(FOREIGN_ID_REGEX , person_id) : # foreign actor
+    person_params = { 'id' : person_id , 'actor' : actor_url , 'inbox' : inbox_url }
+  else: raise ValueError("invalid person params: '" + "','".join([person_id , actor_url , inbox_url]) + "'")
+
   person = GetPerson(person_id)
 
-  if not person:
-    # TODO: publicKey belongs in the activitypub library
-    person           = ApManager.Person(id=person_id)
-    person.publicKey =                                \
-    {                                                 \
-      "id"           : person.url + "/http-sig-key" , \
-      "owner"        : person.url                   , \
-      "publicKeyPem" : str(PUBLIC_KEY)                \
+  if person == None:
+    # TODO: publicKey and preferredUsername belong in the activitypub library
+    person                   = ApManager.Person(**person_params)
+    person.preferredUsername = person_id
+    person.publicKey         =           \
+    {                                    \
+      "id"           : person.url      , \
+      "owner"        : person.url      , \
+      "publicKeyPem" : str(PUBLIC_KEY)   \
     }
 
+    #print("person.publicKey=" + str(person.publicKey))
+
     Db.actors.insert_one(person.to_dict())
-    print("created Person(" + person.id + ")")
+
+    if GetPerson(person_id) != None: print("created Person(" + person.id + ")")
+
+    db_person = GetPerson(person_id)
+    print("person.publicKey=" + str(person.publicKey))
+    print("db_person.publicKey=" + db_person['publicKey'])
 
   return person
 
 
-def CreateNote(from_id , to_id , body , media_type='text/plain'):
-  note = ApManager.Note(**{'from_id'   : from_id                      , \
-                           'to'        : [ to_id ]                    , \
-                           'cc'        : [ from_id + "/followers" ]   , \
-                           'tag'       : []                           , \
-                           'source'    : { 'mediaType' : media_type ,
-                                           'content'   : body       } , \
-                           'sensitive' : False                        , \
-                           'temp_uuid' : "$UUID"                      , \
-                           'temp_text' : body                         } )
-  Db.activities.insert_one(note.to_dict())
+def NewNote(from_id , to_id , body , media_type='text/plain'):
+  note_params =                                  \
+  {                                              \
+    'from_id'   : from_id                      , \
+    'to'        : [ to_id ]                    , \
+    'cc'        : [ from_id + "/followers" ]   , \
+    'tag'       : []                           , \
+    'source'    : { 'mediaType' : media_type ,   \
+                    'content'   : body       } , \
+    'sensitive' : False                        , \
+    'temp_uuid' : "$UUID"                      , \
+    'temp_text' : body                           \
+  }
+  note = ApManager.Note(**note_params)
+
   print("created Note(" + note.id + ") " + from_id + " -> " + to_id)
 
   return note
 
 
 def GetPerson(person_id):
+  person_id = PROTOCOL + '://' + HOSTNAME + '/' + person_id
+
   return Db.actors.find_one({'id' : person_id})
 
 
@@ -88,19 +112,10 @@ def IsValidActivity(ap_dict):
          'to'           in ap_dict and len(ap_dict['to'])  == 1
 
 
-## event handlers ##
-
-def OnBoxRecv(box , activity_id):
-  # NOTE: this fires after message is written to the DB
-  print("OnBoxRecv() box=" + box + " activity_id=" + activity_id)
-
-
 ## setup ##
 
 Db        = ListDatabase()
 ApManager = Manager(defaults=LOCAL_CONFIG , database=Db)
-
-ApManager.set_callback(OnBoxRecv)
 
 
 # DEBUG BEGIN

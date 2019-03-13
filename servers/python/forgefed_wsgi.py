@@ -7,7 +7,7 @@
 import json
 import re
 
-from forgefed_constants  import PATH_REGEX , RESP_NOT_FOUND
+from forgefed_constants  import PATH_REGEX , RESP_INVALID_ACTIVITY , RESP_NOT_FOUND
 from forgefed_controller import *
 from forgefed_model      import GetPerson
 
@@ -32,7 +32,7 @@ ROUTES =                                      \
 
 def application(env , start_response):
   # DEBUG BEGIN
-  import datetime ; print("\nnew request " + str(datetime.datetime.now()))
+  import datetime ; cprint("\nnew request " + str(datetime.datetime.now()) , DBG_COLOR_INCOMING)
 
   #status  = STATUS_OK
   #body    = 'Hello World!'
@@ -63,7 +63,7 @@ def application(env , start_response):
   routes_key       = method + '-' + channel if person != None else ''
   route_fn         = ROUTES.get(routes_key)
   is_valid_req     = route_fn != None
-  is_valid_payload = IsValidActivity(ap_dict)
+  is_valid_payload = method != 'POST' or IsValidActivity(ap_dict)
 
 
   # DEBUG BEGIN
@@ -79,7 +79,10 @@ def application(env , start_response):
                  RESP_NOT_FOUND
   status       = resp[0] if len(resp) == 2 else '442 BORKED'
   body         = resp[1] if len(resp) == 2 else 'INVALID_RESP'
-  content_type = 'text/plain'
+  content_type = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"'       if routes_key == 'GET-'       else 'text/plain'
+  #content_type = 'application/ld+json'       if routes_key == 'GET-'       else              \
+                 #'application/activity+json' if routes_key == 'GET-inbox' or                 \
+                                                #routes_key == 'GET-outbox' else 'text/plain'
   content_len  = str(len(body))
   headers      = [ ('Content-type'   , content_type) ,
                    ('Content-Length' , content_len ) ]
@@ -98,19 +101,23 @@ def application(env , start_response):
 
 
 # DEBUG BEGIN
+from termcolor import cprint
+from forgefed_constants import DBG_COLOR_INCOMING
 def DbgTraceReq(full_path , path , person_id , channel , method , req_body , ap_dict , routes_key , route_fn):
-  print("full_path  = " + full_path     )
-  print("path       = " + '/'.join(path))
-  print("person_id  = " + person_id     )
-  print("channel    = " + channel       )
-  print("method     = " + method        )
-  print("req_body   = " + req_body      )
-  print("ap_dict    = " + json.dumps(ap_dict , sort_keys=True , indent=2))
-  print("routes_key = " + routes_key    )
-  print("route_fn   = " + str(route_fn) )
+  apdict = json.dumps(ap_dict , sort_keys=True , indent=2)
+
+  cprint("full_path  = " + full_path      , DBG_COLOR_INCOMING)
+  cprint("path       = " + '/'.join(path) , DBG_COLOR_INCOMING)
+  cprint("person_id  = " + person_id      , DBG_COLOR_INCOMING)
+  cprint("channel    = " + channel        , DBG_COLOR_INCOMING)
+  cprint("method     = " + method         , DBG_COLOR_INCOMING)
+  cprint("req_body   = " + req_body       , DBG_COLOR_INCOMING)
+  cprint("ap_dict    = " + apdict         , DBG_COLOR_INCOMING)
+  cprint("routes_key = " + routes_key     , DBG_COLOR_INCOMING)
+  cprint("route_fn   = " + str(route_fn)  , DBG_COLOR_INCOMING)
 
 def DbgTraceResp(status , body):
-  print("status     = " + status        )
-  print("body       = " + body          )
+  cprint("status     = " + status         , DBG_COLOR_INCOMING)
+  cprint("body       = " + body           , DBG_COLOR_INCOMING)
 
 # DEBUG END
