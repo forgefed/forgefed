@@ -14,6 +14,7 @@ from forgefed_model      import GetPerson
 
 ROUTES =                                      \
 {                                             \
+  'GET-/.well-known/webfinger' : webfinger_get_handler , \
   'GET-'           : user_get_handler       , \
   'GET-inbox'      : inbox_get_handler      , \
   'GET-followers'  : followers_get_handler  , \
@@ -61,6 +62,13 @@ def application(env , start_response):
   channel          = path[2] if len(path) >= 3 else ''
   person           = GetPerson(person_id)
   routes_key       = method + '-' + channel if person != None else ''
+
+  if full_path == '/.well-known/webfinger':
+    routes_key     = method + '-' + full_path
+    query          = env.get('QUERY_STRING')
+    print("query=" + query)
+    person_id      = re.sub(r'resource=acct:' , '' , query)
+
   route_fn         = ROUTES.get(routes_key)
   is_valid_req     = route_fn != None
   is_valid_payload = method != 'POST' or IsValidActivity(ap_dict)

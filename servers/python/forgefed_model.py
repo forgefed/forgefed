@@ -2,20 +2,21 @@ import re
 from activitypub.database import ListDatabase
 from activitypub.manager  import Manager
 
-from forgefed_constants import AP_NS_URL , HOSTNAME , FOREIGN_ID_REGEX , LOCAL_CONFIG , \
-                               LOCAL_ID_REGEX , PROTOCOL , PUBLIC_KEY
+from forgefed_constants import AP_NS_URLS , AP_SEC_URL , HOSTNAME , FOREIGN_ID_REGEX ,   \
+                               LOCAL_CONFIG , LOCAL_ID_REGEX , PATH_PREFIX , PROTOCOL , \
+                               PUBLIC_KEY , URL_REGEX
 
 
 ## getters/setters ##
 
 def CreatePerson(person_id , actor_url='' , inbox_url=''):
-  if   actor_url == '' and inbox_url == '':      # local actor
+  if   actor_url == '' and inbox_url == ''     : # local actor
     person_id     = re.sub(LOCAL_ID_REGEX , '' , person_id) + '@' + HOSTNAME
     person_params = { 'id' : person_id }
   elif actor_url != '' and inbox_url != '' and \
        re.search(FOREIGN_ID_REGEX , person_id) : # foreign actor
     person_params = { 'id' : person_id , 'actor' : actor_url , 'inbox' : inbox_url }
-  else: raise ValueError("invalid person params: '" + "','".join([person_id , actor_url , inbox_url]) + "'")
+  else: raise ValueError("invalid Person params: '" + "','".join([person_id , actor_url , inbox_url]) + "'")
 
   person = GetPerson(person_id)
 
@@ -23,22 +24,25 @@ def CreatePerson(person_id , actor_url='' , inbox_url=''):
     # TODO: publicKey and preferredUsername belong in the activitypub library
     person                   = ApManager.Person(**person_params)
     person.preferredUsername = person_id
-    person.publicKey         =           \
-    {                                    \
-      "id"           : person.url      , \
-      "owner"        : person.url      , \
-      "publicKeyPem" : str(PUBLIC_KEY)   \
+    person.publicKey         =               \
+    {                                        \
+      "id"           : person.url + '#rsa-pub-key'         , \
+      "owner"        : person.url          , \
+      "publicKeyPem" : PUBLIC_KEY.decode()   \
     }
 
-    #print("person.publicKey=" + str(person.publicKey))
-
-    Db.actors.insert_one(person.to_dict())
+    #Db.actors.insert_one(person.to_dict())
+    Actors[person_id] = person
 
     if GetPerson(person_id) != None: print("created Person(" + person.id + ")")
 
     db_person = GetPerson(person_id)
-    print("person.publicKey=" + str(person.publicKey))
-    print("db_person.publicKey=" + db_person['publicKey'])
+    #print("person.publicKey=" + str(person.publicKey))
+    #print("db_person.publicKey=" + str(db_person.publicKey))
+    #dict_person = person.to_dict()
+    #dict_person['publicKey'] = person.publicKey
+    #print("dict_person.publicKey=" + str(dict_person['publicKey']))
+
 
   return person
 
@@ -64,9 +68,10 @@ def NewNote(from_id , to_id , body , media_type='text/plain'):
 
 
 def GetPerson(person_id):
-  person_id = PROTOCOL + '://' + HOSTNAME + '/' + person_id
+  #person_id = PROTOCOL + '://' + HOSTNAME + '/' + person_id
 
-  return Db.actors.find_one({'id' : person_id})
+  #return Db.actors.find_one({'id' : person_id})
+  return Actors[person_id] if person_id in Actors else None
 
 
 def GetActivity(activity_id):
@@ -81,19 +86,19 @@ def IsValidNoteActivity(ap_dict):
   # DEBUG END
 
 
-  return '@context'     in ap_dict and ap_dict['@context'] == AP_NS_URL and \
-         'attributedTo' in ap_dict                                      and \
-         'cc'           in ap_dict                                      and \
-         'content'      in ap_dict                                      and \
-         'id'           in ap_dict                                      and \
-         'published'    in ap_dict                                      and \
-         'sensitive'    in ap_dict                                      and \
-         'source'       in ap_dict                                      and \
-           'mediaType'    in ap_dict['source']                          and \
-           'content'      in ap_dict['source']                          and \
-         'tag'          in ap_dict                                      and \
-         'to'           in ap_dict and len(ap_dict['to'])  == 1         and \
-         'type'         in ap_dict and ap_dict['type']     == 'Note'    and \
+  return '@context'     in ap_dict and ap_dict['@context'] == AP_NS_URLS and \
+         'attributedTo' in ap_dict                                       and \
+         'cc'           in ap_dict                                       and \
+         'content'      in ap_dict                                       and \
+         'id'           in ap_dict                                       and \
+         'published'    in ap_dict                                       and \
+         'sensitive'    in ap_dict                                       and \
+         'source'       in ap_dict                                       and \
+           'mediaType'    in ap_dict['source']                           and \
+           'content'      in ap_dict['source']                           and \
+         'tag'          in ap_dict                                       and \
+         'to'           in ap_dict and len(ap_dict['to'])  == 1          and \
+         'type'         in ap_dict and ap_dict['type']     == 'Note'     and \
          'url'          in ap_dict
 
 
@@ -105,17 +110,24 @@ def IsValidActivity(ap_dict):
 
 
   # TODO: validate baseline AP message
-  return '@context'     in ap_dict and ap_dict['@context'] == AP_NS_URL and \
-         'attributedTo' in ap_dict                                      and \
-         'content'      in ap_dict                                      and \
-         'id'           in ap_dict                                      and \
+  return '@context'     in ap_dict and ap_dict['@context'] == AP_NS_URLS and \
+         'attributedTo' in ap_dict                                       and \
+         'content'      in ap_dict                                       and \
+         'id'           in ap_dict                                       and \
          'to'           in ap_dict and len(ap_dict['to'])  == 1
+
+
+## helpers ##
+
+def ParsePersonId(person_id):
+  return re.sub(URL_REGEX , '' , person_id)
 
 
 ## setup ##
 
 Db        = ListDatabase()
 ApManager = Manager(defaults=LOCAL_CONFIG , database=Db)
+Actors    = {}
 
 
 # DEBUG BEGIN

@@ -17,6 +17,7 @@
 
 
 # dev run - calls application() fn in forgefed_wsgi.py
+export FORGEFED_HOSTNAME='c7fcb87a.ngrok.io'
 gunicorn --workers 2 --threads 2 --reload forgefed_wsgi:application
 
 
