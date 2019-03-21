@@ -10,6 +10,7 @@ doc/*
 
 !servers/
 servers/*
+
 !servers/python/
 servers/python/*
 !servers/python/forgefed_constants.py
@@ -18,6 +19,10 @@ servers/python/*
 !servers/python/forgefed_wsgi.py
 !servers/python/post-bogus-ap-note
 !servers/python/run-dev-server
+
+!servers/ruby/
+servers/ruby/*
+!servers/ruby/forge-fed.rb
 
 !vocabulary/
 !vocabulary/*
