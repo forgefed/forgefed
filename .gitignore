@@ -1,26 +1,23 @@
 *
 !.gitignore
 !COPYING
-!forgefed_constants.py
-!forgefed_model.py
-!forgefed_controller.py
-!forgefed_wsgi.py
-!post-bogus-ap-note
 !README.md
-!run-dev-server
 
 !doc
 doc/*
 !doc/README.md
 !doc/EXAMPLE_WORKFLOWS.md
 
-!python/
-python/*
-!python/forgefed_constants.py
-!python/forgefed_model.py
-!python/forgefed_controller.py
-!python/forgefed_wsgi.py
-!python/run-dev-server
+!servers/
+servers/*
+!servers/python/
+servers/python/*
+!servers/python/forgefed_constants.py
+!servers/python/forgefed_model.py
+!servers/python/forgefed_controller.py
+!servers/python/forgefed_wsgi.py
+!servers/python/post-bogus-ap-note
+!servers/python/run-dev-server
 
 !vocabulary/
 !vocabulary/*
