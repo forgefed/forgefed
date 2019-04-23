@@ -6,6 +6,15 @@
 !doc
 doc/*
 !doc/README.md
+!doc/EXAMPLE_WORKFLOWS.md
+
+!python/
+python/*
+!python/forgefed_constants.py
+!python/forgefed_model.py
+!python/forgefed_controller.py
+!python/forgefed_wsgi.py
+!python/run-dev-server
 
 !vocabulary/
 !vocabulary/*
