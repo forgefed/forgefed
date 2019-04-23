@@ -1,0 +1,17 @@
+*
+!.gitignore
+!COPYING
+!README.md
+
+!doc
+doc/*
+!doc/README.md
+
+!vocabulary/
+!vocabulary/*
+!vocabulary/COMMENT.md
+!vocabulary/ISSUE.md
+!vocabulary/PULL-REQUEST.md
+!vocabulary/README.md
+!vocabulary/REPOSITORY.md
+!vocabulary/VOCABULARY.md
