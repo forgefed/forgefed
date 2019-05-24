@@ -2,6 +2,7 @@
 !.gitignore
 !COPYING
 !README.md
+!specification.md
 
 !doc
 doc/*
