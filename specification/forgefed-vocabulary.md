@@ -1,4 +1,4 @@
-# ForgeFed Specification - DRAFT
+# ForgeFed Vocabulary - DRAFT
 
 **Editors:**
 
@@ -25,9 +25,11 @@ and provides additional vocabulary for federation of version control services.
 1. [Introduction](#Introduction)
 2. [Types](#Types)
 3. [Properties](#Properties)
-4. [Client to Server Interactions](#Client to Server Interactions)
 
 ## Introduction
+
+The ForgeFed Vocabulary describes a set of types and properties to be used by
+platforms that support the ForgeFed protocol.
 
 ## Types
 
@@ -39,7 +41,9 @@ Base URI: `https://peers.community/ns/repo-fed-vocab#`
 
 **URI:** `https://www.w3.org/ns/activitystreams#Follow`
 
-**Notes:** used by a user who wants to follow a repository
+**Notes:** used by a user who wants to follow a repository.
+This activity doesn't define a new type (the `Follow` Activity is defined in
+ActivityPub) but it's here for reference.
 
 **Example:**
 
@@ -48,19 +52,20 @@ Base URI: `https://peers.community/ns/repo-fed-vocab#`
         "summary": "Alice followed Bob",
         "type": "Follow",
         "actor": "https://localhost/alice",
-        "object": "https://remotehost/bob"
+        "object": "https://remotehost/bob/repository"
     }
 
 #### Push
 
 **URI:** `https://peers.community/ns/repo-fed-vocab#Push`
 
-**Notes:**
+**Notes:** Indicates that new content has been pushed to the repository. The
+Activity's object MUST contain a list of Commits.
 
 **Example:**
 
     {
-        "@context": "https://www.w3.org/ns/activitystreams",
+        "@context": "https://peers.community/ns/repo-fed-vocab",
         "type": "Push",
         "actor": "https://localhost/alice/repo2",
         "object": [
@@ -75,13 +80,27 @@ Base URI: `https://peers.community/ns/repo-fed-vocab#`
 
 ### Actor Types
 
+#### Repository
+
+**URI:** `https://peers.community/ns/repo-fed-vocab#Repository`
+
+**Notes:** Represents a single repository.
+
+**Example:**
+
+    {
+        "@context": "https://peers.community/ns/repo-fed-vocab#",
+        "type": "Repository",
+        "name": "Homeworks-2019"
+    }
+
 ### Object Types
 
 #### Commit
 
 **URI:** `https://peers.community/ns/repo-fed-vocab#Commit`
 
-**Notes:** 
+**Notes:** Represents a single Commit in a Repository.
 
 **Example:**
 
@@ -97,7 +116,8 @@ Base URI: `https://peers.community/ns/repo-fed-vocab#`
 
 **URI:** `https://peers.community/ns/repo-fed-vocab#Ticket`
 
-**Notes:** 
+**Notes:** Represents a single ticket (aka "issue") for a Repository. Tickets
+are used to track ideas, enhancements, tasks, or bugs.
 
 **Example:**
 
@@ -114,13 +134,4 @@ Base URI: `https://peers.community/ns/repo-fed-vocab#`
 
 ## Properties
 
-## Client to Server Interactions
 
-### Follow Activity
-
-The `Follow` activity is used to subscribe to the activities of a repository.
-
-### Push Activity
-
-The `Push` activity is used to notify followers of new code that has been
-pushed to a repository.

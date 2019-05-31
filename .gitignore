@@ -2,7 +2,6 @@
 !.gitignore
 !COPYING
 !README.md
-!specification.md
 
 !doc
 doc/*
@@ -16,6 +15,9 @@ python/*
 !python/forgefed_controller.py
 !python/forgefed_wsgi.py
 !python/run-dev-server
+
+!specification/
+!specification/*
 
 !vocabulary/
 !vocabulary/*
