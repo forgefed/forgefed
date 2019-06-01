@@ -33,7 +33,7 @@ platforms that support the ForgeFed protocol.
 
 ## Types
 
-Base URI: `https://peers.community/ns/repo-fed-vocab#`
+Base URI: `https://forgefed.peers.community/ns`
 
 ### Activity Types
 
@@ -48,7 +48,10 @@ ActivityPub) but it's here for reference.
 **Example:**
 
     {
-        "@context": "https://www.w3.org/ns/activitystreams",
+        "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://forgefed.peers.community/ns"
+        ],
         "summary": "Alice followed Bob",
         "type": "Follow",
         "actor": "https://localhost/alice",
@@ -57,7 +60,7 @@ ActivityPub) but it's here for reference.
 
 #### Push
 
-**URI:** `https://peers.community/ns/repo-fed-vocab#Push`
+**URI:** `https://forgefed.peers.community/ns#Push`
 
 **Notes:** Indicates that new content has been pushed to the repository. The
 Activity's object MUST contain a list of Commits.
@@ -65,7 +68,10 @@ Activity's object MUST contain a list of Commits.
 **Example:**
 
     {
-        "@context": "https://peers.community/ns/repo-fed-vocab",
+        "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://forgefed.peers.community/ns"
+        ],
         "type": "Push",
         "actor": "https://localhost/alice/repo2",
         "object": [
@@ -82,14 +88,17 @@ Activity's object MUST contain a list of Commits.
 
 #### Repository
 
-**URI:** `https://peers.community/ns/repo-fed-vocab#Repository`
+**URI:** `https://forgefed.peers.community/ns#Repository`
 
 **Notes:** Represents a single repository.
 
 **Example:**
 
     {
-        "@context": "https://peers.community/ns/repo-fed-vocab#",
+        "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://forgefed.peers.community/ns"
+        ],
         "type": "Repository",
         "name": "Homeworks-2019"
     }
@@ -98,14 +107,17 @@ Activity's object MUST contain a list of Commits.
 
 #### Commit
 
-**URI:** `https://peers.community/ns/repo-fed-vocab#Commit`
+**URI:** `https://forgefed.peers.community/ns#Commit`
 
 **Notes:** Represents a single Commit in a Repository.
 
 **Example:**
 
     {
-        "@context": "https://peers.community/ns/repo-fed-vocab#",
+        "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://forgefed.peers.community/ns"
+        ],
         "type": "Commit",
         "id": "https://localhost/alice/repo2/commit/2c7323781aec1f7",
         "author": ""
@@ -114,7 +126,7 @@ Activity's object MUST contain a list of Commits.
 
 #### Ticket
 
-**URI:** `https://peers.community/ns/repo-fed-vocab#Ticket`
+**URI:** `https://forgefed.peers.community/ns#Ticket`
 
 **Notes:** Represents a single ticket (aka "issue") for a Repository. Tickets
 are used to track ideas, enhancements, tasks, or bugs.
@@ -122,7 +134,10 @@ are used to track ideas, enhancements, tasks, or bugs.
 **Example:**
 
     {
-        "@context": "https://peers.community/ns/repo-fed-vocab#",
+        "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://forgefed.peers.community/ns"
+        ],
         "type": "Ticket",
         "id": "https://localhost/alice/repo2/issues/42",
         "attributedTo": "",

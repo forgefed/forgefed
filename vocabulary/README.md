@@ -44,7 +44,7 @@ show the use of `dc:author` there.
 We may need a base URI for the ActivityPub extension. I suggest we add the
 following mapping to the JSON-LD context:
 
-`"rfv": "https://peers.community/ns/repo-fed-vocab#"`
+`"forge": "https://forgefed.peers.community/ns#"`
 
 And we can put in this namespace everything that doesn't come from other
 places. Later that mapping could be changed into a remote context URL, but,
