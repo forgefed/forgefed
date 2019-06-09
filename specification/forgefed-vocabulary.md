@@ -19,7 +19,8 @@
 
 This document describes the ForgeFed vocabulary. It's intended to be an extension
 of the [ActivityPub Vocabulary](https://www.w3.org/TR/activitystreams-vocabulary/)
-and provides additional vocabulary for federation of version control services.
+and provides additional vocabulary for federation of project management and
+version control system hosting and collaboration platforms.
 
 ## Table of Contents
 1. [Introduction](#Introduction)
