@@ -15,30 +15,38 @@
 
 2019 ...
 
-## Abstract
+# Abstract
 
 This document describes the ForgeFed vocabulary. It's intended to be an extension
 of the [ActivityPub Vocabulary](https://www.w3.org/TR/activitystreams-vocabulary/)
 and provides additional vocabulary for federation of project management and
 version control system hosting and collaboration platforms.
 
-## Table of Contents
+# Table of Contents
+
 1. [Introduction](#Introduction)
 2. [Types](#Types)
 3. [Properties](#Properties)
 
-## Introduction
+1. Introduction
 
 The ForgeFed Vocabulary describes a set of types and properties to be used by
 platforms that support the ForgeFed protocol.
 
-## Types
+2. Types
 
-Base URI: `https://forgefed.peers.community/ns`
+The base URI to be used as context for the new ForgeFed types and properties has
+been defined to be `https://forgefed.peers.community/ns#`. Therefore any ForgeFed
+activity MUST use the following `context`
 
-### Activity Types
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ]
 
-#### Follow
+2.1. Activity Types
+
+2.1.1. Follow
 
 **URI:** `https://www.w3.org/ns/activitystreams#Follow`
 
@@ -53,18 +61,19 @@ ActivityPub) but it's here for reference.
             "https://www.w3.org/ns/activitystreams",
             "https://forgefed.peers.community/ns"
         ],
-        "summary": "Alice followed Bob",
+        "summary": "Alice started following ForgeFed",
         "type": "Follow",
         "actor": "https://localhost/alice",
-        "object": "https://remotehost/bob/repository"
+        "object": "https://remotehost/bob/forgefed"
     }
 
-#### Push
+2.1.2. Push
 
 **URI:** `https://forgefed.peers.community/ns#Push`
 
 **Notes:** Indicates that new content has been pushed to the repository. The
 Activity's object MUST contain a list of Commits.
+A Repository actor can use this Activity to notify followers of new changes.
 
 **Example:**
 
@@ -73,6 +82,7 @@ Activity's object MUST contain a list of Commits.
             "https://www.w3.org/ns/activitystreams",
             "https://forgefed.peers.community/ns"
         ],
+        "summary": "Alice pushed 2 new commits to Repo2."
         "type": "Push",
         "actor": "https://localhost/alice/repo2",
         "object": [
@@ -85,9 +95,34 @@ Activity's object MUST contain a list of Commits.
         ]
     }
 
-### Actor Types
+2.2. Actor Types
 
-#### Repository
+2.2.1. Person
+
+**URI:** `https://www.w3.org/ns/activitystreams#Person`
+
+**Notes:** Represents forge user. For this purpose ForgeFed reuses the Person
+type defined by ActivityPub.
+
+**Example:**
+
+    {
+        "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://forgefed.peers.community/ns"
+        ],
+        "type": "Person",
+        "id": "https://localhost/alice",
+        "name": "Alice Smith",
+        "preferredUsername": "alice",
+        "summary": "",
+        "inbox": "",
+        "outbox": "",
+        "followers": "",
+        "following": ""
+    }
+
+2.2.2. Repository
 
 **URI:** `https://forgefed.peers.community/ns#Repository`
 
@@ -100,13 +135,19 @@ Activity's object MUST contain a list of Commits.
             "https://www.w3.org/ns/activitystreams",
             "https://forgefed.peers.community/ns"
         ],
+        "id": "https://localhost/alice/forgefed",
         "type": "Repository",
-        "name": "Homeworks-2019"
+        "name": "ForgeFed",
+        "summary": "ForgeFed development",
+        "inbox": "",
+        "outbox": "",
+        "followers": "",
+        "following": ""
     }
 
-### Object Types
+2.3. Object Types
 
-#### Commit
+2.3.1. Commit
 
 **URI:** `https://forgefed.peers.community/ns#Commit`
 
@@ -121,7 +162,7 @@ Activity's object MUST contain a list of Commits.
         ],
         "type": "Commit",
         "id": "https://localhost/alice/repo2/commit/2c7323781aec1f7",
-        "author": ""
+        "author": "Alice"
         "message": "Fix #89"
     }
 
@@ -148,6 +189,6 @@ are used to track ideas, enhancements, tasks, or bugs.
         "context": ""
     }
 
-## Properties
+3. Properties
 
 
