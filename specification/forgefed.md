@@ -70,9 +70,25 @@ ActivityPub. A client will send objects (eg. a Ticket) wrapped in a Activity
 (eg. Create) to an actor's outbox, and in turn the server will take care of
 delivery.
 
+5.1. Follow Activity
+
+The Follow activity is used to subscribe to the activities of a Repository.
+The client MUST send a Follow activity the a Person's outbox. The server
+in turn delivers the message to the destination inbox.
+
+5.2. Push Activity
+
+The Push activity is used to notify followers when somebody has pushed changes
+to a Repository.
+The client MUST send a Push activity the a Repository's outbox. The server
+in turn delivers the message to the Repository followers.
+
 6. Server to Server Interactions
 
-    TODO: how are these different than AP?
+6.1. Follow Activity
+
+The server receiving a Follow activity in a Repository's inbox SHOULD add the
+sender actor to the Repository's followers collection.
 
 7. Acknowledgements
 
