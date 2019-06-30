@@ -2,8 +2,6 @@
 title: ForgeFed Vocabulary
 ---
 
-# ForgeFed Vocabulary - DRAFT
-
 **Editors:**
 
 - deesix
@@ -26,18 +24,12 @@ of the [ActivityPub Vocabulary](https://www.w3.org/TR/activitystreams-vocabulary
 and provides additional vocabulary for federation of project management and
 version control system hosting and collaboration platforms.
 
-# Table of Contents
-
-1. [Introduction](#Introduction)
-2. [Types](#Types)
-3. [Properties](#Properties)
-
-1. Introduction
+# Introduction
 
 The ForgeFed Vocabulary describes a set of types and properties to be used by
 platforms that support the ForgeFed protocol.
 
-2. Types
+# Types
 
 The base URI to be used as context for the new ForgeFed types and properties has
 been defined to be `https://forgefed.peers.community/ns#`. Therefore any ForgeFed
@@ -48,9 +40,9 @@ activity MUST use the following `context`
         "https://forgefed.peers.community/ns"
     ]
 
-2.1. Activity Types
+## Activity Types
 
-2.1.1. Follow
+### Follow
 
 **URI:** `https://www.w3.org/ns/activitystreams#Follow`
 
@@ -71,7 +63,7 @@ ActivityPub) but it's here for reference.
         "object": "https://remotehost/bob/forgefed"
     }
 
-2.1.2. Push
+### Push
 
 **URI:** `https://forgefed.peers.community/ns#Push`
 
@@ -99,9 +91,9 @@ A Repository actor can use this Activity to notify followers of new changes.
         ]
     }
 
-2.2. Actor Types
+## Actor Types
 
-2.2.1. Person
+### Person
 
 **URI:** `https://www.w3.org/ns/activitystreams#Person`
 
@@ -126,7 +118,7 @@ type defined by ActivityPub.
         "following": ""
     }
 
-2.2.2. Repository
+### Repository
 
 **URI:** `https://forgefed.peers.community/ns#Repository`
 
@@ -149,9 +141,9 @@ type defined by ActivityPub.
         "following": ""
     }
 
-2.3. Object Types
+## Object Types
 
-2.3.1. Commit
+### Commit
 
 **URI:** `https://forgefed.peers.community/ns#Commit`
 
@@ -193,6 +185,6 @@ are used to track ideas, enhancements, tasks, or bugs.
         "context": ""
     }
 
-3. Properties
+# Properties
 
 
