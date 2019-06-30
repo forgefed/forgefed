@@ -1,3 +1,7 @@
+---
+title: ForgeFed
+---
+
 # ForgeFed - DRAFT
 
 **Editors:**

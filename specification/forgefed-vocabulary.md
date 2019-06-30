@@ -1,3 +1,7 @@
+---
+title: ForgeFed Vocabulary
+---
+
 # ForgeFed Vocabulary - DRAFT
 
 **Editors:**
