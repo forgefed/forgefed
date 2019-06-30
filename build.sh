@@ -15,9 +15,9 @@ render () {
         --to html \
         --template html/template.html \
         $toc \
+        --number-sections \
         --output html/$file.html
         # --highlight-style=STYLE \
-        # --number-sections \
 }
 
 render html index "false"
