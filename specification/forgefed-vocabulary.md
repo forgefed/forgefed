@@ -27,18 +27,29 @@ version control system hosting and collaboration platforms.
 # Introduction
 
 The ForgeFed Vocabulary describes a set of types and properties to be used by
-platforms that support the ForgeFed protocol.
+platforms that support the ForgeFed protocol. This specification describes only
+the new vocabulary called ForgeFed. The ForgeFed behavior specification
+describes how to use this vocabulary, along with standard ActivityPub
+vocabulary, to support the ForgeFed protocol.
 
 # Types
 
-The base URI to be used as context for the new ForgeFed types and properties has
-been defined to be `https://forgefed.peers.community/ns#`. Therefore any ForgeFed
-activity MUST use the following `context`
+The base URI of all ForgeFed terms is `https://forgefed.peers.community/ns#`.
+The ForgeFed vocabulary has a JSON-LD context whose URI is
+`https://forgefed.peers.community/ns`. Implementers MUST either include the
+ActivityPub context and the ForgeFed contexts in their object definitions, or
+other contexts that would result with the ActivityPub and ForgeFed terms being
+assigned they correct full URIs. Implementers MAY include additional contexts
+and terms as appropriate.
 
-    "@context": [
-        "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
-    ]
+A typical `@context` of a ForgeFed object may look like this:
+
+```json
+"@context": [
+    "https://www.w3.org/ns/activitystreams",
+    "https://forgefed.peers.community/ns"
+]
+```
 
 ## Activity Types
 
