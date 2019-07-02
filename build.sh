@@ -17,7 +17,6 @@ render () {
         $toc \
         --number-sections \
         --output html/$file.html
-        # --highlight-style=STYLE \
 }
 
 render html index "false"
