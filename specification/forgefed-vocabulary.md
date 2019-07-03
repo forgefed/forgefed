@@ -37,8 +37,8 @@ vocabulary, to support the ForgeFed protocol.
 The base URI of all ForgeFed terms is `https://forgefed.peers.community/ns#`.
 The ForgeFed vocabulary has a JSON-LD context whose URI is
 `https://forgefed.peers.community/ns`. Implementers MUST either include the
-ActivityPub context and the ForgeFed contexts in their object definitions, or
-other contexts that would result with the ActivityPub and ForgeFed terms being
+ActivityPub and ForgeFed contexts in their object definitions, or other
+contexts that would result with the ActivityPub and ForgeFed terms being
 assigned they correct full URIs. Implementers MAY include additional contexts
 and terms as appropriate.
 
