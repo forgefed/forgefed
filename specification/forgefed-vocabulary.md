@@ -53,27 +53,6 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ## Activity Types
 
-### Follow
-
-**URI:** `https://www.w3.org/ns/activitystreams#Follow`
-
-**Notes:** used by a user who wants to follow a repository.
-This activity doesn't define a new type (the `Follow` Activity is defined in
-ActivityPub) but it's here for reference.
-
-**Example:**
-
-    {
-        "@context": [
-            "https://www.w3.org/ns/activitystreams",
-            "https://forgefed.peers.community/ns"
-        ],
-        "summary": "Alice started following ForgeFed",
-        "type": "Follow",
-        "actor": "https://localhost/alice",
-        "object": "https://remotehost/bob/forgefed"
-    }
-
 ### Push
 
 **URI:** `https://forgefed.peers.community/ns#Push`
@@ -103,31 +82,6 @@ A Repository actor can use this Activity to notify followers of new changes.
     }
 
 ## Actor Types
-
-### Person
-
-**URI:** `https://www.w3.org/ns/activitystreams#Person`
-
-**Notes:** Represents forge user. For this purpose ForgeFed reuses the Person
-type defined by ActivityPub.
-
-**Example:**
-
-    {
-        "@context": [
-            "https://www.w3.org/ns/activitystreams",
-            "https://forgefed.peers.community/ns"
-        ],
-        "type": "Person",
-        "id": "https://localhost/alice",
-        "name": "Alice Smith",
-        "preferredUsername": "alice",
-        "summary": "",
-        "inbox": "",
-        "outbox": "",
-        "followers": "",
-        "following": ""
-    }
 
 ### Repository
 
@@ -173,7 +127,7 @@ type defined by ActivityPub.
         "message": "Fix #89"
     }
 
-#### Ticket
+### Ticket
 
 **URI:** `https://forgefed.peers.community/ns#Ticket`
 
