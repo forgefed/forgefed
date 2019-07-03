@@ -63,23 +63,25 @@ A Repository actor can use this Activity to notify followers of new changes.
 
 **Example:**
 
-    {
-        "@context": [
-            "https://www.w3.org/ns/activitystreams",
-            "https://forgefed.peers.community/ns"
-        ],
-        "summary": "Alice pushed 2 new commits to Repo2."
-        "type": "Push",
-        "actor": "https://localhost/alice/repo2",
-        "object": [
-            {
-                "type": "Commit",
-            },
-            {
-                "type": "Commit",
-            }
-        ]
-    }
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "summary": "Alice pushed 2 new commits to Repo2."
+    "type": "Push",
+    "actor": "https://localhost/alice/repo2",
+    "object": [
+        {
+            "type": "Commit",
+        },
+        {
+            "type": "Commit",
+        }
+    ]
+}
+```
 
 ## Actor Types
 
@@ -91,20 +93,22 @@ A Repository actor can use this Activity to notify followers of new changes.
 
 **Example:**
 
-    {
-        "@context": [
-            "https://www.w3.org/ns/activitystreams",
-            "https://forgefed.peers.community/ns"
-        ],
-        "id": "https://localhost/alice/forgefed",
-        "type": "Repository",
-        "name": "ForgeFed",
-        "summary": "ForgeFed development",
-        "inbox": "",
-        "outbox": "",
-        "followers": "",
-        "following": ""
-    }
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://localhost/alice/forgefed",
+    "type": "Repository",
+    "name": "ForgeFed",
+    "summary": "ForgeFed development",
+    "inbox": "",
+    "outbox": "",
+    "followers": "",
+    "following": ""
+}
+```
 
 ## Object Types
 
@@ -116,16 +120,18 @@ A Repository actor can use this Activity to notify followers of new changes.
 
 **Example:**
 
-    {
-        "@context": [
-            "https://www.w3.org/ns/activitystreams",
-            "https://forgefed.peers.community/ns"
-        ],
-        "type": "Commit",
-        "id": "https://localhost/alice/repo2/commit/2c7323781aec1f7",
-        "author": "Alice"
-        "message": "Fix #89"
-    }
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "type": "Commit",
+    "id": "https://localhost/alice/repo2/commit/2c7323781aec1f7",
+    "author": "Alice"
+    "message": "Fix #89"
+}
+```
 
 ### Ticket
 
@@ -136,19 +142,21 @@ are used to track ideas, enhancements, tasks, or bugs.
 
 **Example:**
 
-    {
-        "@context": [
-            "https://www.w3.org/ns/activitystreams",
-            "https://forgefed.peers.community/ns"
-        ],
-        "type": "Ticket",
-        "id": "https://localhost/alice/repo2/issues/42",
-        "attributedTo": "",
-        "author": "",
-        "title": "Nothing works!",
-        "content": "Please fix. Everything is broken!",
-        "context": ""
-    }
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "type": "Ticket",
+    "id": "https://localhost/alice/repo2/issues/42",
+    "attributedTo": "",
+    "author": "",
+    "title": "Nothing works!",
+    "content": "Please fix. Everything is broken!",
+    "context": ""
+}
+```
 
 # Properties
 
