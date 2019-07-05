@@ -8,6 +8,25 @@ Gogs, Gitea).
 [ActivityPub]: https://www.w3.org/TR/activitypub/
 [ActivityStream2]: https://www.w3.org/TR/activitystreams-core/
 
+## Updates
+### ForgeFed Community Forum
+
+In order to consolidate development and community discussions, there is now a **public web forum** on the socialhub.network website. That forum is the home to ActvityPub and several projects that use ActvityPub as their federation protocol; and so it is a natural fit for ForgeFed. Everyone is invited to use that forum instead of this GitHub repo or the mailing list.
+
+Thanks to SocialHub and FeNeAs for making that possible.
+
+Web Forum: https://socialhub.network/c/forgefed
+### ForgeFed in the Fediverse
+
+There is also a user on the Mastodon network to which fediverse users can subscribe for progress updates. Feel free to interact with that actor or use hashtag: #ForgeFed on the Mastodon network.
+
+Fediverse: `@forgefed@floss.social` (https://floss.social/@forgefed)
+### ForgeFed Repository
+
+This GitHub repo has not been updated in some time, and it is unclear at the moment whether or not @yookoala still wants to maintain it. The NotABug repo contains the most recent documentation and reference source code, all currently under the maximally permissive CC0 license.
+
+Repository: https://notabug.org/peers/forgefed
+
 ## Collaboration
 
 A specification like this must be agreed upon by at least some of Git web service implementations.
