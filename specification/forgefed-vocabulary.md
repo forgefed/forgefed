@@ -160,4 +160,69 @@ are used to track ideas, enhancements, tasks, or bugs.
 
 # Properties
 
+## assignedTo
 
+**URI:** `https://forgefed.peers.community/ns#assignedTo`
+
+**Notes:** Identifies the person assigned to work on this ticket.
+
+**Domain:** `Ticket`
+
+**Range:** `Person`
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+## isResolved
+
+**URI:** `https://forgefed.peers.community/ns#isResolved`
+
+**Notes:** Specifies whether the ticket is closed, i.e. the work on it is done
+and it doesn't need to attract attention anymore.
+
+**Domain:** `Ticket`
+
+**Range:** `xsd:boolean`
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+## dependsOn
+
+**URI:** `https://forgefed.peers.community/ns#dependsOn`
+
+**Notes:** Identifies one or more tickets on which this ticket depends, i.e. it
+can't be resolved without those tickets being resolved too.
+
+**Domain:** `Ticket`
+
+**Range:** `Ticket`
+
+**Functional:** No
+
+**Inverse of:** [dependedBy](#dependedby)
+
+**Example:**
+
+## dependedBy
+
+**URI:** `https://forgefed.peers.community/ns#dependedBy`
+
+**Notes:** Identifies one or more tickets which depends on this ticket, i.e.
+they can't be resolved without this tickets being resolved too.
+
+**Domain:** `Ticket`
+
+**Range:** `Ticket`
+
+**Functional:** No
+
+**Inverse of:** [dependsOn](#dependson)
+
+**Example:**
