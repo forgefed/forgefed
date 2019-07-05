@@ -16,19 +16,19 @@ In order to consolidate development and community discussions, there is now a **
 
 Thanks to SocialHub and FeNeAs for making that possible.
 
-Web Forum: https://socialhub.network/c/forgefed
+**Web Forum**: https://socialhub.network/c/forgefed
 
 ### ForgeFed in the Fediverse
 
 There is also a user on the Mastodon network to which fediverse users can subscribe for progress updates. Feel free to interact with that actor or use hashtag: #ForgeFed on the Mastodon network.
 
-Fediverse: `@forgefed@floss.social` (https://floss.social/@forgefed)
+**Fediverse**: `@forgefed@floss.social` (https://floss.social/@forgefed)
 
 ### ForgeFed Repository
 
 This GitHub repo has not been updated in some time, and it is unclear at the moment whether or not @yookoala still wants to maintain it. The NotABug repo contains the most recent documentation and reference source code, all currently under the maximally permissive CC0 license.
 
-Repository: https://notabug.org/peers/forgefed
+**Repository**: https://notabug.org/peers/forgefed
 
 ## Collaboration
 
