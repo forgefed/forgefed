@@ -24,13 +24,27 @@
       </nav>
     </header>
     <main class="main">
-      <h1 class="main-title">$title$</h1>
+      $if(toc)$
+        <h1 class="main-title">
+            $title$ - draft - $date$ $gitbranch$
+            <a href="https://notabug.org/peers/forgefed/commit/$gitcommitid$">
+                $gitcommitidshort$
+            </a>
+            $if(gitdirty)$
+                [dirty]
+            $endif$
+        </h1>
+      $else$
+        <h1 class="main-title">$title$</h1>
+      $endif$
+
       $if(toc)$
         <nav class="toc">
             <header class="toc-title">Table of Contents</header>
             $toc$
         </nav>
       $endif$
+
       $body$
     </main>
     <footer class="footer">
