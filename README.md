@@ -11,6 +11,8 @@ The formal work-group and associated development discussions are conducted openl
 
 The artifacts produced by this work-group are still in the early stages; and there is still much work to do, and ample design-space for discussion and contributions. In order to be most widely adopted, we strive to assemble the most diverse and representative group of stake-holders including: users, implementers, and various domain experts. Anyone who is experienced with working on an existing forge or a federated "social" service, or who is planning to implement new ones, and anyone with experience in writing technical specification documents, or has UX expertise is encouraged to join the work-group and/or contribute artifacts. Please submit any tangible contributions (artwork, software, documentation) and technical critique regarding the published artifacts to the [ForgeFed issue tracker][notabug-issues] and [ForgeFed wiki][notabug-wiki] on NotABug, or the [ForgeFed mirror on Pagure][pagure-mirror].
 
+<a rel="me" href="https://floss.social/@forgefed">Fediverse account</a>
+
 
 ### Projects participating in the discussions have included:
 
