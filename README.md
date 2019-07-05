@@ -7,7 +7,7 @@ All of the most common user interactions are supported such as: cloning/forking,
 
 ## Work-group Collaboration
 
-The formal work-group and associated development discussions are conducted openly on the [ForgeFed Community Forum][socialhub-forum] on the socialhub.network website; with informal, real-time Collaboration often taking place on the #peers IRC channel on freenode. Everyone is invited to participate in either venue. Before posting, please read [this primer][overview] for a brief overview of the project motivation and goals.
+The formal work-group and associated development discussions are conducted openly on the [ForgeFed Community Forum][feneas-forum] on the FeNeAs website; with informal, real-time Collaboration often taking place on the #peers IRC channel on freenode. Everyone is invited to participate in either venue. Before posting, please read [this primer][overview] for a brief overview of the project motivation and goals.
 
 The artifacts produced by this work-group are still in the early stages; and there is still much work to do, and ample design-space for discussion and contributions. In order to be most widely adopted, we strive to assemble the most diverse and representative group of stake-holders including: users, implementers, and various domain experts. Anyone who is experienced with working on an existing forge or a federated "social" service, or who is planning to implement new ones, and anyone with experience in writing technical specification documents, or has UX expertise is encouraged to join the work-group and/or contribute artifacts. Please submit any tangible contributions (artwork, software, documentation) and technical critique regarding the published artifacts to the [ForgeFed issue tracker][notabug-issues] and [ForgeFed wiki][notabug-wiki] on NotABug, or the [ForgeFed mirror on Pagure][pagure-mirror].
 
@@ -35,10 +35,9 @@ All artifacts produced by the ForgeFed work-group are freely available under the
 [activity-pub]:    https://www.w3.org/TR/activitypub/
 [mail-archive]:    https://framalistes.org/sympa/arc/git-federation
 [feneas]:          https://feneas.org
-[socialhub]:       https://socialhub.network/
 [vervis]:          https://dev.angeley.es/s/fr33domlover/r/vervis
 [notabug-repo]:    https://notabug.org/peers/forgefed/
-[socialhub-forum]: https://socialhub.network/c/forgefed
+[feneas-forum]:    https://talk.feneas.org/c/forgefed
 [overview]:        https://notabug.org/peers/forgefed/src/master/doc/README.md
 [notabug-issues]:  https://notabug.org/peers/forgefed/issues
 [notabug-wiki]:    https://notabug.org/peers/forgefed/wiki
