@@ -89,7 +89,7 @@ A Repository actor can use this Activity to notify followers of new changes.
 
 **URI:** `https://forgefed.peers.community/ns#Repository`
 
-**Notes:** Represents a single repository.
+**Notes:** Represents a version control system repository.
 
 **Example:**
 
@@ -116,7 +116,9 @@ A Repository actor can use this Activity to notify followers of new changes.
 
 **URI:** `https://forgefed.peers.community/ns#Commit`
 
-**Notes:** Represents a single Commit in a Repository.
+**Notes:** Represents a named set of changes to a repository. This is called
+"commit" in Git, Mercurial and Monotone; "patch" in Darcs; sometimes called
+"change set".
 
 **Example:**
 
@@ -127,9 +129,9 @@ A Repository actor can use this Activity to notify followers of new changes.
         "https://forgefed.peers.community/ns"
     ],
     "type": "Commit",
-    "id": "https://localhost/alice/repo2/commit/2c7323781aec1f7",
-    "author": "Alice"
-    "message": "Fix #89"
+    "id": "https://example.dev/alice/myrepo/commit/2c7323781aec1f7",
+    "attributedTo": "https://example.dev/alice",
+    "name": "Add an installation script, fixes issue #89"
 }
 ```
 
@@ -137,8 +139,9 @@ A Repository actor can use this Activity to notify followers of new changes.
 
 **URI:** `https://forgefed.peers.community/ns#Ticket`
 
-**Notes:** Represents a single ticket (aka "issue") for a Repository. Tickets
-are used to track ideas, enhancements, tasks, or bugs.
+**Notes:** Represents an item that requires work or attention. Tickets exist in
+the context of a project (which may or may not be a version-control
+repository), and are used to track ideas, proposals, tasks, bugs and more.
 
 **Example:**
 
@@ -149,12 +152,18 @@ are used to track ideas, enhancements, tasks, or bugs.
         "https://forgefed.peers.community/ns"
     ],
     "type": "Ticket",
-    "id": "https://localhost/alice/repo2/issues/42",
-    "attributedTo": "",
-    "author": "",
-    "title": "Nothing works!",
-    "content": "Please fix. Everything is broken!",
-    "context": ""
+    "id": "https://example.dev/alice/myrepo/issues/42",
+    "context": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://dev.community/bob",
+    "summary": "Nothing works!",
+    "content": "<p>Please fix. <i>Everything</i> is broken!</p>",
+    "mediaType": "text/html",
+    "source": {
+        "content": "Please fix. *Everything* is broken!",
+        "mediaType": "text/markdown; variant=CommonMark"
+    },
+    "assignedTo": "https://example.dev/alice",
+    "isResolved": false
 }
 ```
 
