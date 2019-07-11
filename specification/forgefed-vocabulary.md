@@ -135,6 +135,36 @@ A Repository actor can use this Activity to notify followers of new changes.
 }
 ```
 
+### TicketDependency
+
+**URI:** `https://forgefed.peers.community/ns#TicketDependency`
+
+**Notes:** Represents a relationship between 2 tickets, in which the resolution
+of one ticket requires the other ticket to be resolved too. It MUST specify the
+subject, object and relationship properties, and the relationship property MUST
+be "dependsOn".
+
+**Extends:** `Relationship`
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "type": ["Relationship", "TicketDependency"],
+    "id": "https://example.dev/ticket-deps/2342593",
+    "attributedTo": "https://example.dev/alice",
+    "summary": "Alice's ticket depends on Bob's ticket",
+    "published": "2019-07-11T12:34:56Z",
+    "subject": "https://example.dev/alice/myproj/issues/42",
+    "relationship": "dependsOn",
+    "object": "https://dev.community/bob/coolproj/issues/85"
+}
+```
+
 ### Ticket
 
 **URI:** `https://forgefed.peers.community/ns#Ticket`
@@ -233,5 +263,41 @@ they can't be resolved without this tickets being resolved too.
 **Functional:** No
 
 **Inverse of:** [dependsOn](#dependson)
+
+**Example:**
+
+## dependencies
+
+**URI:** `https://forgefed.peers.community/ns#dependencies`
+
+**Notes:** Identifies a `Collection` of `TicketDependency` which specify
+tickets that this ticket depends on, i.e. this ticket is the `subject` of the
+`dependsOn` relationship.
+
+**Domain:** `Ticket`
+
+**Range:** `Collection` (of items of type `TicketDependency`)
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+## dependants
+
+**URI:** `https://forgefed.peers.community/ns#dependants`
+
+**Notes:** Identifies a `Collection` of `TicketDependency` which specify
+tickets that depends on this ticket, i.e. this ticket is the `object` of the
+`dependsOn` relationship. Often called "reverse dependencies".
+
+**Domain:** `Ticket`
+
+**Range:** `Collection` (of items of type `TicketDependency`)
+
+**Functional:** Yes
+
+**Inverse of:** (None)
 
 **Example:**
