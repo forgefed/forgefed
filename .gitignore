@@ -8,6 +8,9 @@ doc/*
 !doc/README.md
 !doc/EXAMPLE_WORKFLOWS.md
 
+!html
+!html/*
+
 !python/
 python/*
 !python/forgefed_constants.py
