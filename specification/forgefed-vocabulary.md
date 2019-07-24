@@ -301,3 +301,80 @@ tickets that depends on this ticket, i.e. this ticket is the `object` of the
 **Inverse of:** (None)
 
 **Example:**
+
+## committedBy
+
+**URI:** `https://forgefed.peers.community/ns#committedBy`
+
+**Notes:** Identifies the actor (usually a person, but could be something else,
+e.g. a bot) that added a set of changes to the version-control repository.
+Sometimes the author of the changes and the committer of those changes aren't
+the same actor, in which case the `committedBy` property can be used to specify
+who added the changes to the repository. For example, when applying a patch to
+a repository, e.g. a Git repository, the author would be the person who made
+the patch, and the committer would be the person who applied the patch to their
+copy of the repository.
+
+**Domain:** `Commit`
+
+**Range:** `Object`
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+## filesAdded
+
+**URI:** `https://forgefed.peers.community/ns#filesAdded`
+
+**Notes:** Specifies a filename, as a relative path, relative to the top of the
+tree of files in the repository, of a file that got added in this commit, and
+didn't exist in the previous version of the tree.
+
+**Domain:** `Commit`
+
+**Range:** `xsd:string`
+
+**Functional:** No
+
+**Inverse of:** (None)
+
+**Example:**
+
+## filesModified
+
+**URI:** `https://forgefed.peers.community/ns#filesModified`
+
+**Notes:** Specifies a filename, as a relative path, relative to the top of the
+tree of files in the repository, of a file that existed in the previous version
+of the tree, and its contents got modified in this commit.
+
+**Domain:** `Commit`
+
+**Range:** `xsd:string`
+
+**Functional:** No
+
+**Inverse of:** (None)
+
+**Example:**
+
+## filesRemoved
+
+**URI:** `https://forgefed.peers.community/ns#filesRemoved`
+
+**Notes:** Specifies a filename, as a relative path, relative to the top of the
+tree of files in the repository, of a file that existed in the previous version
+of the tree, and got removed from the tree in this commit.
+
+**Domain:** `Commit`
+
+**Range:** `xsd:string`
+
+**Functional:** No
+
+**Inverse of:** (None)
+
+**Example:**
