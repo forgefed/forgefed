@@ -128,10 +128,19 @@ A Repository actor can use this Activity to notify followers of new changes.
         "https://www.w3.org/ns/activitystreams",
         "https://forgefed.peers.community/ns"
     ],
+    "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
     "type": "Commit",
-    "id": "https://example.dev/alice/myrepo/commit/2c7323781aec1f7",
-    "attributedTo": "https://example.dev/alice",
-    "name": "Add an installation script, fixes issue #89"
+    "repository": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://example.dev/bob",
+    "committedBy": "https://example.dev/alice",
+    "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "name": "Add an installation script, fixes issue #89",
+    "description": {
+        "mediaType": "text/plain",
+        "content": "It's about time people can install on their computers!"
+    },
+    "created": "2019-07-11T12:34:56Z",
+    "committed": "2019-07-26T23:45:01Z"
 }
 ```
 
@@ -302,6 +311,22 @@ tickets that depends on this ticket, i.e. this ticket is the `object` of the
 
 **Example:**
 
+### repository
+
+**URI:** `https://forgefed.peers.community/ns#repository`
+
+**Notes:** Identifies the repository to which a commit belongs.
+
+**Domain:** `Commit`
+
+**Range:** `Repository`
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
 ### committedBy
 
 **URI:** `https://forgefed.peers.community/ns#committedBy`
@@ -318,6 +343,47 @@ copy of the repository.
 **Domain:** `Commit`
 
 **Range:** `Object`
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+### hash
+
+**URI:** `https://forgefed.peers.community/ns#hash`
+
+**Notes:** Specifies the hash associated with a commit, which is a unique
+identifier of the commit within the repository, usually generated as a
+cryptographic hash function of some (or all) of the commit's data or metadata.
+For example, in Git it would be the SHA1 hash of the commit; in Darcs it would
+be the SHA1 hash of the patch info.
+
+**Domain:** `Commit`
+
+**Range:** `xsd:string` of hexadecimal digit ASCII characters
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+### committed
+
+**URI:** `https://forgefed.peers.community/ns#committed`
+
+**Notes:** Specifies the time that a set of changes was committed into the
+repository and became a commit in it. This can be different from the time the
+set of changes was produced, e.g. if one person creates a patch and sends to
+another, and the other person then applies the patch to their copy of the
+repository. We call the former event "created" and the latter event
+"committed", and this latter event is specified by the `committed` property.
+
+**Domain:** `Commit`
+
+**Range:** `xsd:dateTime`
 
 **Functional:** Yes
 
