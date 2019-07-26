@@ -17,14 +17,14 @@ title: ForgeFed Vocabulary
 
 2019 ...
 
-# Abstract
+## Abstract
 
 This document describes the ForgeFed vocabulary. It's intended to be an extension
 of the [ActivityPub Vocabulary](https://www.w3.org/TR/activitystreams-vocabulary/)
 and provides additional vocabulary for federation of project management and
 version control system hosting and collaboration platforms.
 
-# Introduction
+## Introduction
 
 The ForgeFed Vocabulary describes a set of types and properties to be used by
 platforms that support the ForgeFed protocol. This specification describes only
@@ -32,7 +32,7 @@ the new vocabulary called ForgeFed. The ForgeFed behavior specification
 describes how to use this vocabulary, along with standard ActivityPub
 vocabulary, to support the ForgeFed protocol.
 
-# Types
+## Types
 
 The base URI of all ForgeFed terms is `https://forgefed.peers.community/ns#`.
 The ForgeFed vocabulary has a JSON-LD context whose URI is
@@ -51,9 +51,9 @@ A typical `@context` of a ForgeFed object may look like this:
 ]
 ```
 
-## Activity Types
+### Activity Types
 
-### Push
+#### Push
 
 **URI:** `https://forgefed.peers.community/ns#Push`
 
@@ -83,9 +83,9 @@ A Repository actor can use this Activity to notify followers of new changes.
 }
 ```
 
-## Actor Types
+### Actor Types
 
-### Repository
+#### Repository
 
 **URI:** `https://forgefed.peers.community/ns#Repository`
 
@@ -110,9 +110,9 @@ A Repository actor can use this Activity to notify followers of new changes.
 }
 ```
 
-## Object Types
+### Object Types
 
-### Commit
+#### Commit
 
 **URI:** `https://forgefed.peers.community/ns#Commit`
 
@@ -135,7 +135,7 @@ A Repository actor can use this Activity to notify followers of new changes.
 }
 ```
 
-### TicketDependency
+#### TicketDependency
 
 **URI:** `https://forgefed.peers.community/ns#TicketDependency`
 
@@ -165,7 +165,7 @@ be "dependsOn".
 }
 ```
 
-### Ticket
+#### Ticket
 
 **URI:** `https://forgefed.peers.community/ns#Ticket`
 
@@ -197,9 +197,9 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 }
 ```
 
-# Properties
+## Properties
 
-## assignedTo
+### assignedTo
 
 **URI:** `https://forgefed.peers.community/ns#assignedTo`
 
@@ -215,7 +215,7 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 
 **Example:**
 
-## isResolved
+### isResolved
 
 **URI:** `https://forgefed.peers.community/ns#isResolved`
 
@@ -232,7 +232,7 @@ and it doesn't need to attract attention anymore.
 
 **Example:**
 
-## dependsOn
+### dependsOn
 
 **URI:** `https://forgefed.peers.community/ns#dependsOn`
 
@@ -249,7 +249,7 @@ can't be resolved without those tickets being resolved too.
 
 **Example:**
 
-## dependedBy
+### dependedBy
 
 **URI:** `https://forgefed.peers.community/ns#dependedBy`
 
@@ -266,7 +266,7 @@ they can't be resolved without this tickets being resolved too.
 
 **Example:**
 
-## dependencies
+### dependencies
 
 **URI:** `https://forgefed.peers.community/ns#dependencies`
 
@@ -284,7 +284,7 @@ tickets that this ticket depends on, i.e. this ticket is the `subject` of the
 
 **Example:**
 
-## dependants
+### dependants
 
 **URI:** `https://forgefed.peers.community/ns#dependants`
 
@@ -302,7 +302,7 @@ tickets that depends on this ticket, i.e. this ticket is the `object` of the
 
 **Example:**
 
-## committedBy
+### committedBy
 
 **URI:** `https://forgefed.peers.community/ns#committedBy`
 
@@ -325,7 +325,7 @@ copy of the repository.
 
 **Example:**
 
-## filesAdded
+### filesAdded
 
 **URI:** `https://forgefed.peers.community/ns#filesAdded`
 
@@ -343,7 +343,7 @@ didn't exist in the previous version of the tree.
 
 **Example:**
 
-## filesModified
+### filesModified
 
 **URI:** `https://forgefed.peers.community/ns#filesModified`
 
@@ -361,7 +361,7 @@ of the tree, and its contents got modified in this commit.
 
 **Example:**
 
-## filesRemoved
+### filesRemoved
 
 **URI:** `https://forgefed.peers.community/ns#filesRemoved`
 
