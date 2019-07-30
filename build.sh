@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 inputs="forgefed forgefed-vocabulary"
 
 git_branch=`git rev-parse --abbrev-ref HEAD`
@@ -14,21 +16,28 @@ dirty () {
     git diff-index --quiet HEAD --
 }
 
-render () {
-    dir="$1"
-    file="$2"
+runPandoc () {
+    local dir="$1"
+    local file="$2"
 
     if [ "$3" == "true" ]; then
-        toc="--table-of-contents"
+        local toc="--table-of-contents"
     else
-        toc=""
+        local toc=""
     fi
 
-    dirty
-    if [ $? -eq 0 ]; then
-        gitdirty=""
+    local theme="$4"
+
+    if [ "$theme" == "light" ]; then
+        local otherTheme="/index/dark"
+        local otherThemeName="🌑"
+        local output="html/$file.html"
+        local suffix=".html"
     else
-        gitdirty="--variable gitdirty"
+        local otherTheme="/index"
+        local otherThemeName="🌞"
+        local output="html/$file/dark.html"
+        local suffix="/dark.html"
     fi
 
     pandoc $dir/$file.md \
@@ -36,14 +45,33 @@ render () {
         --to html \
         --template html/template.html \
         $toc \
-        $gitdirty \
         --variable "gitbranch:$git_branch" \
         --variable "gitcommitid:$git_commit_id" \
         --variable "gitcommitidshort:$git_commit_id_short" \
         --variable "date:$now" \
+        --variable "theme:$theme" \
+        --variable "other-theme:$otherTheme" \
+        --variable "other-theme-name:$otherThemeName" \
+        --variable "suffix:$suffix" \
         --number-sections \
-        --output html/$file.html
+        --output "$output"
+        #$gitdirty \
 }
+
+render () {
+    local dir="$1"
+    local file="$2"
+    local toc="$3"
+    runPandoc $dir $file $toc "light"
+    runPandoc $dir $file $toc "dark"
+}
+
+#dirty
+#if [ $? -eq 0 ]; then
+#    gitdirty=""
+#else
+#    gitdirty="--variable gitdirty"
+#fi
 
 render html index "false"
 

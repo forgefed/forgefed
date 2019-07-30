@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ForgeFed Vocabulary</title>
-    <link rel="stylesheet" type="text/css" href="light.css" />
+    <link rel="stylesheet" type="text/css" href="/light.css" />
   </head>
   <body class="body">
     <header class="header">
@@ -13,22 +13,23 @@
       </h1>
       <nav class="nav">
         <a class="nav__link"
-           href="forgefed.html">🗲 behavior</a>
+           href="/forgefed.html">🗲 behavior</a>
         <a class="nav__link"
-           href="forgefed-vocabulary.html">📓 vocabulary</a>
+           href="/forgefed-vocabulary.html">📓 vocabulary</a>
         <a class="nav__link"
            href="https://notabug.org/peers/forgefed/issues">🐞 issues</a>
         <a class="nav__link"
            href="https://talk.feneas.org/c/forgefed">🗪 forum</a>
+        <a class="nav__link"
+           href="/index/dark.html">🌑</a>
       </nav>
     </header>
     <main class="main">
               <h1 class="main-title">
-            ForgeFed Vocabulary - draft - 2019-07-24 master
-            <a href="https://notabug.org/peers/forgefed/commit/0c9efdedf6b8f959c5d303b288493c43cb2ea52a">
-                0c9efde
+            ForgeFed Vocabulary - draft - 2019-07-30 master
+            <a href="https://notabug.org/peers/forgefed/commit/88755cac76e2a801aa44a8e53918f9b146ee9fac">
+                88755ca
             </a>
-                            [dirty]
                     </h1>
       
               <nav class="toc">
@@ -56,10 +57,13 @@
             <li><a href="#dependedby"><span class="toc-section-number">4.4</span> dependedBy</a></li>
             <li><a href="#dependencies"><span class="toc-section-number">4.5</span> dependencies</a></li>
             <li><a href="#dependants"><span class="toc-section-number">4.6</span> dependants</a></li>
-            <li><a href="#committedby"><span class="toc-section-number">4.7</span> committedBy</a></li>
-            <li><a href="#filesadded"><span class="toc-section-number">4.8</span> filesAdded</a></li>
-            <li><a href="#filesmodified"><span class="toc-section-number">4.9</span> filesModified</a></li>
-            <li><a href="#filesremoved"><span class="toc-section-number">4.10</span> filesRemoved</a></li>
+            <li><a href="#repository-1"><span class="toc-section-number">4.7</span> repository</a></li>
+            <li><a href="#committedby"><span class="toc-section-number">4.8</span> committedBy</a></li>
+            <li><a href="#hash"><span class="toc-section-number">4.9</span> hash</a></li>
+            <li><a href="#committed"><span class="toc-section-number">4.10</span> committed</a></li>
+            <li><a href="#filesadded"><span class="toc-section-number">4.11</span> filesAdded</a></li>
+            <li><a href="#filesmodified"><span class="toc-section-number">4.12</span> filesModified</a></li>
+            <li><a href="#filesremoved"><span class="toc-section-number">4.13</span> filesRemoved</a></li>
             </ul></li>
             </ul>
         </nav>
@@ -139,11 +143,20 @@
       <a class="sourceLine" id="cb4-3" title="3">        <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span></a>
       <a class="sourceLine" id="cb4-4" title="4">        <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span></a>
       <a class="sourceLine" id="cb4-5" title="5">    <span class="ot">]</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-6" title="6">    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-7" title="7">    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo/commit/2c7323781aec1f7&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-8" title="8">    <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-9" title="9">    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Add an installation script, fixes issue #89&quot;</span></a>
-      <a class="sourceLine" id="cb4-10" title="10"><span class="fu">}</span></a></code></pre></div>
+      <a class="sourceLine" id="cb4-6" title="6">    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-7" title="7">    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-8" title="8">    <span class="dt">&quot;repository&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-9" title="9">    <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/bob&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-10" title="10">    <span class="dt">&quot;committedBy&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-11" title="11">    <span class="dt">&quot;hash&quot;</span><span class="fu">:</span> <span class="st">&quot;109ec9a09c7df7fec775d2ba0b9d466e5643ec8c&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-12" title="12">    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Add an installation script, fixes issue #89&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-13" title="13">    <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="fu">{</span></a>
+      <a class="sourceLine" id="cb4-14" title="14">        <span class="dt">&quot;mediaType&quot;</span><span class="fu">:</span> <span class="st">&quot;text/plain&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-15" title="15">        <span class="dt">&quot;content&quot;</span><span class="fu">:</span> <span class="st">&quot;It&#39;s about time people can install on their computers!&quot;</span></a>
+      <a class="sourceLine" id="cb4-16" title="16">    <span class="fu">},</span></a>
+      <a class="sourceLine" id="cb4-17" title="17">    <span class="dt">&quot;created&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-11T12:34:56Z&quot;</span><span class="fu">,</span></a>
+      <a class="sourceLine" id="cb4-18" title="18">    <span class="dt">&quot;committed&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-26T23:45:01Z&quot;</span></a>
+      <a class="sourceLine" id="cb4-19" title="19"><span class="fu">}</span></a></code></pre></div>
       <h3 id="ticketdependency"><span class="header-section-number">3.3.2</span> TicketDependency</h3>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#TicketDependency</code></p>
       <p><strong>Notes:</strong> Represents a relationship between 2 tickets, in which the resolution of one ticket requires the other ticket to be resolved too. It MUST specify the subject, object and relationship properties, and the relationship property MUST be “dependsOn”.</p>
@@ -235,7 +248,15 @@
       <p><strong>Functional:</strong> Yes</p>
       <p><strong>Inverse of:</strong> (None)</p>
       <p><strong>Example:</strong></p>
-      <h2 id="committedby"><span class="header-section-number">4.7</span> committedBy</h2>
+      <h2 id="repository-1"><span class="header-section-number">4.7</span> repository</h2>
+      <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#repository</code></p>
+      <p><strong>Notes:</strong> Identifies the repository to which a commit belongs.</p>
+      <p><strong>Domain:</strong> <code>Commit</code></p>
+      <p><strong>Range:</strong> <code>Repository</code></p>
+      <p><strong>Functional:</strong> Yes</p>
+      <p><strong>Inverse of:</strong> (None)</p>
+      <p><strong>Example:</strong></p>
+      <h2 id="committedby"><span class="header-section-number">4.8</span> committedBy</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#committedBy</code></p>
       <p><strong>Notes:</strong> Identifies the actor (usually a person, but could be something else, e.g. a bot) that added a set of changes to the version-control repository. Sometimes the author of the changes and the committer of those changes aren’t the same actor, in which case the <code>committedBy</code> property can be used to specify who added the changes to the repository. For example, when applying a patch to a repository, e.g. a Git repository, the author would be the person who made the patch, and the committer would be the person who applied the patch to their copy of the repository.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
@@ -243,7 +264,23 @@
       <p><strong>Functional:</strong> Yes</p>
       <p><strong>Inverse of:</strong> (None)</p>
       <p><strong>Example:</strong></p>
-      <h2 id="filesadded"><span class="header-section-number">4.8</span> filesAdded</h2>
+      <h2 id="hash"><span class="header-section-number">4.9</span> hash</h2>
+      <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#hash</code></p>
+      <p><strong>Notes:</strong> Specifies the hash associated with a commit, which is a unique identifier of the commit within the repository, usually generated as a cryptographic hash function of some (or all) of the commit’s data or metadata. For example, in Git it would be the SHA1 hash of the commit; in Darcs it would be the SHA1 hash of the patch info.</p>
+      <p><strong>Domain:</strong> <code>Commit</code></p>
+      <p><strong>Range:</strong> <code>xsd:string</code> of hexadecimal digit ASCII characters</p>
+      <p><strong>Functional:</strong> Yes</p>
+      <p><strong>Inverse of:</strong> (None)</p>
+      <p><strong>Example:</strong></p>
+      <h2 id="committed"><span class="header-section-number">4.10</span> committed</h2>
+      <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#committed</code></p>
+      <p><strong>Notes:</strong> Specifies the time that a set of changes was committed into the repository and became a commit in it. This can be different from the time the set of changes was produced, e.g. if one person creates a patch and sends to another, and the other person then applies the patch to their copy of the repository. We call the former event “created” and the latter event “committed”, and this latter event is specified by the <code>committed</code> property.</p>
+      <p><strong>Domain:</strong> <code>Commit</code></p>
+      <p><strong>Range:</strong> <code>xsd:dateTime</code></p>
+      <p><strong>Functional:</strong> Yes</p>
+      <p><strong>Inverse of:</strong> (None)</p>
+      <p><strong>Example:</strong></p>
+      <h2 id="filesadded"><span class="header-section-number">4.11</span> filesAdded</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#filesAdded</code></p>
       <p><strong>Notes:</strong> Specifies a filename, as a relative path, relative to the top of the tree of files in the repository, of a file that got added in this commit, and didn’t exist in the previous version of the tree.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
@@ -251,7 +288,7 @@
       <p><strong>Functional:</strong> No</p>
       <p><strong>Inverse of:</strong> (None)</p>
       <p><strong>Example:</strong></p>
-      <h2 id="filesmodified"><span class="header-section-number">4.9</span> filesModified</h2>
+      <h2 id="filesmodified"><span class="header-section-number">4.12</span> filesModified</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#filesModified</code></p>
       <p><strong>Notes:</strong> Specifies a filename, as a relative path, relative to the top of the tree of files in the repository, of a file that existed in the previous version of the tree, and its contents got modified in this commit.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
@@ -259,7 +296,7 @@
       <p><strong>Functional:</strong> No</p>
       <p><strong>Inverse of:</strong> (None)</p>
       <p><strong>Example:</strong></p>
-      <h2 id="filesremoved"><span class="header-section-number">4.10</span> filesRemoved</h2>
+      <h2 id="filesremoved"><span class="header-section-number">4.13</span> filesRemoved</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#filesRemoved</code></p>
       <p><strong>Notes:</strong> Specifies a filename, as a relative path, relative to the top of the tree of files in the repository, of a file that existed in the previous version of the tree, and got removed from the tree in this commit.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>

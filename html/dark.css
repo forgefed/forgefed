@@ -1,0 +1,267 @@
+/* Font links ------------------------------------------------------------- */
+@font-face {
+    font-family:"Open Sans";
+    font-weight: 400;
+    font-style: normal;
+    src: local("Open Sans Regular"),
+         url("/fonts/open-sans/open-sans-regular.woff2") format("woff2"),
+         url("/fonts/open-sans/open-sans-regular.woff") format("woff");
+}
+@font-face {
+    font-family:"Open Sans";
+    font-weight: 400;
+    font-style: italic;
+    src: local("Open Sans Italic"),
+         url("/fonts/open-sans/open-sans-italic.woff2") format("woff2"),
+         url("/fonts/open-sans/open-sans-italic.woff") format("woff");
+}
+@font-face {
+    font-family:"Open Sans";
+    font-weight: 600;
+    font-style: normal;
+    src: local("Open Sans Bold"),
+         url("/fonts/open-sans/open-sans-bold.woff2") format("woff2"),
+         url("/fonts/open-sans/open-sans-bold.woff") format("woff");
+}
+@font-face {
+    font-family:"Open Sans";
+    font-weight: 600;
+    font-style: italic;
+    src: local("Open Sans Bold Italic"),
+         url("/fonts/open-sans/open-sans-bold-italic.woff2") format("woff2"),
+         url("/fonts/open-sans/open-sans-bold-italic.woff") format("woff");
+}
+
+@font-face {
+    font-family:"Hack";
+    font-weight: 400;
+    font-style: normal;
+    src: local("Hack Regular"),
+         url("/fonts/hack/hack-regular.woff2") format("woff2"),
+         url("/fonts/hack/hack-regular.woff") format("woff");
+}
+
+
+/* General ---------------------------------------------------------------- */
+:root {
+    /* Palette */
+    --orange: #ff851b;
+    --light-orange: #ed9c55;
+    --gray: #808080;
+    --light-gray: #c8c8c8;
+    --dark-gray: #33334a;
+
+    /* Syntax highlighting palette */
+    --red: #c60901;
+    --slate-gray: #555;
+    --shadow-gray: #26263d;
+
+    /* Font declarations */
+    --sans-font: Open Sans, Noto Sans, Helvetica, sans-serif;
+    --mono-font: Hack, Noto Mono, Courier, monospace;
+
+    /* Effect transitions */
+    --link-trans: color 0.5s, background 0.5s, ease-in-out;
+    --img-trans: opacity 0.5s ease-in-out;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--dark-gray);
+    color: #fff;
+    font-family: var(--sans-font);
+    font-size: 62.5%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--orange);
+    word-wrap: break-word;
+}
+h1 {
+    margin: 4rem 0 2rem;
+    font-size: 2.8rem;
+}
+h2 {
+    margin: 3rem 0 1.5rem;
+    font-size: 2.4rem;
+}
+h3 {
+    margin: 3rem 0 1.5rem;
+    font-size: 2.2rem;
+}
+
+a {
+    color: var(--light-gray);
+    text-decoration: none;
+}
+    a:hover {
+        background: var(--light-gray);
+        color: var(--dark-gray);
+        border-radius: 0.2rem;
+        transition: var(--link-trans);
+    }
+    a:visited { color: var(--gray); }
+
+code {
+    font-family: var(--mono-font);
+}
+
+
+/* Sections --------------------------------------------------------------- */
+
+.header {
+    margin: 5rem auto;
+}
+
+    .header-title {
+        text-align: center;
+        margin: 0 auto 1.6rem;
+        font-size: 3.8rem;
+    }
+    .header-title__link, .header-title__link:hover {
+        background: none;
+        color: var(--orange);
+        text-decoration: none;
+    }
+
+
+.nav {
+    margin: 0 auto;
+}
+    .nav__link {
+        font-size: 2rem;
+        color: var(--light-gray);
+        text-decoration: none;
+    }
+
+
+.main {
+    font-size: 1.6rem;
+    word-wrap: break-word;
+}
+
+    .main-title {
+        font-size: 2.6rem;
+    }
+
+    .main p { margin: 1.5rem 0; }
+
+    .main ul { list-style: none; }
+    .main ul li:before {
+        content: "•";
+        padding: 0 0.5rem 0 0;
+    }
+
+.toc {
+    margin: 2rem 0 4rem;
+    background: var(--shadow-gray);
+    border-radius: 0.5rem;
+}
+
+    .toc-title {
+        margin: 0 0 1rem;
+        color: var(--orange);
+        font-size: 2rem;
+    }
+
+    .toc ul { list-style: none; }
+    .toc ul li:before { content: unset; }
+    .toc ul li ul li { margin: 0 0 0 1.2rem; }
+    .toc ul li ul li ul li { margin: 0 0 0 2.6rem; }
+
+
+.footer {
+    margin: 4rem auto;
+    font-size: 1.2rem;
+}
+
+    .footer p {
+        margin: 1rem 0;
+        text-align: center;
+    }
+
+    .footer a[rel="license"]:hover {
+        background: none;
+    }
+    .footer a[rel="license"] img {
+        margin: 1rem auto;
+        border: 0;
+        opacity: 0.8;
+    }
+    .footer a[rel="license"] img:hover {
+        opacity: 1.0;
+        transition: var(--img-trans);
+    }
+
+
+/* Syntax highlighting ---------------------------------------------------- */
+
+div.sourceCode {
+    padding: 0 1rem;
+    border-top: 1.2rem solid var(--light-orange);
+    border-radius: 0.5rem;
+    background: var(--shadow-gray);
+}
+pre.sourceCode {
+    padding: 2rem 0;
+    background: var(--shadow-gray);
+    overflow: auto;
+}
+.sourceLine, .sourceLine:hover {
+    background: var(--shadow-gray);
+    color: var(--slate-gray);
+}
+.sourceLine .er { color: var(--red); }            /* Error */
+.sourceLine .dt { color: var(--gray); }           /* Datatype */
+.sourceLine .st { color: var(--light-orange); }   /* String */
+
+
+/* Media queries ---------------------------------------------------------- */
+
+@media (max-width: 689px) {
+    .header, .main, .footer { padding: 0 2rem; }
+
+    /* Stack nav items */
+    .nav { width: 18rem; }
+    .nav__link { display: block; }
+
+    /* TOC spans full width */
+    .toc {
+        margin: 0 -2rem;
+        padding: 4rem 2rem;
+    }
+}
+
+
+@media (min-width: 690px) {
+    .header, .main, .footer { padding: 0 5rem; }
+
+    /* Horizontal nav */
+    .nav { text-align: center; }
+    .nav__link {
+        margin: 0 1rem;
+        display: inline;
+    }
+
+    /* TOC is 45% of min-width */
+    .toc {
+        margin: 0;
+        padding: 4rem;
+        width: 31rem;
+    }
+}
+
+
+@media (min-width: 960px) {
+    /* Center sections, set fixed width */
+    .header, .main, .footer {
+        width: 95rem;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
