@@ -49,12 +49,12 @@
     --light-orange: #ed9c55;
     --gray: #808080;
     --light-gray: #c8c8c8;
-    --dark-gray: #33334a;
+    --dark-gray: #333;
 
     /* Syntax highlighting palette */
     --red: #c60901;
     --slate-gray: #555;
-    --shadow-gray: #26263d;
+    --shadow-gray: #262626;
 
     /* Font declarations */
     --sans-font: Open Sans, Noto Sans, Helvetica, sans-serif;
