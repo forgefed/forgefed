@@ -64,7 +64,7 @@
 
     /* Sections */
     --bg-color: #fff;
-    --text-color: var(--gray);
+    --text-color: #646464;
     --heading-color: var(--orange);
     --link-color: var(--gray-50);
     --link-hover-color: #000;
