@@ -311,11 +311,12 @@ tickets that depends on this ticket, i.e. this ticket is the `object` of the
 
 **Example:**
 
-## repository
+## repository (DEPRECATED)
 
 **URI:** `https://forgefed.peers.community/ns#repository`
 
-**Notes:** Identifies the repository to which a commit belongs.
+**Notes:** Identifies the repository to which a commit belongs. DEPRECATED: Use
+the standard ActivityPub `context` property instead.
 
 **Domain:** `Commit`
 
