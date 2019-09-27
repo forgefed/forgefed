@@ -4,7 +4,6 @@ title: ForgeFed Vocabulary
 
 **Editors:**
 
-- deesix
 - fr33domlover
 - zPlus
 - ... add other editors
