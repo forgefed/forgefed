@@ -4,7 +4,6 @@ title: ForgeFed
 
 **Editors:**
 
-- deesix
 - fr33domlover
 - zPlus
 - ... add other editors
