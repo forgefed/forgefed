@@ -1,15 +1,41 @@
 # ForgeFed - Federation Protocol for Forge Services
 
-ForgeFed is a federation protocol extending the W3C's [ActivityPub][activity-pub] protocol to provide a uniform server-to-server API for interoperability between networked version control services, with limited pub/sub access for messaging and notifications to and from the larger fediverse. It allows users of any ForgeFed-compliant service to interact with other ForgeFed-compliant forge services, without being a registered user of that foreign service, just as if they were. In this way, users that choose to self-host have the additional benefit/responsibility of fully controlling of their own authentication/identity and their own data.
+ForgeFed is a federation protocol extending the W3C's [ActivityPub][activity-pub]
+protocol to provide a uniform server-to-server API for interoperability between
+networked version control services, with limited pub/sub access for messaging and
+notifications to and from the larger fediverse. It allows users of any
+ForgeFed-compliant service to interact with other ForgeFed-compliant forge
+services, without being a registered user of that foreign service, just as if
+they were. In this way, users that choose to self-host have the additional
+benefit/responsibility of fully controlling of their own authentication/identityand
+their own data.
 
-All of the most common user interactions are supported such as: cloning/forking, merge-requests/patches, bug-reports/code-review, subscriptions/favorites with VCS-agnostic, service-agnostic, and client-agnostic genericity.
+All of the most common user interactions are supported such as: cloning/forking,
+merge-requests/patches, bug-reports/code-review, subscriptions/favorites with
+VCS-agnostic, service-agnostic, and client-agnostic genericity.
 
 
 ## Work-group Collaboration
 
-The formal work-group and associated development discussions are conducted openly on the [ForgeFed Community Forum][feneas-forum] on the FeNeAs website; with informal, real-time Collaboration often taking place on the #peers IRC channel on freenode. Everyone is invited to participate in either venue. Before posting, please read [this primer][overview] for a brief overview of the project motivation and goals.
+The formal work-group and associated development discussions are conducted openly
+on the [ForgeFed Community Forum][feneas-forum] on the FeNeAs website; with
+informal, real-time Collaboration often taking place on the #peers IRC channel on
+freenode. Everyone is invited to participate in either venue. Before posting,
+please read [this primer][overview] for a brief overview of the project motivation
+and goals.
 
-The artifacts produced by this work-group are still in the early stages; and there is still much work to do, and ample design-space for discussion and contributions. In order to be most widely adopted, we strive to assemble the most diverse and representative group of stake-holders including: users, implementers, and various domain experts. Anyone who is experienced with working on an existing forge or a federated "social" service, or who is planning to implement new ones, and anyone with experience in writing technical specification documents, or has UX expertise is encouraged to join the work-group and/or contribute artifacts. Please submit any tangible contributions (artwork, software, documentation) and technical critique regarding the published artifacts to the [ForgeFed issue tracker][notabug-issues] and [ForgeFed wiki][notabug-wiki] on NotABug, or the [ForgeFed mirror on Pagure][pagure-mirror].
+The artifacts produced by this work-group are still in the early stages; and there
+is still much work to do, and ample design-space for discussion and contributions.
+In order to be most widely adopted, we strive to assemble the most diverse and
+representative group of stake-holders including: users, implementers, and various
+domain experts. Anyone who is experienced with working on an existing forge or a
+federated "social" service, or who is planning to implement new ones, and anyone
+with experience in writing technical specification documents, or has UX expertise
+is encouraged to join the work-group and/or contribute artifacts. Please submit
+any tangible contributions (artwork, software, documentation) and technical critique
+regarding the published artifacts to the [ForgeFed issue tracker][notabug-issues]
+and [ForgeFed wiki][notabug-wiki] on NotABug, or the
+[ForgeFed mirror on Pagure][pagure-mirror].
 
 
 ### Projects participating in the discussions have included:
@@ -29,12 +55,15 @@ The artifacts produced by this work-group are still in the early stages; and the
 
 ## ForgeFed on the Fediverse
 
-Connect with <a href="https://floss.social/@forgefed">ForgeFed on the fediverse</a> for progress updates and general tooting.
+Connect with [ForgeFed on the fediverse](https://floss.social/@forgefed) for
+progress updates and general tooting.
 
 
 ## License
 
-All artifacts produced by the ForgeFed work-group are freely available under the [CC0 1.0 Universal (CC0 1.0) Public Domain Dedication][cc0]. All contributions to the wiki must also be offered freely as such.
+All artifacts produced by the ForgeFed work-group are freely available under
+the [CC0 1.0 Universal (CC0 1.0) Public Domain Dedication][cc0]. All
+contributions to the wiki must also be offered freely as such.
 
 
 [activity-pub]:    https://www.w3.org/TR/activitypub/
