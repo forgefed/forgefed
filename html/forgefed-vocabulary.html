@@ -26,9 +26,9 @@
     </header>
     <main class="main">
               <h1 class="main-title">
-            ForgeFed Vocabulary - draft - 2019-08-06 master
-            <a href="https://notabug.org/peers/forgefed/commit/3d46cd992e1871f77525811cc2024e2f0e96b06d">
-                3d46cd9
+            ForgeFed Vocabulary - draft - 2019-10-03 homepage
+            <a href="https://notabug.org/peers/forgefed/commit/c5317205fb7a4f2d7b7ecf6c697dc5b076d1f5a0">
+                c531720
             </a>
                     </h1>
       
@@ -57,7 +57,7 @@
             <li><a href="#dependedby"><span class="toc-section-number">4.4</span> dependedBy</a></li>
             <li><a href="#dependencies"><span class="toc-section-number">4.5</span> dependencies</a></li>
             <li><a href="#dependants"><span class="toc-section-number">4.6</span> dependants</a></li>
-            <li><a href="#repository-1"><span class="toc-section-number">4.7</span> repository</a></li>
+            <li><a href="#repository-deprecated"><span class="toc-section-number">4.7</span> repository (DEPRECATED)</a></li>
             <li><a href="#committedby"><span class="toc-section-number">4.8</span> committedBy</a></li>
             <li><a href="#hash"><span class="toc-section-number">4.9</span> hash</a></li>
             <li><a href="#committed"><span class="toc-section-number">4.10</span> committed</a></li>
@@ -70,135 +70,134 @@
       
       <p><strong>Editors:</strong></p>
       <ul>
-      <li>deesix</li>
       <li>fr33domlover</li>
       <li>zPlus</li>
-      <li>… add other editors</li>
+      <li>... add other editors</li>
       </ul>
       <p><strong>Repository:</strong></p>
       <ul>
       <li><a href="https://notabug.org/peers/forgefed">NotABug</a></li>
       </ul>
       <p><strong>Copyright:</strong></p>
-      <p>2019 …</p>
+      <p>2019 ...</p>
       <h1 id="abstract"><span class="header-section-number">1</span> Abstract</h1>
-      <p>This document describes the ForgeFed vocabulary. It’s intended to be an extension of the <a href="https://www.w3.org/TR/activitystreams-vocabulary/">ActivityPub Vocabulary</a> and provides additional vocabulary for federation of project management and version control system hosting and collaboration platforms.</p>
+      <p>This document describes the ForgeFed vocabulary. It's intended to be an extension of the <a href="https://www.w3.org/TR/activitystreams-vocabulary/">ActivityPub Vocabulary</a> and provides additional vocabulary for federation of project management and version control system hosting and collaboration platforms.</p>
       <h1 id="introduction"><span class="header-section-number">2</span> Introduction</h1>
       <p>The ForgeFed Vocabulary describes a set of types and properties to be used by platforms that support the ForgeFed protocol. This specification describes only the new vocabulary called ForgeFed. The ForgeFed behavior specification describes how to use this vocabulary, along with standard ActivityPub vocabulary, to support the ForgeFed protocol.</p>
       <h1 id="types"><span class="header-section-number">3</span> Types</h1>
       <p>The base URI of all ForgeFed terms is <code>https://forgefed.peers.community/ns#</code>. The ForgeFed vocabulary has a JSON-LD context whose URI is <code>https://forgefed.peers.community/ns</code>. Implementers MUST either include the ActivityPub and ForgeFed contexts in their object definitions, or other contexts that would result with the ActivityPub and ForgeFed terms being assigned they correct full URIs. Implementers MAY include additional contexts and terms as appropriate.</p>
       <p>A typical <code>@context</code> of a ForgeFed object may look like this:</p>
-      <div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb1-1" title="1"><span class="er">&quot;@context&quot;:</span> <span class="ot">[</span></a>
-      <a class="sourceLine" id="cb1-2" title="2">    <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span></a>
-      <a class="sourceLine" id="cb1-3" title="3">    <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span></a>
-      <a class="sourceLine" id="cb1-4" title="4"><span class="ot">]</span></a></code></pre></div>
+      <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="er">&quot;@context&quot;:</span> <span class="ot">[</span>
+          <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span>
+          <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span>
+      <span class="ot">]</span></code></pre></div>
       <h2 id="activity-types"><span class="header-section-number">3.1</span> Activity Types</h2>
       <h3 id="push"><span class="header-section-number">3.1.1</span> Push</h3>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#Push</code></p>
-      <p><strong>Notes:</strong> Indicates that new content has been pushed to the repository. The Activity’s object MUST contain a list of Commits. A Repository actor can use this Activity to notify followers of new changes.</p>
+      <p><strong>Notes:</strong> Indicates that new content has been pushed to the repository. The Activity's object MUST contain a list of Commits. A Repository actor can use this Activity to notify followers of new changes.</p>
       <p><strong>Example:</strong></p>
-      <div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb2-1" title="1"><span class="fu">{</span></a>
-      <a class="sourceLine" id="cb2-2" title="2">    <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
-      <a class="sourceLine" id="cb2-3" title="3">        <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span></a>
-      <a class="sourceLine" id="cb2-4" title="4">        <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span></a>
-      <a class="sourceLine" id="cb2-5" title="5">    <span class="ot">]</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb2-6" title="6">    <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice pushed 2 new commits to Repo2.&quot;</span></a>
-      <a class="sourceLine" id="cb2-7" title="7">    <span class="st">&quot;type&quot;</span><span class="er">:</span> <span class="st">&quot;Push&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb2-8" title="8">    <span class="dt">&quot;actor&quot;</span><span class="fu">:</span> <span class="st">&quot;https://localhost/alice/repo2&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb2-9" title="9">    <span class="dt">&quot;object&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
-      <a class="sourceLine" id="cb2-10" title="10">        <span class="fu">{</span></a>
-      <a class="sourceLine" id="cb2-11" title="11">            <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb2-12" title="12">        <span class="fu">}</span><span class="ot">,</span></a>
-      <a class="sourceLine" id="cb2-13" title="13">        <span class="fu">{</span></a>
-      <a class="sourceLine" id="cb2-14" title="14">            <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb2-15" title="15">        <span class="fu">}</span></a>
-      <a class="sourceLine" id="cb2-16" title="16">    <span class="ot">]</span></a>
-      <a class="sourceLine" id="cb2-17" title="17"><span class="fu">}</span></a></code></pre></div>
+      <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+          <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+              <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span>
+              <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span>
+          <span class="ot">]</span><span class="fu">,</span>
+          <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice pushed 2 new commits to Repo2.&quot;</span>
+          <span class="st">&quot;type&quot;</span><span class="er">:</span> <span class="st">&quot;Push&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;actor&quot;</span><span class="fu">:</span> <span class="st">&quot;https://localhost/alice/repo2&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;object&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+              <span class="fu">{</span>
+                  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span>
+              <span class="fu">}</span><span class="ot">,</span>
+              <span class="fu">{</span>
+                  <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span>
+              <span class="fu">}</span>
+          <span class="ot">]</span>
+      <span class="fu">}</span></code></pre></div>
       <h2 id="actor-types"><span class="header-section-number">3.2</span> Actor Types</h2>
       <h3 id="repository"><span class="header-section-number">3.2.1</span> Repository</h3>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#Repository</code></p>
       <p><strong>Notes:</strong> Represents a version control system repository.</p>
       <p><strong>Example:</strong></p>
-      <div class="sourceCode" id="cb3"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb3-1" title="1"><span class="fu">{</span></a>
-      <a class="sourceLine" id="cb3-2" title="2">    <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
-      <a class="sourceLine" id="cb3-3" title="3">        <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span></a>
-      <a class="sourceLine" id="cb3-4" title="4">        <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span></a>
-      <a class="sourceLine" id="cb3-5" title="5">    <span class="ot">]</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-6" title="6">    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://localhost/alice/forgefed&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-7" title="7">    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Repository&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-8" title="8">    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;ForgeFed&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-9" title="9">    <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;ForgeFed development&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-10" title="10">    <span class="dt">&quot;inbox&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-11" title="11">    <span class="dt">&quot;outbox&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-12" title="12">    <span class="dt">&quot;followers&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb3-13" title="13">    <span class="dt">&quot;following&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span></a>
-      <a class="sourceLine" id="cb3-14" title="14"><span class="fu">}</span></a></code></pre></div>
+      <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+          <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+              <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span>
+              <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span>
+          <span class="ot">]</span><span class="fu">,</span>
+          <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://localhost/alice/forgefed&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Repository&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;ForgeFed&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;ForgeFed development&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;inbox&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;outbox&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;followers&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;following&quot;</span><span class="fu">:</span> <span class="st">&quot;&quot;</span>
+      <span class="fu">}</span></code></pre></div>
       <h2 id="object-types"><span class="header-section-number">3.3</span> Object Types</h2>
       <h3 id="commit"><span class="header-section-number">3.3.1</span> Commit</h3>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#Commit</code></p>
-      <p><strong>Notes:</strong> Represents a named set of changes to a repository. This is called “commit” in Git, Mercurial and Monotone; “patch” in Darcs; sometimes called “change set”.</p>
+      <p><strong>Notes:</strong> Represents a named set of changes to a repository. This is called &quot;commit&quot; in Git, Mercurial and Monotone; &quot;patch&quot; in Darcs; sometimes called &quot;change set&quot;.</p>
       <p><strong>Example:</strong></p>
-      <div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb4-1" title="1"><span class="fu">{</span></a>
-      <a class="sourceLine" id="cb4-2" title="2">    <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
-      <a class="sourceLine" id="cb4-3" title="3">        <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span></a>
-      <a class="sourceLine" id="cb4-4" title="4">        <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span></a>
-      <a class="sourceLine" id="cb4-5" title="5">    <span class="ot">]</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-6" title="6">    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-7" title="7">    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-8" title="8">    <span class="dt">&quot;repository&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-9" title="9">    <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/bob&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-10" title="10">    <span class="dt">&quot;committedBy&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-11" title="11">    <span class="dt">&quot;hash&quot;</span><span class="fu">:</span> <span class="st">&quot;109ec9a09c7df7fec775d2ba0b9d466e5643ec8c&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-12" title="12">    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Add an installation script, fixes issue #89&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-13" title="13">    <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="fu">{</span></a>
-      <a class="sourceLine" id="cb4-14" title="14">        <span class="dt">&quot;mediaType&quot;</span><span class="fu">:</span> <span class="st">&quot;text/plain&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-15" title="15">        <span class="dt">&quot;content&quot;</span><span class="fu">:</span> <span class="st">&quot;It&#39;s about time people can install on their computers!&quot;</span></a>
-      <a class="sourceLine" id="cb4-16" title="16">    <span class="fu">},</span></a>
-      <a class="sourceLine" id="cb4-17" title="17">    <span class="dt">&quot;created&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-11T12:34:56Z&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb4-18" title="18">    <span class="dt">&quot;committed&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-26T23:45:01Z&quot;</span></a>
-      <a class="sourceLine" id="cb4-19" title="19"><span class="fu">}</span></a></code></pre></div>
+      <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+          <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+              <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span>
+              <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span>
+          <span class="ot">]</span><span class="fu">,</span>
+          <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Commit&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;repository&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/bob&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;committedBy&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;hash&quot;</span><span class="fu">:</span> <span class="st">&quot;109ec9a09c7df7fec775d2ba0b9d466e5643ec8c&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Add an installation script, fixes issue #89&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+              <span class="dt">&quot;mediaType&quot;</span><span class="fu">:</span> <span class="st">&quot;text/plain&quot;</span><span class="fu">,</span>
+              <span class="dt">&quot;content&quot;</span><span class="fu">:</span> <span class="st">&quot;It&#39;s about time people can install on their computers!&quot;</span>
+          <span class="fu">},</span>
+          <span class="dt">&quot;created&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-11T12:34:56Z&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;committed&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-26T23:45:01Z&quot;</span>
+      <span class="fu">}</span></code></pre></div>
       <h3 id="ticketdependency"><span class="header-section-number">3.3.2</span> TicketDependency</h3>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#TicketDependency</code></p>
-      <p><strong>Notes:</strong> Represents a relationship between 2 tickets, in which the resolution of one ticket requires the other ticket to be resolved too. It MUST specify the subject, object and relationship properties, and the relationship property MUST be “dependsOn”.</p>
+      <p><strong>Notes:</strong> Represents a relationship between 2 tickets, in which the resolution of one ticket requires the other ticket to be resolved too. It MUST specify the subject, object and relationship properties, and the relationship property MUST be &quot;dependsOn&quot;.</p>
       <p><strong>Extends:</strong> <code>Relationship</code></p>
       <p><strong>Example:</strong></p>
-      <div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb5-1" title="1"><span class="fu">{</span></a>
-      <a class="sourceLine" id="cb5-2" title="2">    <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
-      <a class="sourceLine" id="cb5-3" title="3">        <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span></a>
-      <a class="sourceLine" id="cb5-4" title="4">        <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span></a>
-      <a class="sourceLine" id="cb5-5" title="5">    <span class="ot">]</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-6" title="6">    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;Relationship&quot;</span><span class="ot">,</span> <span class="st">&quot;TicketDependency&quot;</span><span class="ot">]</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-7" title="7">    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/ticket-deps/2342593&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-8" title="8">    <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-9" title="9">    <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice&#39;s ticket depends on Bob&#39;s ticket&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-10" title="10">    <span class="dt">&quot;published&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-11T12:34:56Z&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-11" title="11">    <span class="dt">&quot;subject&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myproj/issues/42&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-12" title="12">    <span class="dt">&quot;relationship&quot;</span><span class="fu">:</span> <span class="st">&quot;dependsOn&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb5-13" title="13">    <span class="dt">&quot;object&quot;</span><span class="fu">:</span> <span class="st">&quot;https://dev.community/bob/coolproj/issues/85&quot;</span></a>
-      <a class="sourceLine" id="cb5-14" title="14"><span class="fu">}</span></a></code></pre></div>
+      <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+          <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+              <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span>
+              <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span>
+          <span class="ot">]</span><span class="fu">,</span>
+          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;Relationship&quot;</span><span class="ot">,</span> <span class="st">&quot;TicketDependency&quot;</span><span class="ot">]</span><span class="fu">,</span>
+          <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/ticket-deps/2342593&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Alice&#39;s ticket depends on Bob&#39;s ticket&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;published&quot;</span><span class="fu">:</span> <span class="st">&quot;2019-07-11T12:34:56Z&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;subject&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myproj/issues/42&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;relationship&quot;</span><span class="fu">:</span> <span class="st">&quot;dependsOn&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;object&quot;</span><span class="fu">:</span> <span class="st">&quot;https://dev.community/bob/coolproj/issues/85&quot;</span>
+      <span class="fu">}</span></code></pre></div>
       <h3 id="ticket"><span class="header-section-number">3.3.3</span> Ticket</h3>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#Ticket</code></p>
       <p><strong>Notes:</strong> Represents an item that requires work or attention. Tickets exist in the context of a project (which may or may not be a version-control repository), and are used to track ideas, proposals, tasks, bugs and more.</p>
       <p><strong>Example:</strong></p>
-      <div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb6-1" title="1"><span class="fu">{</span></a>
-      <a class="sourceLine" id="cb6-2" title="2">    <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
-      <a class="sourceLine" id="cb6-3" title="3">        <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span></a>
-      <a class="sourceLine" id="cb6-4" title="4">        <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span></a>
-      <a class="sourceLine" id="cb6-5" title="5">    <span class="ot">]</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-6" title="6">    <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Ticket&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-7" title="7">    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo/issues/42&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-8" title="8">    <span class="dt">&quot;context&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-9" title="9">    <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://dev.community/bob&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-10" title="10">    <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Nothing works!&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-11" title="11">    <span class="dt">&quot;content&quot;</span><span class="fu">:</span> <span class="st">&quot;&lt;p&gt;Please fix. &lt;i&gt;Everything&lt;/i&gt; is broken!&lt;/p&gt;&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-12" title="12">    <span class="dt">&quot;mediaType&quot;</span><span class="fu">:</span> <span class="st">&quot;text/html&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-13" title="13">    <span class="dt">&quot;source&quot;</span><span class="fu">:</span> <span class="fu">{</span></a>
-      <a class="sourceLine" id="cb6-14" title="14">        <span class="dt">&quot;content&quot;</span><span class="fu">:</span> <span class="st">&quot;Please fix. *Everything* is broken!&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-15" title="15">        <span class="dt">&quot;mediaType&quot;</span><span class="fu">:</span> <span class="st">&quot;text/markdown; variant=CommonMark&quot;</span></a>
-      <a class="sourceLine" id="cb6-16" title="16">    <span class="fu">},</span></a>
-      <a class="sourceLine" id="cb6-17" title="17">    <span class="dt">&quot;assignedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span></a>
-      <a class="sourceLine" id="cb6-18" title="18">    <span class="dt">&quot;isResolved&quot;</span><span class="fu">:</span> <span class="kw">false</span></a>
-      <a class="sourceLine" id="cb6-19" title="19"><span class="fu">}</span></a></code></pre></div>
+      <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+          <span class="dt">&quot;@context&quot;</span><span class="fu">:</span> <span class="ot">[</span>
+              <span class="st">&quot;https://www.w3.org/ns/activitystreams&quot;</span><span class="ot">,</span>
+              <span class="st">&quot;https://forgefed.peers.community/ns&quot;</span>
+          <span class="ot">]</span><span class="fu">,</span>
+          <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;Ticket&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo/issues/42&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;context&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice/myrepo&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;attributedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://dev.community/bob&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;summary&quot;</span><span class="fu">:</span> <span class="st">&quot;Nothing works!&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;content&quot;</span><span class="fu">:</span> <span class="st">&quot;&lt;p&gt;Please fix. &lt;i&gt;Everything&lt;/i&gt; is broken!&lt;/p&gt;&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;mediaType&quot;</span><span class="fu">:</span> <span class="st">&quot;text/html&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;source&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+              <span class="dt">&quot;content&quot;</span><span class="fu">:</span> <span class="st">&quot;Please fix. *Everything* is broken!&quot;</span><span class="fu">,</span>
+              <span class="dt">&quot;mediaType&quot;</span><span class="fu">:</span> <span class="st">&quot;text/markdown; variant=CommonMark&quot;</span>
+          <span class="fu">},</span>
+          <span class="dt">&quot;assignedTo&quot;</span><span class="fu">:</span> <span class="st">&quot;https://example.dev/alice&quot;</span><span class="fu">,</span>
+          <span class="dt">&quot;isResolved&quot;</span><span class="fu">:</span> <span class="kw">false</span>
+      <span class="fu">}</span></code></pre></div>
       <h1 id="properties"><span class="header-section-number">4</span> Properties</h1>
       <h2 id="assignedto"><span class="header-section-number">4.1</span> assignedTo</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#assignedTo</code></p>
@@ -210,7 +209,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="isresolved"><span class="header-section-number">4.2</span> isResolved</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#isResolved</code></p>
-      <p><strong>Notes:</strong> Specifies whether the ticket is closed, i.e. the work on it is done and it doesn’t need to attract attention anymore.</p>
+      <p><strong>Notes:</strong> Specifies whether the ticket is closed, i.e. the work on it is done and it doesn't need to attract attention anymore.</p>
       <p><strong>Domain:</strong> <code>Ticket</code></p>
       <p><strong>Range:</strong> <code>xsd:boolean</code></p>
       <p><strong>Functional:</strong> Yes</p>
@@ -218,7 +217,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="dependson"><span class="header-section-number">4.3</span> dependsOn</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#dependsOn</code></p>
-      <p><strong>Notes:</strong> Identifies one or more tickets on which this ticket depends, i.e. it can’t be resolved without those tickets being resolved too.</p>
+      <p><strong>Notes:</strong> Identifies one or more tickets on which this ticket depends, i.e. it can't be resolved without those tickets being resolved too.</p>
       <p><strong>Domain:</strong> <code>Ticket</code></p>
       <p><strong>Range:</strong> <code>Ticket</code></p>
       <p><strong>Functional:</strong> No</p>
@@ -226,7 +225,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="dependedby"><span class="header-section-number">4.4</span> dependedBy</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#dependedBy</code></p>
-      <p><strong>Notes:</strong> Identifies one or more tickets which depends on this ticket, i.e. they can’t be resolved without this tickets being resolved too.</p>
+      <p><strong>Notes:</strong> Identifies one or more tickets which depends on this ticket, i.e. they can't be resolved without this tickets being resolved too.</p>
       <p><strong>Domain:</strong> <code>Ticket</code></p>
       <p><strong>Range:</strong> <code>Ticket</code></p>
       <p><strong>Functional:</strong> No</p>
@@ -234,7 +233,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="dependencies"><span class="header-section-number">4.5</span> dependencies</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#dependencies</code></p>
-      <p><strong>Notes:</strong> Identifies a <code>Collection</code> of <code>TicketDependency</code> which specify tickets that this ticket depends on, i.e. this ticket is the <code>subject</code> of the <code>dependsOn</code> relationship.</p>
+      <p><strong>Notes:</strong> Identifies a <code>Collection</code> of <code>TicketDependency</code> which specify tickets that this ticket depends on, i.e. this ticket is the <code>subject</code> of the <code>dependsOn</code> relationship.</p>
       <p><strong>Domain:</strong> <code>Ticket</code></p>
       <p><strong>Range:</strong> <code>Collection</code> (of items of type <code>TicketDependency</code>)</p>
       <p><strong>Functional:</strong> Yes</p>
@@ -242,15 +241,15 @@
       <p><strong>Example:</strong></p>
       <h2 id="dependants"><span class="header-section-number">4.6</span> dependants</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#dependants</code></p>
-      <p><strong>Notes:</strong> Identifies a <code>Collection</code> of <code>TicketDependency</code> which specify tickets that depends on this ticket, i.e. this ticket is the <code>object</code> of the <code>dependsOn</code> relationship. Often called “reverse dependencies”.</p>
+      <p><strong>Notes:</strong> Identifies a <code>Collection</code> of <code>TicketDependency</code> which specify tickets that depends on this ticket, i.e. this ticket is the <code>object</code> of the <code>dependsOn</code> relationship. Often called &quot;reverse dependencies&quot;.</p>
       <p><strong>Domain:</strong> <code>Ticket</code></p>
       <p><strong>Range:</strong> <code>Collection</code> (of items of type <code>TicketDependency</code>)</p>
       <p><strong>Functional:</strong> Yes</p>
       <p><strong>Inverse of:</strong> (None)</p>
       <p><strong>Example:</strong></p>
-      <h2 id="repository-1"><span class="header-section-number">4.7</span> repository</h2>
+      <h2 id="repository-deprecated"><span class="header-section-number">4.7</span> repository (DEPRECATED)</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#repository</code></p>
-      <p><strong>Notes:</strong> Identifies the repository to which a commit belongs.</p>
+      <p><strong>Notes:</strong> Identifies the repository to which a commit belongs. DEPRECATED: Use the standard ActivityPub <code>context</code> property instead.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
       <p><strong>Range:</strong> <code>Repository</code></p>
       <p><strong>Functional:</strong> Yes</p>
@@ -258,7 +257,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="committedby"><span class="header-section-number">4.8</span> committedBy</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#committedBy</code></p>
-      <p><strong>Notes:</strong> Identifies the actor (usually a person, but could be something else, e.g. a bot) that added a set of changes to the version-control repository. Sometimes the author of the changes and the committer of those changes aren’t the same actor, in which case the <code>committedBy</code> property can be used to specify who added the changes to the repository. For example, when applying a patch to a repository, e.g. a Git repository, the author would be the person who made the patch, and the committer would be the person who applied the patch to their copy of the repository.</p>
+      <p><strong>Notes:</strong> Identifies the actor (usually a person, but could be something else, e.g. a bot) that added a set of changes to the version-control repository. Sometimes the author of the changes and the committer of those changes aren't the same actor, in which case the <code>committedBy</code> property can be used to specify who added the changes to the repository. For example, when applying a patch to a repository, e.g. a Git repository, the author would be the person who made the patch, and the committer would be the person who applied the patch to their copy of the repository.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
       <p><strong>Range:</strong> <code>Object</code></p>
       <p><strong>Functional:</strong> Yes</p>
@@ -266,7 +265,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="hash"><span class="header-section-number">4.9</span> hash</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#hash</code></p>
-      <p><strong>Notes:</strong> Specifies the hash associated with a commit, which is a unique identifier of the commit within the repository, usually generated as a cryptographic hash function of some (or all) of the commit’s data or metadata. For example, in Git it would be the SHA1 hash of the commit; in Darcs it would be the SHA1 hash of the patch info.</p>
+      <p><strong>Notes:</strong> Specifies the hash associated with a commit, which is a unique identifier of the commit within the repository, usually generated as a cryptographic hash function of some (or all) of the commit's data or metadata. For example, in Git it would be the SHA1 hash of the commit; in Darcs it would be the SHA1 hash of the patch info.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
       <p><strong>Range:</strong> <code>xsd:string</code> of hexadecimal digit ASCII characters</p>
       <p><strong>Functional:</strong> Yes</p>
@@ -274,7 +273,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="committed"><span class="header-section-number">4.10</span> committed</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#committed</code></p>
-      <p><strong>Notes:</strong> Specifies the time that a set of changes was committed into the repository and became a commit in it. This can be different from the time the set of changes was produced, e.g. if one person creates a patch and sends to another, and the other person then applies the patch to their copy of the repository. We call the former event “created” and the latter event “committed”, and this latter event is specified by the <code>committed</code> property.</p>
+      <p><strong>Notes:</strong> Specifies the time that a set of changes was committed into the repository and became a commit in it. This can be different from the time the set of changes was produced, e.g. if one person creates a patch and sends to another, and the other person then applies the patch to their copy of the repository. We call the former event &quot;created&quot; and the latter event &quot;committed&quot;, and this latter event is specified by the <code>committed</code> property.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
       <p><strong>Range:</strong> <code>xsd:dateTime</code></p>
       <p><strong>Functional:</strong> Yes</p>
@@ -282,7 +281,7 @@
       <p><strong>Example:</strong></p>
       <h2 id="filesadded"><span class="header-section-number">4.11</span> filesAdded</h2>
       <p><strong>URI:</strong> <code>https://forgefed.peers.community/ns#filesAdded</code></p>
-      <p><strong>Notes:</strong> Specifies a filename, as a relative path, relative to the top of the tree of files in the repository, of a file that got added in this commit, and didn’t exist in the previous version of the tree.</p>
+      <p><strong>Notes:</strong> Specifies a filename, as a relative path, relative to the top of the tree of files in the repository, of a file that got added in this commit, and didn't exist in the previous version of the tree.</p>
       <p><strong>Domain:</strong> <code>Commit</code></p>
       <p><strong>Range:</strong> <code>xsd:string</code></p>
       <p><strong>Functional:</strong> No</p>

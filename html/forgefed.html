@@ -26,9 +26,9 @@
     </header>
     <main class="main">
               <h1 class="main-title">
-            ForgeFed - draft - 2019-08-06 master
-            <a href="https://notabug.org/peers/forgefed/commit/3d46cd992e1871f77525811cc2024e2f0e96b06d">
-                3d46cd9
+            ForgeFed - draft - 2019-10-03 homepage
+            <a href="https://notabug.org/peers/forgefed/commit/c5317205fb7a4f2d7b7ecf6c697dc5b076d1f5a0">
+                c531720
             </a>
                     </h1>
       
@@ -54,22 +54,21 @@
       
       <p><strong>Editors:</strong></p>
       <ul>
-      <li>deesix</li>
       <li>fr33domlover</li>
       <li>zPlus</li>
-      <li>… add other editors</li>
+      <li>... add other editors</li>
       </ul>
       <p><strong>Repository:</strong></p>
       <ul>
       <li><a href="https://notabug.org/peers/forgefed">NotABug</a></li>
       </ul>
       <p><strong>Copyright:</strong></p>
-      <p>2019 …</p>
+      <p>2019 ...</p>
       <h1 id="abstract"><span class="header-section-number">1</span> Abstract</h1>
       <p>This document describes the ForgeFed protocol. ForgeFed is an extension of the <a href="https://www.w3.org/TR/activitypub/">ActivityPub</a> protocol for delivering notifications and content for federation of version control systems. The purpose of this specification is to describe a protocol that can be integrated into source code management for enabling collaboration across different platforms.</p>
       <h1 id="status-of-this-document"><span class="header-section-number">2</span> Status of This Document</h1>
       <h1 id="overview"><span class="header-section-number">3</span> Overview</h1>
-      <p>ForgeFed is an extension of <a href="https://www.w3.org/TR/activitypub/">ActivityPub</a> and follows the same “actors” model, with a client-to-server protocol and a server-to-server protocol.</p>
+      <p>ForgeFed is an extension of <a href="https://www.w3.org/TR/activitypub/">ActivityPub</a> and follows the same &quot;actors&quot; model, with a client-to-server protocol and a server-to-server protocol.</p>
       <h1 id="conformance"><span class="header-section-number">4</span> Conformance</h1>
       <p>The key words MAY, MUST, MUST NOT, SHOULD, and SHOULD NOT are to be interpreted as described in [RFC2119].</p>
       <h1 id="objects"><span class="header-section-number">5</span> Objects</h1>
@@ -78,14 +77,14 @@
       <p>A ForgeFed implementation MUST provide an Actor of type <code>Repository</code> for every repository that should support federation.</p>
       <p>A ForgeFed implementation SHOULD provide an Actor of type <code>Person</code> for every user of the platform.</p>
       <h1 id="client-to-server-interactions"><span class="header-section-number">7</span> Client to Server Interactions</h1>
-      <p>ForgeFed uses Activities for client to server interactions, as described by ActivityPub. A client will send objects (eg. a Ticket) wrapped in a Activity (eg. Create) to an actor’s outbox, and in turn the server will take care of delivery.</p>
+      <p>ForgeFed uses Activities for client to server interactions, as described by ActivityPub. A client will send objects (eg. a Ticket) wrapped in a Activity (eg. Create) to an actor's outbox, and in turn the server will take care of delivery.</p>
       <h2 id="follow-activity"><span class="header-section-number">7.1</span> Follow Activity</h2>
-      <p>The Follow activity is used to subscribe to the activities of a Repository. The client MUST send a Follow activity the a Person’s outbox. The server in turn delivers the message to the destination inbox.</p>
+      <p>The Follow activity is used to subscribe to the activities of a Repository. The client MUST send a Follow activity the a Person's outbox. The server in turn delivers the message to the destination inbox.</p>
       <h2 id="push-activity"><span class="header-section-number">7.2</span> Push Activity</h2>
-      <p>The Push activity is used to notify followers when somebody has pushed changes to a Repository. The client MUST send a Push activity the a Repository’s outbox. The server in turn delivers the message to the Repository followers.</p>
+      <p>The Push activity is used to notify followers when somebody has pushed changes to a Repository. The client MUST send a Push activity the a Repository's outbox. The server in turn delivers the message to the Repository followers.</p>
       <h1 id="server-to-server-interactions"><span class="header-section-number">8</span> Server to Server Interactions</h1>
       <h2 id="follow-activity-1"><span class="header-section-number">8.1</span> Follow Activity</h2>
-      <p>The server receiving a Follow activity in a Repository’s inbox SHOULD add the sender actor to the Repository’s followers collection.</p>
+      <p>The server receiving a Follow activity in a Repository's inbox SHOULD add the sender actor to the Repository's followers collection.</p>
       <h1 id="acknowledgements"><span class="header-section-number">9</span> Acknowledgements</h1>
     </main>
     <footer class="footer">
