@@ -59,6 +59,11 @@ Connect with [ForgeFed on the fediverse](https://floss.social/@forgefed) for
 progress updates and general tooting.
 
 
+## Website build instructions
+
+    ./build.sh
+
+
 ## License
 
 All artifacts produced by the ForgeFed work-group are freely available under
