@@ -38,6 +38,7 @@ runPandoc () {
         local otherThemeName="🌞"
         local output="html/$file/dark.html"
         local suffix="/dark.html"
+        mkdir -p "html/$file"
     fi
 
     pandoc $dir/$file.md \
