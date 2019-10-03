@@ -21,7 +21,7 @@ runPandoc () {
     local file="$2"
 
     if [ "$3" == "true" ]; then
-        local toc="--table-of-contents"
+        local toc="--table-of-contents --number-sections"
     else
         local toc=""
     fi
@@ -54,7 +54,6 @@ runPandoc () {
         --variable "other-theme:$otherTheme" \
         --variable "other-theme-name:$otherThemeName" \
         --variable "suffix:$suffix" \
-        --number-sections \
         --output "$output"
         #$gitdirty \
 }
