@@ -11,7 +11,7 @@ This website serves as the official place where to find up to date information a
 links about the project.
 
 
-# Why ForgeFed
+# Why ForgeFed?
 
 The current state of code collaboration is dominated by centralized, proprietary
 platforms. Free alternatives to these platforms exist (for example [NotABug] and
@@ -55,10 +55,11 @@ platform for testing the protocol and trying new features
 
 # Project links
 
-- Issues tracker: https://notabug.org/peers/forgefed/issues
-- Wiki:           https://notabug.org/peers/forgefed/wiki
-- Forum:          https://talk.feneas.org/c/forgefed
-- Specification:  /forgefed-vocabulary.html
+- [Issues tracker](https://notabug.org/peers/forgefed/issues)
+- [Wiki](https://notabug.org/peers/forgefed/wiki)
+- [Forum](https://talk.feneas.org/c/forgefed)
+- [Specification](/forgefed-vocabulary.html)
+- [dokk](https://dokk.org/ForgeFed)
 
 
 [ActivityPub]:    https://www.w3.org/TR/activitypub/
