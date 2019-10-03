@@ -70,6 +70,8 @@ All artifacts produced by the ForgeFed work-group are freely available under
 the [CC0 1.0 Universal (CC0 1.0) Public Domain Dedication][cc0]. All
 contributions to the wiki must also be offered freely as such.
 
+The ForgeFed logo was contributed by ikomi.
+
 
 [activity-pub]:    https://www.w3.org/TR/activitypub/
 [mail-archive]:    https://framalistes.org/sympa/arc/git-federation

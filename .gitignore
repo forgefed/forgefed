@@ -11,6 +11,8 @@ doc/*
 !html
 !html/*
 
+!logo*
+
 !python/
 python/*
 !python/forgefed_constants.py
