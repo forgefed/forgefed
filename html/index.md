@@ -24,7 +24,7 @@ platform.
 
 # Project status
 
-The specification and software produced but this working group is still in the
+The specification and software produced by this working group is still in the
 early stages, and there is still much work to do and ample design-space for
 discussion and contributions.
 
@@ -42,9 +42,9 @@ informal, real-time collaboration often taking place on the #peers IRC channel o
 freenode.
 In order to be most widely adopted, we strive to assemble the most diverse and
 representative group including: users, implementers, and various domain experts.
-Anyone who is experienced with working on an existing forges or federated "social"
+Anyone who is experienced with working on existing forges or federated "social"
 services, and anyone with experience in writing technical specification documents
-is encouraged to join the work-group and/or contribute artifacts.
+is encouraged to join the working group.
 
 
 # Implementations
