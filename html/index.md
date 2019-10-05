@@ -7,7 +7,7 @@ The goal of the project is to support all of the major activities connected to
 project management, including bug reports, merge requests, and notifications
 across instances.
 
-This website serves as the primary source where to find up to date information
+This website serves as the authoritative source for findinding up to date information
 about the project.
 
 
