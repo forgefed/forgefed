@@ -7,8 +7,8 @@ The goal of the project is to support all of the major activities connected to
 project management, including bug reports, merge requests, and notifications
 across instances.
 
-This website serves as the official place where to find up to date information and
-links about the project.
+This website serves as the primary source where to find up to date information
+about the project.
 
 
 # Why ForgeFed?
