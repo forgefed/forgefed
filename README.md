@@ -43,7 +43,7 @@ and [ForgeFed wiki][notabug-wiki] on NotABug, or the
 * [Federated Networks Association][feneas]
 * [Git-Dit][git-dit]
 * [GitLab][gitlab]
-* [GitTea][gittea]
+* [Gitea][gitea]
 * [Gogs][gogs]
 * [NotABug][notabug]
 * [Pagure][pagure]
@@ -85,7 +85,7 @@ The ForgeFed logo was contributed by ikomi.
 [pagure-mirror]:   https://pagure.io/forge-fed/forge-fed
 [git-dit]:         https://github.com/neithernut/git-dit
 [gitlab]:          https://about.gitlab.com/
-[gittea]:          https://gitea.io/en-us/
+[gitea]:           https://gitea.io/en-us/
 [go-fed]:          http://go-fed.org/
 [gogs]:            https://gogs.io/
 [notabug]:         https://notabug.org/
