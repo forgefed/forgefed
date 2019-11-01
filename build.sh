@@ -76,5 +76,5 @@ render () {
 render html index "false"
 
 for file in $inputs; do
-    render specification $file "true"
+    render spec $file "true"
 done
