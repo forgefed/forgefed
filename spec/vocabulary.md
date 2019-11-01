@@ -101,9 +101,12 @@ A Repository actor can use this Activity to notify followers of new changes.
 
 **URI:** `https://forgefed.peers.community/ns#Commit`
 
-**Notes:** Represents a named set of changes to a repository. This is called
-"commit" in Git, Mercurial and Monotone; "patch" in Darcs; sometimes called
-"change set".
+**Notes:** Represents a named set of changes in the history of a repository.
+This is called "commit" in Git, Mercurial and Monotone; "patch" in Darcs;
+sometimes called "change set". Note that `Commit` is a set of changes that
+already exists in a repo's history, while a `Patch` is a separate proposed
+change set, that *could* be applied and pushed to a repo, resulting with a
+`Commit`.
 
 **Example:**
 
@@ -115,7 +118,7 @@ A Repository actor can use this Activity to notify followers of new changes.
     ],
     "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
     "type": "Commit",
-    "repository": "https://example.dev/alice/myrepo",
+    "context": "https://example.dev/alice/myrepo",
     "attributedTo": "https://example.dev/bob",
     "committedBy": "https://example.dev/alice",
     "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
@@ -312,6 +315,47 @@ the standard ActivityPub `context` property instead.
 **Inverse of:** (None)
 
 **Example:**
+
+## description
+
+**URI:** `https://forgefed.peers.community/ns#description`
+
+**Notes:** Specifies the description text of a `Commit`, which is an optional
+possibly multi-line text provided in addition to the one-line commit title. The
+range of the `description` property works the same way the range of the
+ActivityPub `source` property works.
+
+**Domain:** `Commit`
+
+**Range:** `Object` that specifies a `content` and a `mediaType`. The
+`mediaType` SHOULD be `"text/plain"`.
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "type": "Commit",
+    "context": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://example.dev/bob",
+    "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "created": "2019-07-11T12:34:56Z",
+    "name": "Add an installation script, fixes issue #89",
+
+    "description": {
+        "mediaType": "text/plain",
+        "content": "It's about time people can install on their computers!"
+    },
+}
+```
 
 ## committedBy
 
