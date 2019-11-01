@@ -2,7 +2,7 @@
 
 set -e
 
-inputs="forgefed forgefed-vocabulary"
+inputs="forgefed vocabulary"
 
 git_branch=`git rev-parse --abbrev-ref HEAD`
 

@@ -58,7 +58,7 @@ platform for testing the protocol and trying new features
 - [Issues tracker](https://notabug.org/peers/forgefed/issues)
 - [Wiki](https://notabug.org/peers/forgefed/wiki)
 - [Forum](https://talk.feneas.org/c/forgefed)
-- [Specification](/forgefed-vocabulary.html)
+- [Specification](/vocabulary.html)
 - [dokk](https://dokk.org/ForgeFed)
 
 
