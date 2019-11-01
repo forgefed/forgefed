@@ -64,14 +64,14 @@ delivery.
 ## Follow Activity
 
 The Follow activity is used to subscribe to the activities of a Repository.
-The client MUST send a Follow activity the a Person's outbox. The server
+The client MUST send a Follow activity to the Person's outbox. The server
 in turn delivers the message to the destination inbox.
 
 ## Push Activity
 
 The Push activity is used to notify followers when somebody has pushed changes
 to a Repository.
-The client MUST send a Push activity the a Repository's outbox. The server
+The client MUST send a Push activity to the Repository's outbox. The server
 in turn delivers the message to the Repository followers.
 
 # Server to Server Interactions
