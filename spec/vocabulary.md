@@ -42,9 +42,7 @@ A typical `@context` of a ForgeFed object may look like this:
 
 **URI:** `https://forgefed.peers.community/ns#Push`
 
-**Notes:** Indicates that new content has been pushed to the repository. The
-Activity's object MUST contain a list of Commits.
-A Repository actor can use this Activity to notify followers of new changes.
+**Notes:** Indicates that new content has been pushed to the `Repository`.
 
 **Example:**
 
@@ -54,17 +52,33 @@ A Repository actor can use this Activity to notify followers of new changes.
         "https://www.w3.org/ns/activitystreams",
         "https://forgefed.peers.community/ns"
     ],
-    "summary": "Alice pushed 2 new commits to Repo2."
+    "id": "https://example.dev/aviva/outbox/reBGo",
     "type": "Push",
-    "actor": "https://localhost/alice/repo2",
-    "object": [
-        {
-            "type": "Commit",
-        },
-        {
-            "type": "Commit",
-        }
-    ]
+    "actor": "https://example.dev/aviva",
+    "to": [
+        "https://example.dev/aviva/followers",
+        "https://example.dev/aviva/myproject",
+        "https://example.dev/aviva/myproject/team",
+        "https://example.dev/aviva/myproject/followers"
+    ],
+    "summary": "<p>Aviva pushed a commit to myproject</p>",
+    "object": {
+        "type": "OrderedCollection",
+        "totalItems": 1,
+        "items": [
+            {
+                "id": "https://example.dev/aviva/myproject/commits/d96596230322716bd6f87a232a648ca9822a1c20",
+                "type": "Commit",
+                "attributedTo": "https://example.dev/aviva",
+                "context": "https://example.dev/aviva/myproject",
+                "hash": "d96596230322716bd6f87a232a648ca9822a1c20",
+                "created": "2019-11-03T13:43:59Z",
+                "name": "Provide hints in sign-up form fields",
+            }
+        ]
+    },
+    "target": "https://example.dev/aviva/myproject/branches/master",
+    "context": "https://example.dev/aviva/myproject"
 }
 ```
 
