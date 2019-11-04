@@ -38,11 +38,12 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ## Activity Types
 
-### Push
+### Push {#act-push}
 
 **URI:** `https://forgefed.peers.community/ns#Push`
 
-**Notes:** Indicates that new content has been pushed to the `Repository`.
+**Notes:** Indicates that new content has been pushed to the
+[Repository](#type-repository).
 
 **Example:**
 
@@ -84,7 +85,7 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ## Actor Types
 
-### Repository
+### Repository {#type-repository}
 
 **URI:** `https://forgefed.peers.community/ns#Repository`
 
@@ -111,14 +112,14 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ## Object Types
 
-### Branch
+### Branch {#type-branch}
 
 **URI:** `https://forgefed.peers.community/ns#Branch`
 
 **Notes:** Represents a named variable reference to a version of the
-`Repository`, typically used for committing changes in parallel to other
-development, and usually eventually merging the changes into the main history
-line.
+[Repository](#type-repository), typically used for committing changes in
+parallel to other development, and usually eventually merging the changes into
+the main history line.
 
 **Example:**
 
@@ -136,16 +137,16 @@ line.
 }
 ```
 
-### Commit
+### Commit {#type-commit}
 
 **URI:** `https://forgefed.peers.community/ns#Commit`
 
-**Notes:** Represents a named set of changes in the history of a repository.
-This is called "commit" in Git, Mercurial and Monotone; "patch" in Darcs;
-sometimes called "change set". Note that `Commit` is a set of changes that
-already exists in a repo's history, while a `Patch` is a separate proposed
-change set, that *could* be applied and pushed to a repo, resulting with a
-`Commit`.
+**Notes:** Represents a named set of changes in the history of a
+[Repository](#type-repository).  This is called "commit" in Git, Mercurial and
+Monotone; "patch" in Darcs; sometimes called "change set". Note that `Commit`
+is a set of changes that already exists in a repo's history, while a
+[Patch](#type-patch) is a separate proposed change set, that *could* be applied
+and pushed to a repo, resulting with a `Commit`.
 
 **Example:**
 
@@ -171,16 +172,16 @@ change set, that *could* be applied and pushed to a repo, resulting with a
 }
 ```
 
-### TicketDependency
+### TicketDependency {#type-ticketdependency}
 
 **URI:** `https://forgefed.peers.community/ns#TicketDependency`
 
-**Notes:** Represents a relationship between 2 tickets, in which the resolution
-of one ticket requires the other ticket to be resolved too. It MUST specify the
-subject, object and relationship properties, and the relationship property MUST
-be "dependsOn".
+**Notes:** Represents a relationship between 2 [Ticket](#type-ticket)s, in
+which the resolution of one ticket requires the other ticket to be resolved
+too. It MUST specify the [subject], [object] and [relationship] properties, and
+the `relationship` property MUST be [dependsOn](#prop-dependson).
 
-**Extends:** `Relationship`
+**Extends:** [Relationship]
 
 **Example:**
 
@@ -201,7 +202,7 @@ be "dependsOn".
 }
 ```
 
-### Ticket
+### Ticket {#type-ticket}
 
 **URI:** `https://forgefed.peers.community/ns#Ticket`
 
@@ -235,15 +236,16 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 
 # Properties
 
-## assignedTo
+## assignedTo {#prop-assignedto}
 
 **URI:** `https://forgefed.peers.community/ns#assignedTo`
 
-**Notes:** Identifies the person assigned to work on this ticket.
+**Notes:** Identifies the [Person] assigned to work on this
+[Ticket](#type-ticket).
 
-**Domain:** `Ticket`
+**Domain:** [Ticket](#type-ticket)
 
-**Range:** `Person`
+**Range:** [Person]
 
 **Functional:** Yes
 
@@ -251,14 +253,14 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 
 **Example:**
 
-## isResolved
+## isResolved {#prop-isresolved}
 
 **URI:** `https://forgefed.peers.community/ns#isResolved`
 
-**Notes:** Specifies whether the ticket is closed, i.e. the work on it is done
-and it doesn't need to attract attention anymore.
+**Notes:** Specifies whether the [Ticket](#type-ticket) is closed, i.e. the
+work on it is done and it doesn't need to attract attention anymore.
 
-**Domain:** `Ticket`
+**Domain:** [Ticket](#type-ticket)
 
 **Range:** `xsd:boolean`
 
@@ -268,51 +270,54 @@ and it doesn't need to attract attention anymore.
 
 **Example:**
 
-## dependsOn
+## dependsOn {#prop-dependson}
 
 **URI:** `https://forgefed.peers.community/ns#dependsOn`
 
-**Notes:** Identifies one or more tickets on which this ticket depends, i.e. it
-can't be resolved without those tickets being resolved too.
+**Notes:** Identifies one or more tickets on which this [Ticket](#type-ticket)
+depends, i.e. it can't be resolved without those tickets being resolved too.
 
-**Domain:** `Ticket`
+**Domain:** [Ticket](#type-ticket)
 
-**Range:** `Ticket`
+**Range:** [Ticket](#type-ticket)
 
 **Functional:** No
 
-**Inverse of:** [dependedBy](#dependedby)
+**Inverse of:** [dependedBy](#prop-dependedby)
 
 **Example:**
 
-## dependedBy
+## dependedBy {#prop-dependedby}
 
 **URI:** `https://forgefed.peers.community/ns#dependedBy`
 
-**Notes:** Identifies one or more tickets which depends on this ticket, i.e.
-they can't be resolved without this tickets being resolved too.
+**Notes:** Identifies one or more tickets which depend on this
+[Ticket](#type-ticket), i.e. they can't be resolved without this tickets being
+resolved too.
 
-**Domain:** `Ticket`
+**Domain:** [Ticket](#type-ticket)
 
-**Range:** `Ticket`
+**Range:** [Ticket](#type-ticket)
 
 **Functional:** No
 
-**Inverse of:** [dependsOn](#dependson)
+**Inverse of:** [dependsOn](#prop-dependson)
 
 **Example:**
 
-## dependencies
+## dependencies {#prop-dependencies}
 
 **URI:** `https://forgefed.peers.community/ns#dependencies`
 
-**Notes:** Identifies a `Collection` of `TicketDependency` which specify
-tickets that this ticket depends on, i.e. this ticket is the `subject` of the
-`dependsOn` relationship.
+**Notes:** Identifies a [Collection] of
+[TicketDependency](#type-ticketdependency) which specify tickets that this
+[Ticket](#type-ticket) depends on, i.e. this ticket is the [subject] of the
+[dependsOn](#prop-dependson) relationship.
 
-**Domain:** `Ticket`
+**Domain:** [Ticket](#type-ticket)
 
-**Range:** `Collection` (of items of type `TicketDependency`)
+**Range:** [Collection] of items of type
+[TicketDependency](#type-ticketdependency)
 
 **Functional:** Yes
 
@@ -320,17 +325,19 @@ tickets that this ticket depends on, i.e. this ticket is the `subject` of the
 
 **Example:**
 
-## dependants
+## dependants {#prop-dependants}
 
 **URI:** `https://forgefed.peers.community/ns#dependants`
 
-**Notes:** Identifies a `Collection` of `TicketDependency` which specify
-tickets that depends on this ticket, i.e. this ticket is the `object` of the
-`dependsOn` relationship. Often called "reverse dependencies".
+**Notes:** Identifies a [Collection] of
+[TicketDependency](#type-ticketdependency) which specify tickets that depends
+on this [Ticket](#type-ticket), i.e. this ticket is the [object] of the
+[dependsOn](#prop-dependson) relationship. Often called "reverse dependencies".
 
-**Domain:** `Ticket`
+**Domain:** [Ticket](#type-ticket)
 
-**Range:** `Collection` (of items of type `TicketDependency`)
+**Range:** [Collection] of items of type
+[TicketDependency](#type-ticketdependency)
 
 **Functional:** Yes
 
@@ -338,7 +345,7 @@ tickets that depends on this ticket, i.e. this ticket is the `object` of the
 
 **Example:**
 
-## repository (DEPRECATED)
+## repository (DEPRECATED) {#prop-repository}
 
 **URI:** `https://forgefed.peers.community/ns#repository`
 
@@ -355,18 +362,18 @@ the standard ActivityPub `context` property instead.
 
 **Example:**
 
-## description
+## description {#prop-description}
 
 **URI:** `https://forgefed.peers.community/ns#description`
 
-**Notes:** Specifies the description text of a `Commit`, which is an optional
+**Notes:** Specifies the description text of a [Commit](#type-commit), which is an optional
 possibly multi-line text provided in addition to the one-line commit title. The
 range of the `description` property works the same way the range of the
-ActivityPub `source` property works.
+ActivityPub [source] property works.
 
-**Domain:** `Commit`
+**Domain:** [Commit](#type-commit)
 
-**Range:** `Object` that specifies a `content` and a `mediaType`. The
+**Range:** [Object] that specifies a [content] and a [mediaType]. The
 `mediaType` SHOULD be `"text/plain"`.
 
 **Functional:** Yes
@@ -396,22 +403,23 @@ ActivityPub `source` property works.
 }
 ```
 
-## committedBy
+## committedBy {#prop-committedby}
 
 **URI:** `https://forgefed.peers.community/ns#committedBy`
 
 **Notes:** Identifies the actor (usually a person, but could be something else,
-e.g. a bot) that added a set of changes to the version-control repository.
-Sometimes the author of the changes and the committer of those changes aren't
-the same actor, in which case the `committedBy` property can be used to specify
-who added the changes to the repository. For example, when applying a patch to
-a repository, e.g. a Git repository, the author would be the person who made
-the patch, and the committer would be the person who applied the patch to their
-copy of the repository.
+e.g. a bot) that added a set of changes to the version-control
+[Repository](#type-repository).  Sometimes the author of the changes and the
+committer of those changes aren't the same actor, in which case the
+`committedBy` property can be used to specify who added the changes to the
+repository. For example, when applying a patch to a repository, e.g. a Git
+repository, the author would be the person who made the patch, and the
+committer would be the person who applied the patch to their copy of the
+repository.
 
-**Domain:** `Commit`
+**Domain:** [Commit](#type-commit)
 
-**Range:** `Object`
+**Range:** [Object]
 
 **Functional:** Yes
 
@@ -419,17 +427,17 @@ copy of the repository.
 
 **Example:**
 
-## hash
+## hash {#prop-hash}
 
 **URI:** `https://forgefed.peers.community/ns#hash`
 
-**Notes:** Specifies the hash associated with a commit, which is a unique
-identifier of the commit within the repository, usually generated as a
-cryptographic hash function of some (or all) of the commit's data or metadata.
-For example, in Git it would be the SHA1 hash of the commit; in Darcs it would
-be the SHA1 hash of the patch info.
+**Notes:** Specifies the hash associated with a [Commit](#type-commit), which
+is a unique identifier of the commit within the [Repository](#type-repository),
+usually generated as a cryptographic hash function of some (or all) of the
+commit's data or metadata.  For example, in Git it would be the SHA1 hash of
+the commit; in Darcs it would be the SHA1 hash of the patch info.
 
-**Domain:** `Commit`
+**Domain:** [Commit](#type-commit)
 
 **Range:** `xsd:string` of hexadecimal digit ASCII characters
 
@@ -439,18 +447,19 @@ be the SHA1 hash of the patch info.
 
 **Example:**
 
-## committed
+## committed {#prop-committed}
 
 **URI:** `https://forgefed.peers.community/ns#committed`
 
 **Notes:** Specifies the time that a set of changes was committed into the
-repository and became a commit in it. This can be different from the time the
-set of changes was produced, e.g. if one person creates a patch and sends to
-another, and the other person then applies the patch to their copy of the
-repository. We call the former event "created" and the latter event
-"committed", and this latter event is specified by the `committed` property.
+[Repository](#type-repository) and became a [Commit](#type-commit) in it. This
+can be different from the time the set of changes was produced, e.g. if one
+person creates a patch and sends to another, and the other person then applies
+the patch to their copy of the repository. We call the former event "created"
+and the latter event "committed", and this latter event is specified by the
+`committed` property.
 
-**Domain:** `Commit`
+**Domain:** [Commit](#type-commit)
 
 **Range:** `xsd:dateTime`
 
@@ -460,15 +469,16 @@ repository. We call the former event "created" and the latter event
 
 **Example:**
 
-## filesAdded
+## filesAdded {#prop-filesadded}
 
 **URI:** `https://forgefed.peers.community/ns#filesAdded`
 
 **Notes:** Specifies a filename, as a relative path, relative to the top of the
-tree of files in the repository, of a file that got added in this commit, and
-didn't exist in the previous version of the tree.
+tree of files in the [Repository](#type-repository), of a file that got added
+in this [Commit](#type-commit), and didn't exist in the previous version of the
+tree.
 
-**Domain:** `Commit`
+**Domain:** [Commit](#type-commit)
 
 **Range:** `xsd:string`
 
@@ -478,15 +488,16 @@ didn't exist in the previous version of the tree.
 
 **Example:**
 
-## filesModified
+## filesModified {#prop-filesmodified}
 
 **URI:** `https://forgefed.peers.community/ns#filesModified`
 
 **Notes:** Specifies a filename, as a relative path, relative to the top of the
-tree of files in the repository, of a file that existed in the previous version
-of the tree, and its contents got modified in this commit.
+tree of files in the [Repository](#type-repository), of a file that existed in
+the previous version of the tree, and its contents got modified in this
+[Commit](#type-commit).
 
-**Domain:** `Commit`
+**Domain:** [Commit](#type-commit)
 
 **Range:** `xsd:string`
 
@@ -496,15 +507,16 @@ of the tree, and its contents got modified in this commit.
 
 **Example:**
 
-## filesRemoved
+## filesRemoved {#prop-filesremoved}
 
 **URI:** `https://forgefed.peers.community/ns#filesRemoved`
 
 **Notes:** Specifies a filename, as a relative path, relative to the top of the
-tree of files in the repository, of a file that existed in the previous version
-of the tree, and got removed from the tree in this commit.
+tree of files in the [Repository](#type-repository), of a file that existed in
+the previous version of the tree, and got removed from the tree in this
+[Commit](#type-commit).
 
-**Domain:** `Commit`
+**Domain:** [Commit](#type-commit)
 
 **Range:** `xsd:string`
 
@@ -514,15 +526,15 @@ of the tree, and got removed from the tree in this commit.
 
 **Example:**
 
-## ref
+## ref {#prop-ref}
 
 **URI:** `https://forgefed.peers.community/ns#ref`
 
-**Notes:** Specifies an identifier for a `Branch`, that is used in the
-`Repository` to uniquely refer to it. For example, in Git, "refs/heads/master"
-would be the `ref` of the master branch.
+**Notes:** Specifies an identifier for a [Branch](#type-branch), that is used
+in the [Repository](#type-repository) to uniquely refer to it. For example, in
+Git, "refs/heads/master" would be the `ref` of the master branch.
 
-**Domain:** `Branch`
+**Domain:** [Branch](#type-branch)
 
 **Range:** `xsd:string`
 
@@ -546,3 +558,12 @@ would be the `ref` of the master branch.
     "ref": "refs/heads/master"
 }
 ```
+[Collection]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
+[Object]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
+[Person]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
+
+[content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
+[mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
+[relationship]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
+[source]:       https://www.w3.org/TR/activitypub/#source-property
+[subject]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject
