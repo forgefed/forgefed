@@ -87,7 +87,35 @@ Example:
 
 # Branch
 
-TODO
+To represent a repository branch, use the ForgeFed [Branch][type-branch] type.
+It can be a real built-in version control system branch (such as a Git branch)
+or a copy of the repo used as a branch (e.g. in Darcs, which doesn't implement
+branches, and the way to have branches is to keep multiple versions of the
+repo).
+
+Properties:
+
+* [type][]: ["Branch"][type-branch]
+* [context][]: The [Repository][type-repository] that this branch belongs to
+* [name][]: The user given name of the branch, e.g. "master"
+* [ref][prop-ref]: The unique identifier of the branch within the repo, e.g.
+  "refs/heads/master"
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/branches/master",
+    "type": "Branch",
+    "context": "https://example.dev/luke/myrepo",
+    "name": "master",
+    "ref": "refs/heads/master"
+}
+```
 
 # Repository
 
@@ -103,6 +131,7 @@ TODO
 
 [xsd:dateTime]:    https://www.w3.org/TR/xmlschema11-2/#dateTime
 
+[type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
 [type-repository]: /vocabulary.html#type-repository
 
@@ -110,6 +139,7 @@ TODO
 [prop-committedby]: /vocabulary.html#prop-committedby
 [prop-description]: /vocabulary.html#prop-description
 [prop-hash]:        /vocabulary.html#prop-hash
+[prop-ref]:         /vocabulary.html#prop-ref
 
 [prop-created]:     http://purl.org/dc/terms/created
 
