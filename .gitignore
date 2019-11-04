@@ -21,8 +21,8 @@ python/*
 !python/forgefed_wsgi.py
 !python/run-dev-server
 
-!specification/
-!specification/*
+!spec/
+!spec/*
 
 !vocabulary/
 !vocabulary/*

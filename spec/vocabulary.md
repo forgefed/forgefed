@@ -111,6 +111,31 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ## Object Types
 
+### Branch
+
+**URI:** `https://forgefed.peers.community/ns#Branch`
+
+**Notes:** Represents a named variable reference to a version of the
+`Repository`, typically used for committing changes in parallel to other
+development, and usually eventually merging the changes into the main history
+line.
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/branches/master",
+    "type": "Branch",
+    "name": "master",
+    "context": "https://example.dev/luke/myrepo",
+    "ref": "refs/heads/master"
+}
+```
+
 ### Commit
 
 **URI:** `https://forgefed.peers.community/ns#Commit`
@@ -488,3 +513,36 @@ of the tree, and got removed from the tree in this commit.
 **Inverse of:** (None)
 
 **Example:**
+
+## ref
+
+**URI:** `https://forgefed.peers.community/ns#ref`
+
+**Notes:** Specifies an identifier for a `Branch`, that is used in the
+`Repository` to uniquely refer to it. For example, in Git, "refs/heads/master"
+would be the `ref` of the master branch.
+
+**Domain:** `Branch`
+
+**Range:** `xsd:string`
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/branches/master",
+    "type": "Branch",
+    "name": "master",
+    "context": "https://example.dev/luke/myrepo",
+
+    "ref": "refs/heads/master"
+}
+```
