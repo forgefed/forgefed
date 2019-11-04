@@ -97,16 +97,22 @@ A typical `@context` of a ForgeFed object may look like this:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v1",
         "https://forgefed.peers.community/ns"
     ],
-    "id": "https://localhost/alice/forgefed",
+    "id": "https://dev.example/aviva/treesim",
     "type": "Repository",
-    "name": "ForgeFed",
-    "summary": "ForgeFed development",
-    "inbox": "",
-    "outbox": "",
-    "followers": "",
-    "following": ""
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "team": "https://dev.example/aviva/treesim/team",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
 }
 ```
 
