@@ -100,6 +100,9 @@ Properties:
 * [name][]: The user given name of the branch, e.g. "master"
 * [ref][prop-ref]: The unique identifier of the branch within the repo, e.g.
   "refs/heads/master"
+* [team][prop-team]: If the branch has its own access/authority/visibility
+  settings, this can be a [Collection][] of the actors who have push/edit
+  access to the branch
 
 Example:
 
@@ -129,6 +132,9 @@ Properties:
 * [published][]: The time the repository was created on the server
 * [summary][]: A one-line user provided description of the repository, as HTML,
   e.g. "`<p>A command-line tool that does cool things</p>`"
+* [team][prop-team]: [Collection][] of actors who have management/push access
+  to the repository, or the subset of them who is available and wants to be
+  contacted/notified/responsible on repo access related activities/requests
 
 Example:
 
@@ -174,8 +180,11 @@ TODO
 [prop-description]: /vocabulary.html#prop-description
 [prop-hash]:        /vocabulary.html#prop-hash
 [prop-ref]:         /vocabulary.html#prop-ref
+[prop-team]:        /vocabulary.html#prop-team
 
 [prop-created]:     http://purl.org/dc/terms/created
+
+[Collection]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 
 [attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content

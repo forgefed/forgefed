@@ -564,6 +564,68 @@ Git, "refs/heads/master" would be the `ref` of the master branch.
     "ref": "refs/heads/master"
 }
 ```
+
+## team {#prop-team}
+
+**URI:** `https://forgefed.peers.community/ns#team`
+
+**Notes:**: Specifies a [Collection] of actors who are working on the object,
+or responsible for it, or managing or administrating it, or having edit access
+to it. For example, for a [Repository](#type-repository), it could be the
+people who have push/edit access, the "collaborators" of the repository.
+
+**Domain:** [Object]
+
+**Range:** [Collection] of actors
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+A repository *https://dev.example/aviva/treesim*:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v1",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": "Repository",
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>",
+
+    "team": "https://dev.example/aviva/treesim/team"
+}
+```
+
+The repository's team *https://dev.example/aviva/treesim/team*:
+
+```json
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://dev.example/aviva/treesim/team",
+    "type": "Collection",
+    "totalItems": 3,
+    "items": [
+        "https://dev.example/aviva",
+        "https://dev.example/luke",
+        "https://code.community/users/lorax"
+    ]
+}
+```
+
 [Collection]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Object]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 [Person]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
