@@ -119,7 +119,41 @@ Example:
 
 # Repository
 
-TODO
+To represent a version control repository, use the ForgeFed
+[Repository][type-repository] type.
+
+Properties:
+
+* [type][]: ["Repository"][type-repository]
+* [name][]: The user given name of the repository, e.g. "My cool repo"
+* [published][]: The time the repository was created on the server
+* [summary][]: A one-line user provided description of the repository, as HTML,
+  e.g. "`<p>A command-line tool that does cool things</p>`"
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v1",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": "Repository",
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "team": "https://dev.example/aviva/treesim/team",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+```
 
 # Pushing Commits into a Repository
 
@@ -148,4 +182,6 @@ TODO
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
+[published]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
+[summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [type]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
