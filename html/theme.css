@@ -18,6 +18,22 @@
 }
 @font-face {
     font-family:"Open Sans";
+    font-weight: 500;
+    font-style: normal;
+    src: local("Open Sans SemiBold"),
+         url("/fonts/open-sans/open-sans-semibold.woff2") format("woff2"),
+         url("/fonts/open-sans/open-sans-semibold.woff") format("woff");
+}
+@font-face {
+    font-family:"Open Sans";
+    font-weight: 500;
+    font-style: italic;
+    src: local("Open Sans SemiBold Italic"),
+         url("/fonts/open-sans/open-sans-semibold-italic.woff2") format("woff2"),
+         url("/fonts/open-sans/open-sans-semibold-italic.woff") format("woff");
+}
+@font-face {
+    font-family:"Open Sans";
     font-weight: 600;
     font-style: normal;
     src: local("Open Sans Bold"),
@@ -57,25 +73,28 @@
 
     /* Palette */
     --orange: #ff851b;
+    --dark-orange: #c27d42;
     --light-gray: #c8c8c8;     /* (HS)L: 200/255 */
     --gray: #808080;           /* (HS)L: 128/255 */
-    --gray-50: #323232;        /* (HS)L: 50/255 */
     --gray-240: #f0f0f0;       /* (HS)L: 240/255 */
+    --gray-100: #646464;       /* (HS)L: 100/255 */
+    --gray-50: #323232;        /* (HS)L: 50/255 */
 
     /* Sections */
     --bg-color: #fff;
-    --text-color: #646464;
-    --heading-color: var(--orange);
-    --link-color: var(--gray-50);
-    --link-hover-color: #000;
-    --link-hover-bg-color: none;
-    --link-visited-color: var(--light-gray);
+    --text-color: var(--gray-100);
+    --heading-color: var(--gray-100);
+    --link-color: var(--orange);
+    --link-hover-color: var(--gray-50);
+    --link-visited-color: var(--dark-orange);
     --nav-link-color: var(--gray);
-    --main-title-link-color: var(--gray);
-    --main-title-link-hover-color: var(--gray-50);
+    --nav-link-hover-color: var(--orange);
+    --main-title-link-color: var(--link-color);
+    --main-title-link-hover-color: var(--link-hover-color);
+    --toc-title-color: var(--gray);
     --toc-bg-color: var(--gray-240);
-    --toc-link-color: var(--gray);
-    --toc-link-hover-color: var(--gray-50);
+    --toc-link-color: var(--link-color);
+    --toc-link-hover-color: var(--link-hover-color);
 
     /* Syntax highlighting */
     --code-border-color: var(--light-gray);
@@ -118,13 +137,12 @@ h3 {
 }
 
 a {
+    font-weight: 500;
     color: var(--link-color);
     text-decoration: none;
 }
     a:hover {
-        background: var(--link-hover-bg-color);
         color: var(--link-hover-color);
-        border-radius: 0.2rem;
         transition: var(--link-trans);
     }
     a:visited { color: var(--link-visited-color); }
@@ -157,8 +175,12 @@ code {
 }
     .nav__link {
         font-size: 2rem;
+        font-weight: 400;
         color: var(--nav-link-color);
         text-decoration: none;
+    }
+    .nav__link:hover {
+        color: var(--nav-link-hover-color);
     }
 
 
@@ -188,11 +210,15 @@ code {
 
     .toc-title {
         margin: 0 0 1rem;
-        color: var(--heading-color);
         font-size: 2rem;
+        font-weight: 600;
+        color: var(--toc-title-color);
     }
 
-    .toc a { color: var(--toc-link-color); }
+    .toc a {
+        font-weight: 400;
+        color: var(--toc-link-color);
+    }
     .toc a:hover { color: var(--toc-link-hover-color); }
 
     .toc ul { list-style: none; }
@@ -299,6 +325,7 @@ pre.sourceCode {
     :root {
         /* Palette */
         --orange: #ff851b;
+        --dark-orange: #c27d42;
         --light-gray: #c8c8c8;     /* (HS)L: 200/255 */
         --gray: #808080;           /* (HS)L: 128/255 */
         --gray-50: #323232;        /* (HS)L: 50/255 */
@@ -306,15 +333,16 @@ pre.sourceCode {
 
         /* Sections */
         --bg-color: var(--gray-50);
-        --text-color: #fff;
-        --heading-color: var(--orange);
-        --link-color: var(--light-gray);
-        --link-hover-color: var(--gray-50);
-        --link-hover-bg-color: var(--light-gray);
-        --link-visited-color: var(--gray);
+        --text-color: var(--light-gray);
+        --heading-color: var(--light-gray);
+        --link-color: var(--orange);
+        --link-hover-color: var(--light-gray);
+        --link-visited-color: var(--dark-orange);
         --nav-link-color: var(--light-gray);
+        --nav-link-hover-color: var(--orange);
         --main-title-link-color: var(--link-color);
         --main-title-link-hover-color: var(--link-hover-color);
+        --toc-title-color: var(--gray);
         --toc-bg-color: var(--gray-35);
         --toc-link-color: var(--link-color);
         --toc-link-hover-color: var(--link-hover-color);
@@ -336,6 +364,7 @@ pre.sourceCode {
 :root.dark {
     /* Palette */
     --orange: #ff851b;
+    --dark-orange: #c27d42;
     --light-gray: #c8c8c8;     /* (HS)L: 200/255 */
     --gray: #808080;           /* (HS)L: 128/255 */
     --gray-50: #323232;        /* (HS)L: 50/255 */
@@ -343,15 +372,16 @@ pre.sourceCode {
 
     /* Sections */
     --bg-color: var(--gray-50);
-    --text-color: #fff;
-    --heading-color: var(--orange);
-    --link-color: var(--light-gray);
-    --link-hover-color: var(--gray-50);
-    --link-hover-bg-color: var(--light-gray);
-    --link-visited-color: var(--gray);
+    --text-color: var(--light-gray);
+    --heading-color: var(--light-gray);
+    --link-color: var(--orange);
+    --link-hover-color: var(--light-gray);
+    --link-visited-color: var(--dark-orange);
     --nav-link-color: var(--light-gray);
+    --nav-link-hover-color: var(--orange);
     --main-title-link-color: var(--link-color);
     --main-title-link-hover-color: var(--link-hover-color);
+    --toc-title-color: var(--gray);
     --toc-bg-color: var(--gray-35);
     --toc-link-color: var(--link-color);
     --toc-link-hover-color: var(--link-hover-color);
