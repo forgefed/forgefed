@@ -59,6 +59,7 @@ platform for testing the protocol and trying new features
 - [Wiki](https://notabug.org/peers/forgefed/wiki)
 - [Forum](https://talk.feneas.org/c/forgefed)
 - Specifications:
+    * [Behavior](/behavior.md)
     * [Modeling](/modeling.html)
     * [Vocabulary](/vocabulary.html)
 - [dokk](https://dokk.org/ForgeFed)

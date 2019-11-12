@@ -1,20 +1,6 @@
 ---
-title: ForgeFed
+title: ForgeFed Behavior
 ---
-
-**Editors:**
-
-- fr33domlover
-- zPlus
-- ... add other editors
-
-**Repository:**
-
-- [NotABug](https://notabug.org/peers/forgefed)
-
-**Copyright:**
-
-2019 ...
 
 # Abstract
 

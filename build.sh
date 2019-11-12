@@ -2,7 +2,7 @@
 
 set -e
 
-inputs="forgefed modeling vocabulary"
+inputs="behavior modeling vocabulary"
 
 git_branch=`git rev-parse --abbrev-ref HEAD`
 
