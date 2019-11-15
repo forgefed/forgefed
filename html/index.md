@@ -63,6 +63,7 @@ platform for testing the protocol and trying new features
     * [Modeling](/modeling.html)
     * [Vocabulary](/vocabulary.html)
 - [dokk](https://dokk.org/ForgeFed)
+- <a rel="me" href="https://floss.social/@forgefed">Fediverse</a>
 
 
 [ActivityPub]:    https://www.w3.org/TR/activitypub/
