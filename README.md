@@ -1,14 +1,14 @@
 # ForgeFed - Federation Protocol for Forge Services
 
-ForgeFed is a federation protocol extending the W3C's [ActivityPub][activity-pub]
-protocol to provide a uniform server-to-server API for interoperability between
-networked version control services, with limited pub/sub access for messaging and
-notifications to and from the larger fediverse. It allows users of any
-ForgeFed-compliant service to interact with other ForgeFed-compliant forge
-services, without being a registered user of that foreign service, just as if
-they were. In this way, users that choose to self-host have the additional
-benefit/responsibility of fully controlling of their own authentication/identityand
-their own data.
+ForgeFed is an upcoming federation protocol extending the W3C's
+[ActivityPub][activity-pub] protocol to provide a uniform server-to-server API
+for interoperability between networked version control services, with limited
+pub/sub access for messaging and notifications to and from the larger fediverse.
+It allows users of any ForgeFed-compliant service to interact with other
+ForgeFed-compliant forge services, without being a registered user of that
+foreign service, just as if they were. In this way, users that choose to
+self-host have the additional benefit/responsibility of fully controlling of
+their own authentication/identityand their own data.
 
 All of the most common user interactions are supported such as: cloning/forking,
 merge-requests/patches, bug-reports/code-review, subscriptions/favorites with
