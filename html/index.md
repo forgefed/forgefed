@@ -1,7 +1,7 @@
-ForgeFed is a federation protocol for enabling interoperability between version
-control services. It's built as an extension to the [ActivityPub] protocol,
-allowing users of any ForgeFed-compliant service to interact with the repositories
-hosted on other instances.
+ForgeFed is an upcoming federation protocol for enabling interoperability
+between version control services. It's built as an extension to the
+[ActivityPub] protocol, allowing users of any ForgeFed-compliant service to
+interact with the repositories hosted on other instances.
 
 The goal of the project is to support all of the major activities connected to
 project management, including bug reports, merge requests, and notifications
