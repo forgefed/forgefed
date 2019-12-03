@@ -163,10 +163,110 @@ in turn delivers the message to the Repository followers.
 
 # Server to Server Interactions
 
-## Follow Activity
+## Opening a ticket
 
-The server receiving a Follow activity in a Repository's inbox SHOULD add the
-sender actor to the Repository's followers collection.
+A request to open a [Ticket][type-ticket] sent from one actor to another MUST
+be represented as an [Offer][] activity in which:
+
+- [object][] is the ticket to be opened, it's either the whole
+  [Ticket][type-ticket] object or just the [id][] of a Ticket that's already
+  published and the recipient of the Offer can fetch.
+- [target][] is the ticket tracker to which the actor is offering the Ticket
+  (e.g. a repository or project etc. under which the ticket will be opened if
+  accepted). It MUST be either an actor or a child object. If it's a child
+  object, the actor to whom the child object belongs MUST be listed as a
+  recipient in the Offer's [to][] field. If it's an actor, then that actor MUST
+  be listed in the `to` field.
+
+Among the recipients listed in the Offer's recipient fields, exactly one
+recipient is the actor who's responsible for processing the offer and possibly
+sending back an [Accept][] or a [Reject][]. We'll refer to this actor as the
+*target actor*.
+
+When an actor *A* receives the Offer activity, they can determine whether
+they're the *target actor* as follows: If the Offer's [target][] is *A* or a
+child object of *A*, then *A* is the *target actor*. Otherwise, *A* isn't the
+target actor.
+
+In the following example, Luke wants to open a ticket under Aviva's Game Of
+Life simulation app:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/02Ljp",
+    "type": "Offer",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": {
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "name": "Test test test",
+        "content": "<p>Just testing</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Just testing"
+        },
+    },
+    "target": "https://dev.example/aviva/game-of-life"
+}
+```
+
+If the [Ticket][type-ticket] isn't opened, the *target actor* MAY send a
+[Reject][] activity to the [actor][] of the Offer. If the ticket is opened, the
+*target actor* MUST deliver an [Accept][] activity to the actor of the Offer.
+In the Accept activity:
+
+- [object][] MUST be the Offer activity or its [id][]
+- [result][] MUST be the newly created ticket or its [id][]
+
+In the following example, Luke's ticket is opened automatically and Aviva's
+Game Of Life repository, which is an actor, automatically sends Luke an Accept
+activity.
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/outbox/096al",
+    "type": "Accept"
+    "actor": "https://dev.example/aviva/game-of-life",
+    "to": [
+        "https://forge.example/luke",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/02Ljp",
+    "result": "https://dev.example/aviva/game-of-life/issues/113"
+}
+```
 
 # Acknowledgements
 
+[act-push]: /vocabulary.html#act-push
+
+[type-ticket]: /vocabulary.html#type-ticket
+
+[Accept]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
+[Create]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
+[Image]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-image
+[Note]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
+[Object]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
+[Offer]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
+[Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
+
+[actor]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
+[id]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
+[result]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
+[target]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
+[to]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
