@@ -284,6 +284,54 @@ activity:
 }
 ```
 
+## Commenting
+
+A comment on a ForgeFed resource object (such as tickets, merge requests) MUST
+be published as a [Create][] activity, in which [object][] is a [Note][] with
+fields as described [in the modeling specification][model-comment].
+
+In the following example, Luke replies to Aviva's comment under a merge request
+he submitted earlier against her Game Of Life simulation app repository:
+
+```json
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://forge.example/luke/outbox/rLaYo",
+    "type": "Create",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://forge.example/luke/followers",
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/followers",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/merge-requests/19/followers",
+        "https://dev.example/aviva/game-of-life/merge-requests/19/team"
+    ],
+    "object": {
+        "id": "https://forge.example/luke/comments/rD05r",
+        "type": "Note",
+        "attributedTo": "https://forge.example/luke",
+        "to": [
+            "https://forge.example/luke/followers",
+            "https://dev.example/aviva/game-of-life",
+            "https://dev.example/aviva/game-of-life/followers",
+            "https://dev.example/aviva/game-of-life/team",
+            "https://dev.example/aviva/game-of-life/merge-requests/19/followers",
+            "https://dev.example/aviva/game-of-life/merge-requests/19/team"
+        ],
+        "context": "https://dev.example/aviva/game-of-life/merge-requests/19",
+        "inReplyTo": "https://dev.example/aviva/comments/E9AGE",
+        "mediaType": "text/html",
+        "content": "<p>Thank you for the review! I'll submit a correction ASAP</p>",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Thank you for the review! I'll submit a correction ASAP"
+        },
+        "published": "2019-11-06T20:49:05.604488Z"
+    }
+}
+```
+
 # Acknowledgements
 
 [act-push]: /vocabulary.html#act-push
@@ -293,7 +341,8 @@ activity:
 
 [prop-team]: /vocabulary.html#prop-team
 
-[model-push]: /modeling.html#push
+[model-comment]: /modeling.html#comment
+[model-push]:    /modeling.html#push
 
 [Accept]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 [Create]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
