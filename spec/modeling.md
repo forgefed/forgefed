@@ -237,7 +237,71 @@ Example:
 
 # Ticket
 
-TODO
+To represent a work item in a project, use the ForgeFed [Ticket][type-ticket]
+type.
+
+TODO decide on ticket categories/subtypes and update below
+
+TODO decide on `slug`, document it / remove from example
+
+TODO decide on property for titles, update below
+
+TODO properly document `history` or remove it from example
+
+Properties:
+
+- [type][]: ["Ticket"][type-ticket]
+- [context][]: The project to which this ticket belongs (a repository, an issue
+  tracker, etc.)
+- [attributedTo][]: The actor (person, bot, etc.) who submitted the ticket
+- [name][]: The ticket's plain-text one-line title
+- [content][], [mediaType][]: The ticket's (possibly multi-line) detailed
+  description text, in rendered form
+- [source][]: Source form of the ticket's description
+- [published][]: The time the ticket submission was accepted (which may not be
+  the same as the time the ticket was submitted)
+- [followers][]: Collection of the followers of the ticket, actors who want to
+  be notified on activity related to the ticket
+- [team][prop-team]: Collection of project team members who have responsibility
+  for work on this ticket and want to be notified on activities related to it
+- [replies][]: Collection of direct comments made on the ticket (but not
+  comments made *on other* comments on the ticket)
+- [dependants][prop-dependants]: Collection of [Ticket][type-ticket]s which
+  depend on this ticket
+- [dependencies][prop-dependencies]: Collection of [Ticket][type-ticket]s on
+  which this ticket depends
+- [isResolved][prop-isresolved]: Whether the work on this ticket is done
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/issues/107",
+    "type": "Ticket",
+    "context": "https://dev.example/aviva/game-of-life",
+    "attributedTo": "https://forge.example/luke",
+    "name": "Window title is empty",
+    "content": "<p>When I start the simulation, window title disappears suddenly</p>",
+    "mediaType": "text/html",
+    "source": {
+        "mediaType": "text/markdown; variant=Commonmark",
+        "content": "When I start the simulation, window title disappears suddenly",
+    },
+    "published": "2019-11-04T07:00:04.465807Z",
+    "slug": "107",
+    "followers": "https://dev.example/aviva/game-of-life/issues/107/followers",
+    "team": "https://dev.example/aviva/game-of-life/issues/107/team",
+    "replies": "https://dev.example/aviva/game-of-life/issues/107/discussion",
+    "history": "https://dev.example/aviva/game-of-life/issues/107/activity",
+    "dependants": "https://dev.example/aviva/game-of-life/issues/107/rdeps",
+    "dependencies": "https://dev.example/aviva/game-of-life/issues/107/deps",
+    "isResolved": false
+}
+```
 
 [xsd:dateTime]:    https://www.w3.org/TR/xmlschema11-2/#dateTime
 
@@ -246,15 +310,19 @@ TODO
 [type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
 [type-repository]: /vocabulary.html#type-repository
+[type-ticket]:     /vocabulary.html#type-ticket
 
-[prop-committed]:   /vocabulary.html#prop-committed
-[prop-committedby]: /vocabulary.html#prop-committedby
-[prop-description]: /vocabulary.html#prop-description
-[prop-hash]:        /vocabulary.html#prop-hash
-[prop-hashafter]:   /vocabulary.html#prop-hashafter
-[prop-hashbefore]:  /vocabulary.html#prop-hashbefore
-[prop-ref]:         /vocabulary.html#prop-ref
-[prop-team]:        /vocabulary.html#prop-team
+[prop-committed]:    /vocabulary.html#prop-committed
+[prop-committedby]:  /vocabulary.html#prop-committedby
+[prop-description]:  /vocabulary.html#prop-description
+[prop-dependants]:   /vocabulary.html#prop-dependants
+[prop-dependencies]: /vocabulary.html#prop-dependencies
+[prop-hash]:         /vocabulary.html#prop-hash
+[prop-hashafter]:    /vocabulary.html#prop-hashafter
+[prop-hashbefore]:   /vocabulary.html#prop-hashbefore
+[prop-isresolved]:   /vocabulary.html#prop-isresolved
+[prop-ref]:          /vocabulary.html#prop-ref
+[prop-team]:         /vocabulary.html#prop-team
 
 [prop-created]:     http://purl.org/dc/terms/created
 
@@ -267,10 +335,13 @@ TODO
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 [items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
+[followers]:    https://www.w3.org/TR/activitypub/#followers
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 [ordereditems]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-ordereditems
 [published]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
+[replies]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
+[source]:       https://www.w3.org/TR/activitypub/#source-property
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 [type]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
