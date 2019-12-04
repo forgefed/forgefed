@@ -184,8 +184,8 @@ Properties:
 - [object][]: An [OrderedCollection][] of the [Commit][type-commit]s being
   pushed, in **reverse chronological order**. The [items][] (or
   [orderedItems][]) property of the collection MUST contain either the whole
-  list of commits being pushed, of a prefix of them (i.e. the **latest**
-  commits)
+  list of commits being pushed, of a prefix i.e. continuous subset from the
+  beginning of the list (therefore the **latest** commits)
 
 Example:
 
