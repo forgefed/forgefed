@@ -303,6 +303,45 @@ Example:
 }
 ```
 
+# Comment
+
+To represent a comment, e.g. a comment on a ticket or a merge request, use the
+ActivityPub [Note][] type.
+
+Properties:
+
+- [type][]: ["Note"][Note]
+- [attributedTo][]: The author of the comment
+- [context][]: The topic of the discussion, e.g. a ticket or a merge request.
+  It MUST be provided.
+- [inReplyTo][]: The entity on which this comment replies. MUST be provided. If
+  the comment is made directly on the discussion topic, then [inReplyTo][] MUST
+  be identical to [context][]. Otherwise, set [inReplyTo][] to the comment to
+  which this comment replies. In that case both comments MUST have an identical
+  [context][].
+- [content][], [mediaType][], [source][]: The comment text, in rendered form
+  and in source form
+
+Example:
+
+```json
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://forge.example/luke/comments/rD05r",
+    "type": "Note",
+    "attributedTo": "https://forge.example/luke",
+    "context": "https://dev.example/aviva/game-of-life/merge-requests/19",
+    "inReplyTo": "https://dev.example/aviva/comments/E9AGE",
+    "mediaType": "text/html",
+    "content": "<p>Thank you for the review! I'll submit a correction ASAP</p>",
+    "source": {
+        "mediaType": "text/markdown; variant=Commonmark",
+        "content": "Thank you for the review! I'll submit a correction ASAP"
+    },
+    "published": "2019-11-06T20:49:05.604488Z"
+}
+```
+
 [xsd:dateTime]:    https://www.w3.org/TR/xmlschema11-2/#dateTime
 
 [act-push]: /vocabulary.html#act-push
@@ -327,6 +366,7 @@ Example:
 [prop-created]:     http://purl.org/dc/terms/created
 
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
+[Note]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
 [Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 
@@ -336,6 +376,7 @@ Example:
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 [items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [followers]:    https://www.w3.org/TR/activitypub/#followers
+[inReplyTo]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 [ordereditems]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-ordereditems
