@@ -161,15 +161,87 @@ Example:
 }
 ```
 
-# Pushing Commits into a Repository
+# Push
 
-TODO
+To represent an event of [Commit][type-commit]s being pushed to a
+[Repository][type-repository], use a ForgeFed [Push][act-push] activity.
+
+Properties:
+
+* [type][]: ["Push"][act-push]
+- [actor][]: The entity (person, bot, etc.) that pushed the commits
+- [context][]: The [Repository][type-repository] to which the push was made
+- [target][]: The specific repo history tip onto which the commits were added,
+  this is either a [Branch][type-branch] (for VCSs that have branches) or a
+  [Repository][type-repository] (for VCSs that don't have branches, only a
+  single history line). If it's a branch, it MUST be a branch belonging to the
+  repository specified by [context][]. And if it's a repository, it MUST be
+  identical to the one specified by [context][].
+- [hashBefore][prop-hashbefore]: Repo/branch/tip hash before adding the new
+  commits
+- [hashAfter][prop-hashafter]: Repo/branch/tip hash after adding the new
+  commits
+- [object][]: An [OrderedCollection][] of the [Commit][type-commit]s being
+  pushed, in **reverse chronological order**. The [items][] (or
+  [orderedItems][]) property of the collection MUST contain either the whole
+  list of commits being pushed, of a prefix of them (i.e. the **latest**
+  commits)
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox/E26bE",
+    "type": "Push",
+    "actor": "https://dev.example/aviva",
+    "to": [
+        "https://dev.example/aviva/followers",
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "context": "https://dev.example/aviva/game-of-life",
+    "target": "https://dev.example/aviva/game-of-life/branches/master",
+    "hashBefore": "017cbb00bc20d1cae85f46d638684898d095f0ae",
+    "hashAfter": "be9f48a341c4bb5cd79ae7ab85fbf0c05d2837bb",
+    "object": {
+        "totalItems": 2,
+        "type": "OrderedCollection",
+        "orderedItems": [
+            {
+                "id": "https://dev.example/aviva/game-of-life/commits/be9f48a341c4bb5cd79ae7ab85fbf0c05d2837bb",
+                "type": "Commit",
+                "attributedTo": "https://dev.example/aviva",
+                "context": "https://dev.example/aviva/game-of-life",
+                "hash": "be9f48a341c4bb5cd79ae7ab85fbf0c05d2837bb",
+                "created": "2019-12-02T16:07:32Z",
+                "name": "Add widget to alter simulation speed"
+            },
+            {
+                "id": "https://dev.example/aviva/game-of-life/commits/fa37fe100a8b1e69933889c5bf3caf95cd3ae1e6",
+                "type": "Commit",
+                "attributedTo": "https://dev.example/aviva",
+                "context": "https://dev.example/aviva/game-of-life",
+                "hash": "fa37fe100a8b1e69933889c5bf3caf95cd3ae1e6",
+                "created": "2019-12-02T15:51:52Z",
+                "name": "Set window title correctly, fixes issue #7"
+            }
+        ]
+    }
+}
+```
 
 # Ticket
 
 TODO
 
 [xsd:dateTime]:    https://www.w3.org/TR/xmlschema11-2/#dateTime
+
+[act-push]: /vocabulary.html#act-push
 
 [type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
@@ -179,18 +251,26 @@ TODO
 [prop-committedby]: /vocabulary.html#prop-committedby
 [prop-description]: /vocabulary.html#prop-description
 [prop-hash]:        /vocabulary.html#prop-hash
+[prop-hashafter]:   /vocabulary.html#prop-hashafter
+[prop-hashbefore]:  /vocabulary.html#prop-hashbefore
 [prop-ref]:         /vocabulary.html#prop-ref
 [prop-team]:        /vocabulary.html#prop-team
 
 [prop-created]:     http://purl.org/dc/terms/created
 
-[Collection]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
+[Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
+[OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
+[Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 
+[actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 [attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
+[items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
+[ordereditems]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-ordereditems
 [published]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
+[target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 [type]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
