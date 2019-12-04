@@ -30,7 +30,7 @@ activities or modified due to activity side-effects.
 # Conformance
 
 The key words MAY, MUST, MUST NOT, SHOULD, and SHOULD NOT are to be interpreted
-as described in [RFC2119].
+as described in [RFC2119][].
 
 # Objects
 
@@ -311,3 +311,5 @@ activity:
 [target]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 [to]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
 [type]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
+
+[RFC2119]: https://tools.ietf.org/html/rfc2119
