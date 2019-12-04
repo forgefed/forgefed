@@ -163,7 +163,40 @@ in turn delivers the message to the Repository followers.
 
 # Server to Server Interactions
 
-## Opening a ticket
+## Reporting Pushed Commits
+
+The ForgeFed [Push][act-push] activity can be used for representing an action
+of pushing commits into a [Repository][type-repository]. Two actors are
+involved in the process, the *pusher* (usually a person) and the *repository*,
+and they may be hosted on different instances. We therefore refer to 2 kinds of
+pushes:
+
+1. *Local Push*: The pusher and the repository are hosted on the same instance
+   (that's the only case in centralized non-federated forges)
+2. *Federated Push*: The pusher and the repository are hosted on different
+   instances (that's unique to federated forges)
+
+At this time, the representation of *Federated Push* isn't provided yet. Below
+we discuss *Local Push*.
+
+Upon a successful push, a ForgeFed implementation that publishes a Push
+activity MUST provide the [type][], [actor][], [context][] and [target][]
+properties as described in the [modeling specification][model-push]. If the
+Push activity's recipient fields list collections that belong to the
+repository, such as its [followers][] and [team][prop-team], the repository
+MUST verify the authenticity and correctness of the Push activity's fields
+before it performs inbox forwarding (i.e. delivery to the members of those
+collections), and MUST NOT perform inbox delivery if the correctness check
+doesn't pass.
+
+In a *Local Push*, if the Push activity is generated on the server, that
+obviates the need to perform correctness checking. Implementations MAY forbid
+clients from publishing Push activities (via the ActivityPub C2S API or any
+other mechanism), in order to guarantee the authenticity of Push activities.
+
+See [example in the modeling specification][model-push].
+
+## Opening a Ticket
 
 A request to open a [Ticket][type-ticket] sent from one actor to another MUST
 be represented as an [Offer][] activity in which:
@@ -230,7 +263,7 @@ In the Accept activity:
 
 In the following example, Luke's ticket is opened automatically and Aviva's
 Game Of Life repository, which is an actor, automatically sends Luke an Accept
-activity.
+activity:
 
 ```json
 {
@@ -255,7 +288,12 @@ activity.
 
 [act-push]: /vocabulary.html#act-push
 
-[type-ticket]: /vocabulary.html#type-ticket
+[type-repository]: /vocabulary.html#type-repository
+[type-ticket]:     /vocabulary.html#type-ticket
+
+[prop-team]: /vocabulary.html#prop-team
+
+[model-push]: /modeling.html#push
 
 [Accept]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 [Create]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
@@ -265,8 +303,11 @@ activity.
 [Offer]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
 [Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
 
-[actor]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
-[id]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
-[result]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
-[target]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
-[to]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
+[actor]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
+[context]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
+[followers]: https://www.w3.org/TR/activitypub/#followers
+[id]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
+[result]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
+[target]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
+[to]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
+[type]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
