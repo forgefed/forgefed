@@ -242,8 +242,6 @@ type.
 
 TODO decide on ticket categories/subtypes and update below
 
-TODO decide on `slug`, document it / remove from example
-
 TODO decide on property for titles, update below
 
 TODO properly document `history` or remove it from example
@@ -292,7 +290,6 @@ Example:
         "content": "When I start the simulation, window title disappears suddenly",
     },
     "published": "2019-11-04T07:00:04.465807Z",
-    "slug": "107",
     "followers": "https://dev.example/aviva/game-of-life/issues/107/followers",
     "team": "https://dev.example/aviva/game-of-life/issues/107/team",
     "replies": "https://dev.example/aviva/game-of-life/issues/107/discussion",
