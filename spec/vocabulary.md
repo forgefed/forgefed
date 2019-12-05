@@ -45,6 +45,8 @@ A typical `@context` of a ForgeFed object may look like this:
 **Notes:** Indicates that new content has been pushed to the
 [Repository](#type-repository).
 
+**Extends:** [Activity][]
+
 **Example:**
 
 ```json
@@ -91,6 +93,8 @@ A typical `@context` of a ForgeFed object may look like this:
 
 **Notes:** Represents a version control system repository.
 
+**Extends:** [Object][]
+
 **Example:**
 
 ```json
@@ -127,6 +131,8 @@ A typical `@context` of a ForgeFed object may look like this:
 parallel to other development, and usually eventually merging the changes into
 the main history line.
 
+**Extends:** [Object][]
+
 **Example:**
 
 ```json
@@ -153,6 +159,8 @@ Monotone; "patch" in Darcs; sometimes called "change set". Note that `Commit`
 is a set of changes that already exists in a repo's history, while a
 [Patch](#type-patch) is a separate proposed change set, that *could* be applied
 and pushed to a repo, resulting with a `Commit`.
+
+**Extends:** [Object][]
 
 **Example:**
 
@@ -187,7 +195,7 @@ which the resolution of one ticket requires the other ticket to be resolved
 too. It MUST specify the [subject], [object] and [relationship] properties, and
 the `relationship` property MUST be [dependsOn](#prop-dependson).
 
-**Extends:** [Relationship]
+**Extends:** [Relationship][]
 
 **Example:**
 
@@ -215,6 +223,8 @@ the `relationship` property MUST be [dependsOn](#prop-dependson).
 **Notes:** Represents an item that requires work or attention. Tickets exist in
 the context of a project (which may or may not be a version-control
 repository), and are used to track ideas, proposals, tasks, bugs and more.
+
+**Extends:** [Object][]
 
 **Example:**
 
@@ -246,12 +256,12 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 
 **URI:** `https://forgefed.peers.community/ns#assignedTo`
 
-**Notes:** Identifies the [Person] assigned to work on this
+**Notes:** Identifies the [Person][] assigned to work on this
 [Ticket](#type-ticket).
 
 **Domain:** [Ticket](#type-ticket)
 
-**Range:** [Person]
+**Range:** [Person][]
 
 **Functional:** Yes
 
@@ -317,12 +327,12 @@ resolved too.
 
 **Notes:** Identifies a [Collection] of
 [TicketDependency](#type-ticketdependency) which specify tickets that this
-[Ticket](#type-ticket) depends on, i.e. this ticket is the [subject] of the
+[Ticket](#type-ticket) depends on, i.e. this ticket is the [subject][] of the
 [dependsOn](#prop-dependson) relationship.
 
 **Domain:** [Ticket](#type-ticket)
 
-**Range:** [Collection] of items of type
+**Range:** [Collection][] of items of type
 [TicketDependency](#type-ticketdependency)
 
 **Functional:** Yes
@@ -337,12 +347,12 @@ resolved too.
 
 **Notes:** Identifies a [Collection] of
 [TicketDependency](#type-ticketdependency) which specify tickets that depends
-on this [Ticket](#type-ticket), i.e. this ticket is the [object] of the
+on this [Ticket](#type-ticket), i.e. this ticket is the [object][] of the
 [dependsOn](#prop-dependson) relationship. Often called "reverse dependencies".
 
 **Domain:** [Ticket](#type-ticket)
 
-**Range:** [Collection] of items of type
+**Range:** [Collection][] of items of type
 [TicketDependency](#type-ticketdependency)
 
 **Functional:** Yes
@@ -372,14 +382,14 @@ the standard ActivityPub `context` property instead.
 
 **URI:** `https://forgefed.peers.community/ns#description`
 
-**Notes:** Specifies the description text of a [Commit](#type-commit), which is an optional
-possibly multi-line text provided in addition to the one-line commit title. The
-range of the `description` property works the same way the range of the
-ActivityPub [source] property works.
+**Notes:** Specifies the description text of a [Commit](#type-commit), which is
+an optional possibly multi-line text provided in addition to the one-line
+commit title. The range of the `description` property works the same way the
+range of the ActivityPub [source][] property works.
 
 **Domain:** [Commit](#type-commit)
 
-**Range:** [Object] that specifies a [content] and a [mediaType]. The
+**Range:** Object that specifies a [content][] and a [mediaType][]. The
 `mediaType` SHOULD be `"text/plain"`.
 
 **Functional:** Yes
@@ -425,7 +435,7 @@ repository.
 
 **Domain:** [Commit](#type-commit)
 
-**Range:** [Object]
+**Range:** [Object][]
 
 **Functional:** Yes
 
@@ -569,14 +579,14 @@ Git, "refs/heads/master" would be the `ref` of the master branch.
 
 **URI:** `https://forgefed.peers.community/ns#team`
 
-**Notes:**: Specifies a [Collection] of actors who are working on the object,
+**Notes:**: Specifies a [Collection][] of actors who are working on the object,
 or responsible for it, or managing or administrating it, or having edit access
 to it. For example, for a [Repository](#type-repository), it could be the
 people who have push/edit access, the "collaborators" of the repository.
 
-**Domain:** [Object]
+**Domain:** [Object][]
 
-**Range:** [Collection] of actors
+**Range:** [Collection][] of actors
 
 **Functional:** Yes
 
@@ -626,6 +636,7 @@ The repository's team *https://dev.example/aviva/treesim/team*:
 }
 ```
 
+[Activity]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
 [Collection]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Object]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 [Person]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
