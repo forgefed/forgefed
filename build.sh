@@ -73,6 +73,8 @@ render () {
 #    gitdirty="--variable gitdirty"
 #fi
 
+cp rdf/context.jsonld html/ns
+
 render html index "false"
 
 for file in $inputs; do
