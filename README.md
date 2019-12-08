@@ -14,6 +14,8 @@ All of the most common user interactions are supported such as: cloning/forking,
 merge-requests/patches, bug-reports/code-review, subscriptions/favorites with
 VCS-agnostic, service-agnostic, and client-agnostic genericity.
 
+You can find the latest specification draft at
+[forgefed.peers.community](https://forgefed.peers.community/).
 
 ## Work-group Collaboration
 
