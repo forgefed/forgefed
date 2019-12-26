@@ -201,6 +201,9 @@ code {
         content: "•";
         padding: 0 0.5rem 0 0;
     }
+    .main ul li p { margin: 0; }
+    .main ul li ul li { margin: 0 0 0 2.6rem; }
+
 
 .toc {
     margin: 2rem 0 4rem;
@@ -277,6 +280,14 @@ pre.sourceCode {
 
 @media (max-width: 689px) {
     .header, .main, .footer { padding: 0 2rem; }
+
+    /* Scale header logo */
+    .header-title__link img {
+        max-width: 90%;
+        position: relative;
+        object-fit: cover;
+        object-position: center;
+    }
 
     /* Stack nav items */
     .nav { width: 18rem; }
