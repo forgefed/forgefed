@@ -271,9 +271,17 @@ pre.sourceCode {
     background: var(--code-bg-color);
     color: var(--code-text-color);
 }
-.sourceLine .er { color: var(--code-error-color); }
-.sourceLine .dt { color: var(--code-datatype-color); }
-.sourceLine .st { color: var(--code-string-color); }
+.sourceCode .er { color: var(--code-error-color); }
+.sourceCode .dt { color: var(--code-datatype-color); }
+.sourceCode .st { color: var(--code-string-color); }
+
+/* Indentation adjustment hack */
+code.sourceCode span[id^="cb"]:not(#cb1-1) {
+    margin: 0 0 0 -4rem;
+}
+code.sourceCode span[class=dt] {
+    margin: 0 0 0 -2rem;
+}
 
 
 /* Media queries ---------------------------------------------------------- */
