@@ -276,12 +276,9 @@ pre.sourceCode {
 .sourceCode .st { color: var(--code-string-color); }
 
 /* Indentation adjustment hack */
-code.sourceCode span[id^="cb"]:not(#cb1-1) {
-    margin: 0 0 0 -4rem;
-}
-code.sourceCode span[class=dt] {
-    margin: 0 0 0 -2rem;
-}
+code.sourceCode span[id^="cb"] { margin: 0 0 0 -4rem; }
+code.sourceCode:first-child { margin: 0 0 0 4rem; }
+code.sourceCode .dt { margin: 0 0 0 -2rem; }
 
 
 /* Media queries ---------------------------------------------------------- */
