@@ -201,6 +201,9 @@ code {
         content: "•";
         padding: 0 0.5rem 0 0;
     }
+    .main ul li p { margin: 0; }
+    .main ul li ul li { margin: 0 0 0 2.6rem; }
+
 
 .toc {
     margin: 2rem 0 4rem;
@@ -268,15 +271,28 @@ pre.sourceCode {
     background: var(--code-bg-color);
     color: var(--code-text-color);
 }
-.sourceLine .er { color: var(--code-error-color); }
-.sourceLine .dt { color: var(--code-datatype-color); }
-.sourceLine .st { color: var(--code-string-color); }
+.sourceCode .er { color: var(--code-error-color); }
+.sourceCode .dt { color: var(--code-datatype-color); }
+.sourceCode .st { color: var(--code-string-color); }
+
+/* Indentation adjustment hack */
+code.sourceCode span[id^="cb"] { margin: 0 0 0 -4rem; }
+code.sourceCode:first-child { margin: 0 0 0 4rem; }
+code.sourceCode .dt { margin: 0 0 0 -2rem; }
 
 
 /* Media queries ---------------------------------------------------------- */
 
 @media (max-width: 689px) {
     .header, .main, .footer { padding: 0 2rem; }
+
+    /* Scale header logo */
+    .header-title__link img {
+        max-width: 90%;
+        position: relative;
+        object-fit: cover;
+        object-position: center;
+    }
 
     /* Stack nav items */
     .nav { width: 18rem; }
