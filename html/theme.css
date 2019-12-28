@@ -196,11 +196,14 @@ code {
 
     .main p { margin: 1.5rem 0; }
 
-    .main ul { list-style: none; }
-    .main ul li:before {
-        content: "•";
-        padding: 0 0.5rem 0 0;
+    .main ol { margin: 0 0 0 2rem; }
+    .main ol li { margin: 1rem 0; }
+
+    .main ul {
+        list-style: disc outside;
+        margin: 0 0 0 2rem;
     }
+    .main ul li { margin: 1rem 0; }
     .main ul li p { margin: 0; }
     .main ul li ul li { margin: 0 0 0 2.6rem; }
 
