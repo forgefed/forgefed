@@ -252,6 +252,51 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 
 # Properties
 
+## earlyItems {#prop-earlyitems}
+
+**URI:** `https://forgefed.peers.community/ns#earlyItems`
+
+**Notes:** In an ordered collection (or an ordered collection page) in which
+[items][] (or [orderedItems][]) contains a continuous subset of the
+collection's items from one end, `earlyItems` identifiers a continuous subset
+from the other end. For example, if `items` lists the chronologically
+latest items, `earlyItems` would list the chrologically earliest items. The
+ordering rule for items in `earlyItems` MUST be the same as in `items`. For
+examle, if `items` lists items in reverse chronogical order, then so does
+`earlyItems`.
+
+**Domain:** [OrderedCollection][]
+
+**Range:** Ordered list of [[Object][] | [Link][]]
+
+**Functional:** No
+
+**Inverse of:** (None)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox",
+    "type": "OrderedCollection",
+    "totalItems": 712,
+    "orderedItems": [
+       "https://dev.example/aviva/outbox/712",
+       "https://dev.example/aviva/outbox/711",
+       "https://dev.example/aviva/outbox/710"
+    ],
+    "earlyItems": [
+       "https://dev.example/aviva/outbox/3",
+       "https://dev.example/aviva/outbox/2",
+       "https://dev.example/aviva/outbox/1"
+    ]
+}
+```
+
 ## assignedTo {#prop-assignedto}
 
 **URI:** `https://forgefed.peers.community/ns#assignedTo`
@@ -636,13 +681,17 @@ The repository's team *https://dev.example/aviva/treesim/team*:
 }
 ```
 
-[Activity]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
-[Collection]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
-[Object]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
-[Person]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
+[Activity]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
+[Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
+[Link]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-link
+[Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
+[OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
+[Person]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
+[items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
+[orderedItems]: https://www.w3.org/TR/activitystreams-core/#collections
 [relationship]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
 [source]:       https://www.w3.org/TR/activitypub/#source-property
 [subject]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject

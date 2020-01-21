@@ -185,7 +185,9 @@ Properties:
   pushed, in **reverse chronological order**. The [items][] (or
   [orderedItems][]) property of the collection MUST contain either the whole
   list of commits being pushed, or a prefix i.e. continuous subset from the
-  beginning of the list (therefore the **latest** commits)
+  beginning of the list (therefore the **latest** commits).
+  [earlyItems][prop-earlyitems] MAY be used for listing a suffix i.e.
+  continuous subset from the end (therefore the **earliest** commits).
 
 Example:
 
@@ -353,6 +355,7 @@ Example:
 [prop-description]:  /vocabulary.html#prop-description
 [prop-dependants]:   /vocabulary.html#prop-dependants
 [prop-dependencies]: /vocabulary.html#prop-dependencies
+[prop-earlyitems]:   /vocabulary.html#prop-earlyitems
 [prop-hash]:         /vocabulary.html#prop-hash
 [prop-hashafter]:    /vocabulary.html#prop-hashafter
 [prop-hashbefore]:   /vocabulary.html#prop-hashbefore
