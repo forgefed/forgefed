@@ -181,7 +181,7 @@ we discuss *Local Push*.
 
 Upon a successful push, a ForgeFed implementation that publishes a Push
 activity MUST provide the [type][], [actor][], [context][] and [target][]
-properties as described in the [modeling specification][model-push]. If the
+properties as described [in the modeling specification][model-push]. If the
 Push activity's recipient fields list collections that belong to the
 repository, such as its [followers][] and [team][prop-team], the repository
 MUST verify the authenticity and correctness of the Push activity's fields
@@ -198,12 +198,124 @@ See [example in the modeling specification][model-push].
 
 ## Opening a Ticket
 
-A request to open a [Ticket][type-ticket] sent from one actor to another MUST
-be represented as an [Offer][] activity in which:
+There are two mechanisms for opening a [Ticket][type-ticket] under a ticket
+tracking object:
 
-- [object][] is the ticket to be opened, it's either the whole
-  [Ticket][type-ticket] object or just the [id][] of a Ticket that's already
-  published and the recipient of the Offer can fetch.
+1. The *creation* flow: The ticket author will be hosting the ticket. They
+   provide the ticket tracker with the ticket's [id][] URI, and the ticket
+   tracker lists that URI under its list of tickets.
+2. The *offer* flow: The ticket tracker will be hosting the ticket. The author
+   sends the tracker a ticket object, and the tracker assigns it an [id][] URI
+   and manages the object from now on.
+
+It is recommended to use the *creation* flow as a default, and resort to the
+*offer* flow only when really necessary (if you're unsure, it's not necessary).
+
+The *creation* flow begins with the ticket being published using a [Create][]
+activity, in which [object][] is a [Ticket][type-ticket] with
+fields as described [in the modeling specification][model-ticket]. The ticket
+MUST specify at least [id][], [attributedTo][], [name][], [content][] and
+[context][]. The [context][] property specifies the ticket tracker to which the
+actor is reporting the Ticket (e.g. a repository or project etc. under which
+the ticket will be listed if accepted). [context][] MUST be either an actor or
+a child object. If it's a child object, the actor to whom the child object
+belongs MUST be listed as a recipient in the Create's [to][] field. If it's an
+actor, then that actor MUST be listed in the `to` field.
+
+Among the recipients listed in the Create's recipient fields, exactly one
+recipient is the actor who's responsible for processing the ticket and possibly
+sending back an [Accept][] or a [Reject][]. We'll refer to this actor as the
+*target actor*.
+
+When an actor *A* receives the Create activity, they can determine whether
+they're the *target actor* as follows: If the [object][] ticket's [context][]
+is *A* or a child object of *A*, then *A* is the *target actor*. Otherwise, *A*
+isn't the target actor.
+
+In the following example, Luke wants to open a ticket under Aviva's Game Of
+Life simulation app:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/02Ljp",
+    "type": "Create",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://forge.example/luke/followers",
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": {
+        "id": "https://forge.example/luke/issues/k49fn",
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "name": "Test test test",
+        "content": "<p>Just testing</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Just testing"
+        },
+        "context": "https://dev.example/aviva/game-of-life"
+    }
+}
+```
+
+The *target actor* SHOULD send an [Accept][] or a [Reject][] activity to the
+Create's author in response. In the *creation* flow, to accept means to list
+the ticket's [id][] URI under the ticket tracker's list of open tickets. If the
+*target actor* sends an Accept, it MUST either add the ticket's [id][] to its
+list, or host its own copy as in the *offer* flow described below. It SHOULD
+just list the ticket [id][], and that is the recommended behavior.
+
+If the *target actor* sends a Reject, it MUST NOT list the ticket and MUST NOT
+host a copy. However if the *target actor* doesn't make any use of the ticket,
+it MAY choose not to send a Reject, e.g. to protect user privacy. The `Accept`
+or `Reject` may also be delayed, e.g. until review by a human user; that is
+implementation dependent, and implementations should not rely on a response
+being sent instantly.
+
+In the Accept activity:
+
+- [object][] MUST be the Create activity or its [id][]
+- [result][] MUST NOT be specified; this indicates the ticket's [id][] has been
+  added to the list, and no copy is made
+
+In the following example, Luke's ticket is listed automatically and Aviva's
+Game Of Life repository, which is an actor, automatically sends Luke an Accept
+activity:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/outbox/096al",
+    "type": "Accept",
+    "actor": "https://dev.example/aviva/game-of-life",
+    "to": [
+        "https://forge.example/luke",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/02Ljp"
+}
+```
+
+The *offer* flow begins with the ticket being sent to the ticket tracker using
+an [Offer][] activity, in which:
+
+- [object][] is the ticket to be opened, it's a [Ticket][type-ticket] object
+  with fields as described [in the modeling specification][model-ticket]. It
+  MUST specify at least [attributedTo][], [name][] and [content][], and MUST
+  NOT specify [id][]. If it specifies a [context][], then it MUST be identical
+  the Offer's [target][] described below.
 - [target][] is the ticket tracker to which the actor is offering the Ticket
   (e.g. a repository or project etc. under which the ticket will be opened if
   accepted). It MUST be either an actor or a child object. If it's a child
@@ -247,15 +359,26 @@ Life simulation app:
         "source": {
             "mediaType": "text/markdown; variant=Commonmark",
             "content": "Just testing"
-        },
+        }
     },
     "target": "https://dev.example/aviva/game-of-life"
 }
 ```
 
-If the [Ticket][type-ticket] isn't opened, the *target actor* MAY send a
-[Reject][] activity to the [actor][] of the Offer. If the ticket is opened, the
-*target actor* MUST deliver an [Accept][] activity to the actor of the Offer.
+The *target actor* SHOULD send an [Accept][] or a [Reject][] activity to the
+Offer's author in response. In the *offer* flow, to accept means to create and
+host a copy of the ticket on the target's side, and to list the [id][] of this
+newly published copy under the ticket tracker's list of open tickets. If the
+*target actor* sends an Accept, it MUST host a copy and add its [id][] to the
+list of open tickets.
+
+If the *target actor* sends a Reject, it MUST NOT list the ticket and MUST NOT
+host a copy. However if the *target actor* doesn't make any use of the ticket,
+it MAY choose not to send a Reject, e.g. to protect user privacy. The `Accept`
+or `Reject` may also be delayed, e.g. until review by a human user; that is
+implementation dependent, and implementations should not rely on a response
+being sent instantly.
+
 In the Accept activity:
 
 - [object][] MUST be the Offer activity or its [id][]
@@ -272,7 +395,7 @@ activity:
         "https://forgefed.peers.community/ns"
     ],
     "id": "https://dev.example/aviva/game-of-life/outbox/096al",
-    "type": "Accept"
+    "type": "Accept",
     "actor": "https://dev.example/aviva/game-of-life",
     "to": [
         "https://forge.example/luke",
@@ -283,6 +406,17 @@ activity:
     "result": "https://dev.example/aviva/game-of-life/issues/113"
 }
 ```
+
+The action that has been taken by the *target actor* is indicated to the ticket
+author as follows:
+
+- If a [Reject][] was sent, it means the ticket neither got listed nor got
+  copied
+- If an [Accept][] was sent, and the Accept specifies a [result][], it means a
+  copy was made and is hosted on the target's side
+- If an [Accept][] without a [result][] was sent, that means the ticket's
+  [id][] got listed in the tracker's list of open tickets, and the ticket
+  author will be hosting the ticket
 
 ## Commenting
 
@@ -343,6 +477,7 @@ he submitted earlier against her Game Of Life simulation app repository:
 
 [model-comment]: /modeling.html#comment
 [model-push]:    /modeling.html#push
+[model-ticket]:  /modeling.html#ticket
 
 [Accept]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 [Create]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
@@ -352,13 +487,16 @@ he submitted earlier against her Game Of Life simulation app repository:
 [Offer]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
 [Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
 
-[actor]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
-[context]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
-[followers]: https://www.w3.org/TR/activitypub/#followers
-[id]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
-[result]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
-[target]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
-[to]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
-[type]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
+[actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
+[attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
+[content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
+[context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
+[followers]:    https://www.w3.org/TR/activitypub/#followers
+[id]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
+[name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
+[result]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
+[target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
+[to]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
+[type]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
 
 [RFC2119]: https://tools.ietf.org/html/rfc2119
