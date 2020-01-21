@@ -681,6 +681,72 @@ The repository's team *https://dev.example/aviva/treesim/team*:
 }
 ```
 
+## ticketsTrackedBy {#prop-ticketstrackedby}
+
+**URI:** `https://forgefed.peers.community/ns#ticketsTrackedBy`
+
+**Notes:** Identifies the actor which tracks tickets related to the given
+object. This is the actor to whom you send tickets you'd like to open against
+the object.
+
+**Domain:** [Object][]
+
+**Range:** [Object][] that is an actor
+
+**Functional:** Yes
+
+**Inverse of:** [tracksTicketsFor](#prop-tracksticketsfor)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": "Repository",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>",
+    "ticketsTrackedBy": "https://bugs.example/projects/treesim"
+}
+```
+
+## tracksTicketsFor {#prop-tracksticketsfor}
+
+**URI:** `https://forgefed.peers.community/ns#tracksTicketsFor`
+
+**Notes:** Identifies objects for which which this ticket tracker tracks
+tickets. When you'd like to open a ticket against those objects, you can send
+them to this tracker.
+
+**Domain:** [Object][] that is an actor
+
+**Range:** [Object][]
+
+**Functional:** No
+
+**Inverse of:** [ticketsTrackedBy](#prop-ticketstrackedby)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://bugs.example/treesim",
+    "type": "Project",
+    "tracksTicketsFor": [
+        "https://dev.example/aviva/liblsystem",
+        "https://dev.example/aviva/3d-tree-models",
+        "https://dev.example/aviva/treesim"
+    ]
+}
+```
+
 [Activity]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Link]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-link

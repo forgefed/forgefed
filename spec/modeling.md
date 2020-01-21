@@ -135,6 +135,9 @@ Properties:
 * [team][prop-team]: [Collection][] of actors who have management/push access
   to the repository, or the subset of them who is available and wants to be
   contacted/notified/responsible on repo access related activities/requests
+* [ticketsTrackedBy][prop-ticketstrackedby]: The ticket tracker that tracks
+  tickets for this repository, this can be the repository itself if it manages
+  its own tickets
 
 Example:
 
@@ -156,6 +159,7 @@ Example:
     "outbox": "https://dev.example/aviva/treesim/outbox",
     "followers": "https://dev.example/aviva/treesim/followers",
     "team": "https://dev.example/aviva/treesim/team",
+    "ticketsTrackedBy": "https://dev.example/aviva/treesim",
     "name": "Tree Growth 3D Simulation",
     "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
 }
@@ -350,18 +354,19 @@ Example:
 [type-repository]: /vocabulary.html#type-repository
 [type-ticket]:     /vocabulary.html#type-ticket
 
-[prop-committed]:    /vocabulary.html#prop-committed
-[prop-committedby]:  /vocabulary.html#prop-committedby
-[prop-description]:  /vocabulary.html#prop-description
-[prop-dependants]:   /vocabulary.html#prop-dependants
-[prop-dependencies]: /vocabulary.html#prop-dependencies
-[prop-earlyitems]:   /vocabulary.html#prop-earlyitems
-[prop-hash]:         /vocabulary.html#prop-hash
-[prop-hashafter]:    /vocabulary.html#prop-hashafter
-[prop-hashbefore]:   /vocabulary.html#prop-hashbefore
-[prop-isresolved]:   /vocabulary.html#prop-isresolved
-[prop-ref]:          /vocabulary.html#prop-ref
-[prop-team]:         /vocabulary.html#prop-team
+[prop-committed]:        /vocabulary.html#prop-committed
+[prop-committedby]:      /vocabulary.html#prop-committedby
+[prop-description]:      /vocabulary.html#prop-description
+[prop-dependants]:       /vocabulary.html#prop-dependants
+[prop-dependencies]:     /vocabulary.html#prop-dependencies
+[prop-earlyitems]:       /vocabulary.html#prop-earlyitems
+[prop-hash]:             /vocabulary.html#prop-hash
+[prop-hashafter]:        /vocabulary.html#prop-hashafter
+[prop-hashbefore]:       /vocabulary.html#prop-hashbefore
+[prop-isresolved]:       /vocabulary.html#prop-isresolved
+[prop-ref]:              /vocabulary.html#prop-ref
+[prop-team]:             /vocabulary.html#prop-team
+[prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby
 
 [prop-created]:     http://purl.org/dc/terms/created
 

@@ -198,8 +198,28 @@ See [example in the modeling specification][model-push].
 
 ## Opening a Ticket
 
-There are two mechanisms for opening a [Ticket][type-ticket] under a ticket
-tracking object:
+The first step for opening a ticket is to determine to which actor to send the
+ticket. We'll refer to this actor as the *ticket tracker*. Given an object
+*obj* against which you'd like to open a ticket (e.g. some application's source
+code repository), look at the [ticketsTrackedBy][prop-ticketstrackedby]
+property of *obj*.
+
+- If `ticketsTrackedBy` isn't specified, then *obj* does't declare a way to
+  open tickets via ForgeFed.
+- If `ticketsTrackedBy` is specified and is set to the [id][] of *obj* itself,
+  that means *obj* manages its own tickets, i.e. it is the *ticket tracker* to
+  which you'll send the ticket.
+- If `ticketsTrackedBy` is specified and is set to some other object, look at
+  the [tracksTicketsFor][prop-tracksticketsfor] property of that other object.
+  If the [id][] of *obj* is listed there under `tracksTicketsFor`, then that
+  other object is the *ticket tracker* to which you'll send the ticket.
+  Implementations SHOULD verify this bidirectional reference between the object
+  and the tracker, and SHOULD NOT send a ticket if the bidirectional reference
+  isn't found.
+
+Now that we've determined the *ticket tracker*, i.e. the actor to whom we'll
+send the [Ticket][type-ticket], there are two mechanisms for opening a new
+[Ticket][type-ticket] under the *ticket tracker*:
 
 1. The *creation* flow: The ticket author will be hosting the ticket. They
    provide the ticket tracker with the ticket's [id][] URI, and the ticket
@@ -473,7 +493,9 @@ he submitted earlier against her Game Of Life simulation app repository:
 [type-repository]: /vocabulary.html#type-repository
 [type-ticket]:     /vocabulary.html#type-ticket
 
-[prop-team]: /vocabulary.html#prop-team
+[prop-team]:             /vocabulary.html#prop-team
+[prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby
+[prop-tracksticketsfor]: /vocabulary.html#prop-tracksticketsfor
 
 [model-comment]: /modeling.html#comment
 [model-push]:    /modeling.html#push
