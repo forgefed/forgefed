@@ -129,6 +129,8 @@ Properties:
 
 * [type][]: ["Repository"][type-repository]
 * [name][]: The user given name of the repository, e.g. "My cool repo"
+* [attributedTo][]: The actor(s) in charge of the repository, e.g. a person or
+  an organization
 * [published][]: The time the repository was created on the server
 * [summary][]: A one-line user provided description of the repository, as HTML,
   e.g. "`<p>A command-line tool that does cool things</p>`"
@@ -172,7 +174,7 @@ To represent an event of [Commit][type-commit]s being pushed to a
 
 Properties:
 
-* [type][]: ["Push"][act-push]
+- [type][]: ["Push"][act-push]
 - [actor][]: The entity (person, bot, etc.) that pushed the commits
 - [context][]: The [Repository][type-repository] to which the push was made
 - [target][]: The specific repo history tip onto which the commits were added,
