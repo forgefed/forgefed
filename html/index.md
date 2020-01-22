@@ -46,6 +46,9 @@ Anyone who is experienced with working on existing forges or federated "social"
 services, and anyone with experience in writing technical specification documents
 is encouraged to join the working group.
 
+- [Working Group](https://talk.feneas.org/t/working-group-instructions/196)
+- [Community Group](https://talk.feneas.org/t/monthly-community-review-round-instructions/192)
+
 
 # Implementations
 
