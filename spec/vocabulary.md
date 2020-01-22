@@ -747,6 +747,26 @@ them to this tracker.
 }
 ```
 
+## forks {#prop-forks}
+
+**URI:** `https://forgefed.peers.community/ns#forks`
+
+**Notes:** Identifies an [OrderedCollection][] of
+[Repository](#type-repository)s which were created as forks of this
+[Repository](#type-repository), i.e. by cloning it. The order of the collection
+items is by reverse chronological order of the forking events.
+
+**Domain:** [Repository](#type-repository)
+
+**Range:** [OrderedCollection][] of items of type
+[Repository](#type-repository)
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
 [Activity]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Link]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-link
