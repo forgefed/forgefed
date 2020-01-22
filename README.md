@@ -39,6 +39,8 @@ regarding the published artifacts to the [ForgeFed issue tracker][notabug-issues
 and [ForgeFed wiki][notabug-wiki] on NotABug, or the
 [ForgeFed mirror on Pagure][pagure-mirror].
 
+- [Working Group](https://talk.feneas.org/t/working-group-instructions/196)
+- [Community Group](https://talk.feneas.org/t/monthly-community-review-round-instructions/192)
 
 ### Projects participating in the discussions have included:
 
