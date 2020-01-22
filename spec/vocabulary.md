@@ -76,7 +76,7 @@ A typical `@context` of a ForgeFed object may look like this:
                 "context": "https://example.dev/aviva/myproject",
                 "hash": "d96596230322716bd6f87a232a648ca9822a1c20",
                 "created": "2019-11-03T13:43:59Z",
-                "name": "Provide hints in sign-up form fields",
+                "summary": "Provide hints in sign-up form fields",
             }
         ]
     },
@@ -176,7 +176,7 @@ and pushed to a repo, resulting with a `Commit`.
     "attributedTo": "https://example.dev/bob",
     "committedBy": "https://example.dev/alice",
     "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
-    "name": "Add an installation script, fixes issue #89",
+    "summary": "Add an installation script, fixes issue #89",
     "description": {
         "mediaType": "text/plain",
         "content": "It's about time people can install on their computers!"
@@ -455,7 +455,7 @@ range of the ActivityPub [source][] property works.
     "attributedTo": "https://example.dev/bob",
     "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
     "created": "2019-07-11T12:34:56Z",
-    "name": "Add an installation script, fixes issue #89",
+    "summary": "Add an installation script, fixes issue #89",
 
     "description": {
         "mediaType": "text/plain",

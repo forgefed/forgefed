@@ -51,9 +51,9 @@ Properties:
   committer
 * [hash][prop-hash]: The hash identifying the commit, e.g. the commit SHA1 hash
   in Git; the patch info SHA1 hash in Darcs
-* [name][]: The commit's one-line title as plain text; if the commit title and
-  description are a single commit message string, then the title is the 1st
-  line of the commit message
+* [summary][]: The commit's one-line title as HTML-escaped plain text; if the
+  commit title and description are a single commit message string, then the
+  title is the 1st line of the commit message
 * [description][prop-description]: A JSON object with a [mediaType][] field and
   a [content][] field, where `mediaType` SHOULD be "text/plain" and `content`
   is the commit's possibly-multi-line description; if the commit title and
@@ -77,7 +77,7 @@ Example:
     "committedBy": "https://example.dev/alice",
     "committed": "2019-07-26T23:45:01Z",
     "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
-    "name": "Add an installation script, fixes issue #89",
+    "summary": "Add an installation script, fixes issue #89",
     "description": {
         "mediaType": "text/plain",
         "content": "It's about time people can install it on their computers!"
@@ -227,7 +227,7 @@ Example:
                 "context": "https://dev.example/aviva/game-of-life",
                 "hash": "be9f48a341c4bb5cd79ae7ab85fbf0c05d2837bb",
                 "created": "2019-12-02T16:07:32Z",
-                "name": "Add widget to alter simulation speed"
+                "summary": "Add widget to alter simulation speed"
             },
             {
                 "id": "https://dev.example/aviva/game-of-life/commits/fa37fe100a8b1e69933889c5bf3caf95cd3ae1e6",
@@ -236,7 +236,7 @@ Example:
                 "context": "https://dev.example/aviva/game-of-life",
                 "hash": "fa37fe100a8b1e69933889c5bf3caf95cd3ae1e6",
                 "created": "2019-12-02T15:51:52Z",
-                "name": "Set window title correctly, fixes issue #7"
+                "summary": "Set window title correctly, fixes issue #7"
             }
         ]
     }
@@ -260,7 +260,7 @@ Properties:
 - [context][]: The project to which this ticket belongs (a repository, an issue
   tracker, etc.)
 - [attributedTo][]: The actor (person, bot, etc.) who submitted the ticket
-- [name][]: The ticket's plain-text one-line title
+- [summary][]: The ticket's one-line title, as HTML-escaped plain text
 - [content][], [mediaType][]: The ticket's (possibly multi-line) detailed
   description text, in rendered form
 - [source][]: Source form of the ticket's description
@@ -290,7 +290,7 @@ Example:
     "type": "Ticket",
     "context": "https://dev.example/aviva/game-of-life",
     "attributedTo": "https://forge.example/luke",
-    "name": "Window title is empty",
+    "summary": "Window title is empty",
     "content": "<p>When I start the simulation, window title disappears suddenly</p>",
     "mediaType": "text/html",
     "source": {

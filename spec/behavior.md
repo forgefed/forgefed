@@ -234,7 +234,7 @@ It is recommended to use the *creation* flow as a default, and resort to the
 The *creation* flow begins with the ticket being published using a [Create][]
 activity, in which [object][] is a [Ticket][type-ticket] with
 fields as described [in the modeling specification][model-ticket]. The ticket
-MUST specify at least [id][], [attributedTo][], [name][], [content][] and
+MUST specify at least [id][], [attributedTo][], [summary][], [content][] and
 [context][]. The [context][] property specifies the ticket tracker to which the
 actor is reporting the Ticket (e.g. a repository or project etc. under which
 the ticket will be listed if accepted). [context][] MUST be either an actor or
@@ -274,7 +274,7 @@ Life simulation app:
         "id": "https://forge.example/luke/issues/k49fn",
         "type": "Ticket",
         "attributedTo": "https://forge.example/luke",
-        "name": "Test test test",
+        "summary": "Test test test",
         "content": "<p>Just testing</p>",
         "mediaType": "text/html",
         "source": {
@@ -333,7 +333,7 @@ an [Offer][] activity, in which:
 
 - [object][] is the ticket to be opened, it's a [Ticket][type-ticket] object
   with fields as described [in the modeling specification][model-ticket]. It
-  MUST specify at least [attributedTo][], [name][] and [content][], and MUST
+  MUST specify at least [attributedTo][], [summary][] and [content][], and MUST
   NOT specify [id][]. If it specifies a [context][], then it MUST be identical
   the Offer's [target][] described below.
 - [target][] is the ticket tracker to which the actor is offering the Ticket
@@ -373,7 +373,7 @@ Life simulation app:
     "object": {
         "type": "Ticket",
         "attributedTo": "https://forge.example/luke",
-        "name": "Test test test",
+        "summary": "Test test test",
         "content": "<p>Just testing</p>",
         "mediaType": "text/html",
         "source": {
