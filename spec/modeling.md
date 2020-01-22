@@ -137,6 +137,8 @@ Properties:
 * [team][prop-team]: [Collection][] of actors who have management/push access
   to the repository, or the subset of them who is available and wants to be
   contacted/notified/responsible on repo access related activities/requests
+* [forks][prop-forks]: [OrderedCollection][] of repositories that are forks of
+  this repository
 * [ticketsTrackedBy][prop-ticketstrackedby]: The ticket tracker that tracks
   tickets for this repository, this can be the repository itself if it manages
   its own tickets
@@ -362,6 +364,7 @@ Example:
 [prop-dependants]:       /vocabulary.html#prop-dependants
 [prop-dependencies]:     /vocabulary.html#prop-dependencies
 [prop-earlyitems]:       /vocabulary.html#prop-earlyitems
+[prop-forks]:            /vocabulary.html#prop-forks
 [prop-hash]:             /vocabulary.html#prop-hash
 [prop-hashafter]:        /vocabulary.html#prop-hashafter
 [prop-hashbefore]:       /vocabulary.html#prop-hashbefore
@@ -388,7 +391,7 @@ Example:
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 [ordereditems]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-ordereditems
 [published]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
-[replies]:     https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
+[replies]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
 [source]:       https://www.w3.org/TR/activitypub/#source-property
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
