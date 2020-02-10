@@ -24,15 +24,34 @@ platform.
 
 # Project status
 
-The specification and software produced by this working group is still in the
-early stages, and there is still much work to do and ample design-space for
-discussion and contributions.
+The best way to keep track of our progress is to follow us on the
+[Fediverse](https://floss.social/@forgefed). Our roadmap is
+[here](https://notabug.org/peers/forgefed/issues/87).
 
-So far the protocol supports:
+We publish specification drafts, implement them in our reference
+implementation, and publish demos that demonstrate ForgeFed federation
+features. Demos we've published:
 
-- repository following
-- repository push notifications to followers
-- new issue creation
+1. [Ticket comment federation demo](https://socialhub.network/t/vervis-ticket-comment-federation-demo/599), May 2019
+2. [Federated opening of new tickets](https://talk.feneas.org/t/vervis-demo-2-federated-opening-of-new-tickets/78), July 2019
+3. [Push activities and repo following](https://talk.feneas.org/t/vervis-demo-3-push-activities-and-repo-following/177), October 2019
+
+*As of February 10, 2020*: we're working towards finishing and announcing
+[**Draft 1**](https://notabug.org/peers/forgefed/milestones). Vervis, the
+reference implementation, already supports federation of:
+
+- Repository following
+- Repository push notifications to followers
+- New issue creation
+- Issue commenting
+
+What remains to implement (federate) for the draft:
+
+- The *Create flow* of issue creation
+- Sending a patch / merge request
+
+We hope to start getting NLNet funding, and to implement ForgeFed in an
+existing forge, [Pagure](https://pagure.io).
 
 
 # Work group
