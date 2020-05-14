@@ -77,6 +77,8 @@ cp rdf/context.jsonld html/ns
 
 render html index "false"
 
+render html funding-plan "false"
+
 for file in $inputs; do
     render spec $file "true"
 done
