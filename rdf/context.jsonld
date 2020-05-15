@@ -1,4 +1,75 @@
-{ "@context":
-    { "forge": "https://forgefed.peers.community/ns#
+{
+    "@context":
+    {
+        "@vocab": "_:",
+        "xsd":    "http://www.w3.org/2001/XMLSchema#",
+        "as":     "https://www.w3.org/ns/activitystreams#",
+        "forge":  "https://forgefed.peers.community/ns#",
+        "sec":    "https://w3id.org/security#",
+        
+        "Branch": "forge:Branch",
+        "Commit": "forge:Commit",
+        "Push": "forge:Push",
+        "Repository": "forge:Repository",
+        "Ticket": "forge:Ticket",
+        "TicketDependency": "forge:TicketDependency",
+        
+        "earlyItems": {
+            "@id": "forge:earlyItems",
+            "@type": "@id" },
+        "assignedTo": {
+            "@id": "forge:assignedTo",
+            "@type": "@id" },
+        "isResolved": {
+            "@id": "forge:isResolved",
+            "@type": "xsd:boolean" },
+        "dependsOn": {
+            "@id": "forge:dependsOn",
+            "@type": "@id" },
+        "dependedBy": {
+            "@id": "forge:dependedBy",
+            "@type": "@id" },
+        "dependencies": {
+            "@id": "forge:dependencies",
+            "@type": "@id" },
+        "dependants": {
+            "@id": "forge:dependants",
+            "@type": "@id" },
+        "description": {
+            "@id": "forge:description",
+            "@type": "@id" },
+        "committedBy": {
+            "@id": "forge:committedBy",
+            "@type": "@id" },
+        "hash": {
+            "@id": "forge:hash",
+            "@type": "xsd:string" },
+        "committed": {
+            "@id": "forge:committed",
+            "@type": "xsd:dateTime" },
+        "filesAdded": {
+            "@id": "forge:filesAdded",
+            "@type": "xsd:string" },
+        "filesModified": {
+            "@id": "forge:filesModified",
+            "@type": "xsd:string" },
+        "filesRemoved": {
+            "@id": "forge:filesRemoved",
+            "@type": "xsd:string" },
+        "ref": {
+            "@id": "forge:ref",
+            "@type": "xsd:string" },
+        "team": {
+            "@id": "forge:team",
+            "@type": "@id" },
+        "ticketsTrackedBy": {
+            "@id": "forge:ticketsTrackedBy",
+            "@type": "@id" },
+        "tracksTicketsFor": {
+            "@id": "forge:tracksTicketsFor",
+            "@type": "@id" },
+        "forks": {
+            "@id": "forge:forks",
+            "@type": "@id" }
     }
 }
