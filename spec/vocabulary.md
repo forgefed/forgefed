@@ -435,7 +435,8 @@ range of the ActivityPub [source][] property works.
 **Domain:** [Commit](#type-commit)
 
 **Range:** Object that specifies a [content][] and a [mediaType][]. The
-`mediaType` SHOULD be `"text/plain"`.
+`mediaType` SHOULD be `"text/plain"`. **TODO** The object pointed to by this
+property should have a @type
 
 **Functional:** Yes
 
