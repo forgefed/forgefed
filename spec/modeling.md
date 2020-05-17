@@ -142,6 +142,10 @@ Properties:
 * [ticketsTrackedBy][prop-ticketstrackedby]: The ticket tracker that tracks
   tickets for this repository, this can be the repository itself if it manages
   its own tickets
+* [sendPatchesTo][prop-sendpatchesto]: The actor that tracks tickets for this
+  repository, this can be the repository itself if it manages its own patches
+  and merge requests. For example it may be some external tracker or service,
+  or the user or team to whom the repository belongs.
 
 Example:
 
@@ -164,6 +168,7 @@ Example:
     "followers": "https://dev.example/aviva/treesim/followers",
     "team": "https://dev.example/aviva/treesim/team",
     "ticketsTrackedBy": "https://dev.example/aviva/treesim",
+    "sendPatchesTo": "https://dev.example/aviva/treesim",
     "name": "Tree Growth 3D Simulation",
     "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
 }
@@ -370,6 +375,7 @@ Example:
 [prop-hashbefore]:       /vocabulary.html#prop-hashbefore
 [prop-isresolved]:       /vocabulary.html#prop-isresolved
 [prop-ref]:              /vocabulary.html#prop-ref
+[prop-sendpatchesto]:    /vocabulary.html#prop-sendpatchesto
 [prop-team]:             /vocabulary.html#prop-team
 [prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby
 

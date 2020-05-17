@@ -68,6 +68,12 @@
         "tracksTicketsFor": {
             "@id": "forge:tracksTicketsFor",
             "@type": "@id" },
+        "sendPatchesTo": {
+            "@id": "forge:sendPatchesTo",
+            "@type": "@id" },
+        "tracksPatchesFor": {
+            "@id": "forge:tracksPatchesFor",
+            "@type": "@id" },
         "forks": {
             "@id": "forge:forks",
             "@type": "@id" }

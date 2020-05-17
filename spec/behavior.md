@@ -235,12 +235,12 @@ The *creation* flow begins with the ticket being published using a [Create][]
 activity, in which [object][] is a [Ticket][type-ticket] with
 fields as described [in the modeling specification][model-ticket]. The ticket
 MUST specify at least [id][], [attributedTo][], [summary][], [content][] and
-[context][]. The [context][] property specifies the ticket tracker to which the
-actor is reporting the Ticket (e.g. a repository or project etc. under which
-the ticket will be listed if accepted). [context][] MUST be either an actor or
-a child object. If it's a child object, the actor to whom the child object
-belongs MUST be listed as a recipient in the Create's [to][] field. If it's an
-actor, then that actor MUST be listed in the `to` field.
+[context][]. The [context][] property specifies the project or tracker to which
+the actor is reporting the Ticket (e.g. a repository or project etc. under
+which the ticket will be listed if accepted). [context][] MUST be either an
+actor or a child object. If it's a child object, the actor to whom the child
+object belongs MUST be listed as a recipient in the Create's [to][] field. If
+it's an actor, then that actor MUST be listed in the `to` field.
 
 Among the recipients listed in the Create's recipient fields, exactly one
 recipient is the actor who's responsible for processing the ticket and possibly

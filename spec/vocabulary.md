@@ -748,6 +748,72 @@ them to this tracker.
 }
 ```
 
+## sendPatchesTo {#prop-sendpatchesto}
+
+**URI:** `https://forgefed.peers.community/ns#sendPatchesTo`
+
+**Notes:** Identifies the actor which tracks patches and merge requests related
+to the given repository. This is the actor to whom you send patches and merge
+requests you'd like to open against the repository.
+
+**Domain:** [Repository][]
+
+**Range:** [Object][] that is an actor
+
+**Functional:** Yes
+
+**Inverse of:** [tracksPatchesFor](#prop-trackspatchesfor)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": "Repository",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>",
+    "sendPatchesTo": "https://bugs.example/projects/treesim"
+}
+```
+
+## tracksPatchesFor {#prop-trackspatchesfor}
+
+**URI:** `https://forgefed.peers.community/ns#tracksPatchesFor`
+
+**Notes:** Identifies repositories for which which this patch and merge request
+tracker tracks patches and merge requests. When you'd like to open patches or
+merge requests against those repositories, you can send them to this tracker.
+
+**Domain:** [Object][] that is an actor
+
+**Range:** [Repository][]
+
+**Functional:** No
+
+**Inverse of:** [sendPatchesTo](#prop-sendpatchesto)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://project.example/treesim",
+    "type": "Project",
+    "tracksPatchesFor": [
+        "https://dev.example/aviva/liblsystem",
+        "https://dev.example/aviva/3d-tree-models",
+        "https://dev.example/aviva/treesim"
+    ]
+}
+```
+
 ## forks {#prop-forks}
 
 **URI:** `https://forgefed.peers.community/ns#forks`
