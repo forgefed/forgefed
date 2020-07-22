@@ -59,6 +59,9 @@
         "ref": {
             "@id": "forge:ref",
             "@type": "xsd:string" },
+        "resolvedBy": {
+            "@id": "forge:resolvedBy",
+            "@type": "@id" },
         "team": {
             "@id": "forge:team",
             "@type": "@id" },
