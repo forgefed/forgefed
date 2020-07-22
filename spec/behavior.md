@@ -137,7 +137,7 @@ And other types such as these typically not be actors:
 - Diff
 - Discussion thread
 
-## Object Publishing and Hosting
+## Object Publishing and Hosting {#publishing}
 
 There are 2 primary flows for publishing child objects:
 
@@ -460,39 +460,35 @@ property of *obj*.
   isn't found.
 
 Now that we've determined the *ticket tracker*, i.e. the actor to whom we'll
-send the [Ticket][type-ticket], there are two mechanisms for opening a new
-[Ticket][type-ticket] under the *ticket tracker*:
+send the [Ticket][type-ticket], the ticket may be opened using either Create of
+Offer as described in the [Object Publishing and Hosting](#publishing) section.
+Create asks the tracker to list the ticket's URI, while Offer asks the tracker
+to host and list its own copy (however what the tracker chooses to do is up to
+the tracker).
 
-1. The *creation* flow: The ticket author will be hosting the ticket. They
-   provide the ticket tracker with the ticket's [id][] URI, and the ticket
-   tracker lists that URI under its list of tickets.
-2. The *offer* flow: The ticket tracker will be hosting the ticket. The author
-   sends the tracker a ticket object, and the tracker assigns it an [id][] URI
-   and manages the object from now on.
+The *target actor* MAY then send back an Accept or Reject. The action that has
+been taken by the *target actor* is indicated to the ticket author as follows:
 
-It is recommended to use the *creation* flow as a default, and resort to the
-*offer* flow only when really necessary (if you're unsure, it's not necessary).
+- If a [Reject][] was sent, it means the ticket neither got listed nor got
+  copied
+- If an [Accept][] was sent, and the Accept specifies a [result][], it means a
+  copy was made and is hosted on the target's side
+- If an [Accept][] without a [result][] was sent, that means the ticket's
+  [id][] got listed in the tracker's list of open tickets, and the ticket
+  author will be hosting the ticket
 
-The *creation* flow begins with the ticket being published using a [Create][]
-activity, in which [object][] is a [Ticket][type-ticket] with
-fields as described [in the modeling specification][model-ticket]. The ticket
-MUST specify at least [id][], [attributedTo][], [summary][], [content][] and
-[context][]. The [context][] property specifies the project or tracker to which
-the actor is reporting the Ticket (e.g. a repository or project etc. under
-which the ticket will be listed if accepted). [context][] MUST be either an
-actor or a child object. If it's a child object, the actor to whom the child
-object belongs MUST be listed as a recipient in the Create's [to][] field. If
-it's an actor, then that actor MUST be listed in the `to` field.
+### Create
 
-Among the recipients listed in the Create's recipient fields, exactly one
-recipient is the actor who's responsible for processing the ticket and possibly
-sending back an [Accept][] or a [Reject][]. We'll refer to this actor as the
-*target actor*.
-
-When an actor *A* receives the Create activity, they can determine whether
-they're the *target actor* as follows: If the [object][] ticket's [context][]
-is *A* or a child object of *A*, then *A* is the *target actor*. Otherwise, *A*
-isn't the target actor.
+A ticket can be opened using a [Create][] activity, in which [object][] is a
+[Ticket][type-ticket] with fields as described [in the modeling
+specification][model-ticket]. The ticket MUST specify at least [id][],
+[attributedTo][], [summary][], [content][] and [context][]. The [context][]
+property specifies the project or tracker to which the actor is reporting the
+Ticket (e.g. a repository or project etc. under which the ticket will be listed
+if accepted). [context][] MUST be either an actor or a child object. If it's a
+child object, the actor to whom the child object belongs MUST be listed as a
+recipient in the Create's [to][] field. If it's an actor, then that actor MUST
+be listed in the `to` field.
 
 In the following example, Luke wants to open a ticket under Aviva's Game Of
 Life simulation app:
@@ -528,29 +524,8 @@ Life simulation app:
 }
 ```
 
-The *target actor* SHOULD send an [Accept][] or a [Reject][] activity to the
-Create's author in response. In the *creation* flow, to accept means to list
-the ticket's [id][] URI under the ticket tracker's list of open tickets. If the
-*target actor* sends an Accept, it MUST either add the ticket's [id][] to its
-list, or host its own copy as in the *offer* flow described below. It SHOULD
-just list the ticket [id][], and that is the recommended behavior.
-
-If the *target actor* sends a Reject, it MUST NOT list the ticket and MUST NOT
-host a copy. However if the *target actor* doesn't make any use of the ticket,
-it MAY choose not to send a Reject, e.g. to protect user privacy. The `Accept`
-or `Reject` may also be delayed, e.g. until review by a human user; that is
-implementation dependent, and implementations should not rely on a response
-being sent instantly.
-
-In the Accept activity:
-
-- [object][] MUST be the Create activity or its [id][]
-- [result][] MUST NOT be specified; this indicates the ticket's [id][] has been
-  added to the list, and no copy is made
-
-In the following example, Luke's ticket is listed automatically and Aviva's
-Game Of Life repository, which is an actor, automatically sends Luke an Accept
-activity:
+Luke's ticket is listed automatically and Aviva's Game Of Life repository,
+which is an actor, automatically sends Luke an Accept activity:
 
 ```json
 {
@@ -570,8 +545,9 @@ activity:
 }
 ```
 
-The *offer* flow begins with the ticket being sent to the ticket tracker using
-an [Offer][] activity, in which:
+### Offer
+
+A ticket may be opened using an [Offer][] activity, in which:
 
 - [object][] is the ticket to be opened, it's a [Ticket][type-ticket] object
   with fields as described [in the modeling specification][model-ticket]. It
@@ -584,16 +560,6 @@ an [Offer][] activity, in which:
   object, the actor to whom the child object belongs MUST be listed as a
   recipient in the Offer's [to][] field. If it's an actor, then that actor MUST
   be listed in the `to` field.
-
-Among the recipients listed in the Offer's recipient fields, exactly one
-recipient is the actor who's responsible for processing the offer and possibly
-sending back an [Accept][] or a [Reject][]. We'll refer to this actor as the
-*target actor*.
-
-When an actor *A* receives the Offer activity, they can determine whether
-they're the *target actor* as follows: If the Offer's [target][] is *A* or a
-child object of *A*, then *A* is the *target actor*. Otherwise, *A* isn't the
-target actor.
 
 In the following example, Luke wants to open a ticket under Aviva's Game Of
 Life simulation app:
@@ -627,28 +593,8 @@ Life simulation app:
 }
 ```
 
-The *target actor* SHOULD send an [Accept][] or a [Reject][] activity to the
-Offer's author in response. In the *offer* flow, to accept means to create and
-host a copy of the ticket on the target's side, and to list the [id][] of this
-newly published copy under the ticket tracker's list of open tickets. If the
-*target actor* sends an Accept, it MUST host a copy and add its [id][] to the
-list of open tickets.
-
-If the *target actor* sends a Reject, it MUST NOT list the ticket and MUST NOT
-host a copy. However if the *target actor* doesn't make any use of the ticket,
-it MAY choose not to send a Reject, e.g. to protect user privacy. The `Accept`
-or `Reject` may also be delayed, e.g. until review by a human user; that is
-implementation dependent, and implementations should not rely on a response
-being sent instantly.
-
-In the Accept activity:
-
-- [object][] MUST be the Offer activity or its [id][]
-- [result][] MUST be the newly created ticket or its [id][]
-
-In the following example, Luke's ticket is opened automatically and Aviva's
-Game Of Life repository, which is an actor, automatically sends Luke an Accept
-activity:
+Luke's ticket is opened automatically and Aviva's Game Of Life repository,
+which is an actor, automatically sends Luke an Accept activity:
 
 ```json
 {
@@ -668,17 +614,6 @@ activity:
     "result": "https://dev.example/aviva/game-of-life/issues/113"
 }
 ```
-
-The action that has been taken by the *target actor* is indicated to the ticket
-author as follows:
-
-- If a [Reject][] was sent, it means the ticket neither got listed nor got
-  copied
-- If an [Accept][] was sent, and the Accept specifies a [result][], it means a
-  copy was made and is hosted on the target's side
-- If an [Accept][] without a [result][] was sent, that means the ticket's
-  [id][] got listed in the tracker's list of open tickets, and the ticket
-  author will be hosting the ticket
 
 ## Commenting
 
