@@ -284,6 +284,8 @@ Properties:
 - [dependencies][prop-dependencies]: Collection of [Ticket][type-ticket]s on
   which this ticket depends
 - [isResolved][prop-isresolved]: Whether the work on this ticket is done
+- [resolvedBy][prop-resolvedby]: If the work on this ticket is done, who marked
+  the ticket as resolved
 
 Example:
 
@@ -311,7 +313,8 @@ Example:
     "history": "https://dev.example/aviva/game-of-life/issues/107/activity",
     "dependants": "https://dev.example/aviva/game-of-life/issues/107/rdeps",
     "dependencies": "https://dev.example/aviva/game-of-life/issues/107/deps",
-    "isResolved": false
+    "isResolved": true,
+    "resolvedBy": "https://code.example/martin"
 }
 ```
 
@@ -375,6 +378,7 @@ Example:
 [prop-hashbefore]:       /vocabulary.html#prop-hashbefore
 [prop-isresolved]:       /vocabulary.html#prop-isresolved
 [prop-ref]:              /vocabulary.html#prop-ref
+[prop-resolvedby]:       /vocabulary.html#prop-resolvedby
 [prop-sendpatchesto]:    /vocabulary.html#prop-sendpatchesto
 [prop-team]:             /vocabulary.html#prop-team
 [prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby

@@ -331,6 +331,23 @@ work on it is done and it doesn't need to attract attention anymore.
 
 **Example:**
 
+## resolvedBy {#prop-resolvedby}
+
+**URI:** `https://forgefed.peers.community/ns#resolvedBy`
+
+**Notes:** Identifies the [Actor][] who has resolved the
+[Ticket](#type-ticket).
+
+**Domain:** [Ticket](#type-ticket)
+
+**Range:** [Object][] than is an actor
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
 ## dependsOn {#prop-dependson}
 
 **URI:** `https://forgefed.peers.community/ns#dependsOn`
