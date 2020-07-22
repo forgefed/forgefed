@@ -34,6 +34,8 @@ as described in [RFC2119][].
 
 # Objects
 
+## Kinds of Objects
+
 Objects are the core concept around which both ActivityPub and ForgeFed are
 built. Examples of Objects are [Note], [Ticket][type-ticket], [Image],
 [Create], [Push][act-push]. Some objects are resources, which are objects that
@@ -85,6 +87,8 @@ resource/helper distinction:
   implementation detail and not to concepts of version control and project
   management.
 
+## Actors
+
 This specification doesn't mandate which types and objects should be actors,
 but it does provide guidelines that implementations SHOULD follow:
 
@@ -133,13 +137,251 @@ And other types such as these typically not be actors:
 - Diff
 - Discussion thread
 
-# Actors
+## Object Publishing and Hosting
 
-A ForgeFed implementation MUST provide an Actor of type `Repository` for every
-repository that should support federation.
+There are 2 primary flows for publishing child objects:
 
-A ForgeFed implementation SHOULD provide an Actor of type `Person` for every user
-of the platform.
+1. The *creation* flow: The new object's author will be hosting and managing
+   the object. They publish the object on their home instance, and notify
+   other actors, letting them know that the object has been published and is
+   now available at a given URI.
+2. The *offer* flow: The new object's author asks another actor to host the
+   object. They're offering it to some other actor. If that actor accepts the
+   offer, then they'll be hosting and managing the object and assigning it a
+   URI.
+
+Whenever an object can be published using either of these flows, it is
+recommended to use the *creation* flow as a default, and resort to the *offer*
+flow only when really necessary (if you're unsure, it's not necessary).
+
+### Creation Flow
+
+The *creation* flow may optionally have a *target actor*, to whom the sender is
+proposing the object. But the sender is only asking that the target actor
+*lists the URI* of the newly published object, while the sender actor is the
+one hosting and controlling the object.
+
+The *creation* flow begines with a [Create][] activity, in which [object][] is
+the new object being published, and that object's [context][] may be specified
+and indicates where the sender would like the newly published object to be
+listed by the *target actor*. If there's no [context][], then there's no
+*target actor*.
+
+Among the recipients listed in the [Create][]'s recipient fields, at most one
+recipient is the actor who's responsible for processing, inspecting and
+possibly listing the newly published object, and possibly sending back an
+[Accept][] or a [Reject][]. We'll refer to this actor as the *target actor*.
+Specific object types described throughout this specification have a specific
+meaning for the *target actor*, which processing it is expected to do, and
+where it is expected to list the URI of the newly published object.
+
+When an actor *A* receives the [Create][] activity, they can determine whether
+they're the *target actor* as follows: If the [object][] ticket's [context][]
+is *A* or a child object of *A*, then *A* is the *target actor*. Otherwise, *A*
+isn't the target actor.
+
+In the following example, Luke wants to open a ticket under Aviva's Game Of
+Life simulation app:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/02Ljp",
+    "type": "Create",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://forge.example/luke/followers",
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": {
+        "id": "https://forge.example/luke/issues/k49fn",
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "summary": "Test test test",
+        "content": "<p>Just testing</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Just testing"
+        },
+        "context": "https://dev.example/aviva/game-of-life"
+    }
+}
+```
+
+The *target actor* SHOULD send an [Accept][] or a [Reject][] activity to the
+Create's author in response. In the *creation* flow, the *target actor* (if
+there is one) is asked to merely process and remember the URI of the newly
+published object (the exact expected processing and location of listing the URI
+depends on the object type, see the next sections of this specification). If
+the *target actor* sends an Accept, it MUST either add the object's [id][] to
+the expected list, or host its own copy as in the *offer* flow described below.
+It SHOULD just list the object [id][], and that is the recommended behavior.
+
+If the *target actor* sends a [Reject][], it MUST NOT list the object and MUST
+NOT host a copy. However if the *target actor* doesn't make any use of the
+object, it MAY choose not to send a Reject, e.g. to protect user privacy. The
+`Accept` or `Reject` may also be delayed, e.g. until review by a human user;
+that is implementation dependent, and implementations should not rely on a
+
+In the [Accept][] activity:
+
+- [object][] MUST be the Create activity or its [id][]
+- [result][] MUST NOT be specified if the *target actor* has listed the URI and
+  hasn't published a copy, but MUST be specified and be the URI of the copy, if
+  the *target actor* has decided to publish and host its own separate copy of
+  the object
+
+In the following example, Luke's ticket is listed automatically and Aviva's
+Game Of Life repository, which is an actor, automatically sends Luke an Accept
+activity:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/outbox/096al",
+    "type": "Accept",
+    "actor": "https://dev.example/aviva/game-of-life",
+    "to": [
+        "https://forge.example/luke",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/02Ljp"
+}
+```
+
+### Offer Flow
+
+The *offer* flow always has a *target actor*, to whom the sender is proposing
+the object. The sender is asking that the target actor hosts the object as a
+child object and assigns is a URI, allowing to observe and interact with the
+object. The target actor will be responsible for hosting and controlling the
+object, and the sender will just be mentioned as the author.
+
+The *offer* flow begins with an [Offer][] activity, in which [object][] is the
+object being offered for publishing, and [target][] indicates under which list
+or collection the sender would like the object to be published, if the *target
+actor* accepts the offer and publishes it.
+
+Among the recipients listed in the [Offer][]'s recipient fields, exactly one
+recipient is the actor who's responsible for inspecting and possibly publishing
+the newly object, and possibly sending back an [Accept][] or a [Reject][].
+We'll refer to this actor as the *target actor*. Specific object types
+described throughout this specification have a specific meaning for the *target
+actor*, which processing and inspection it is expected to do, and where it is
+expected to list the URI of the object once it publishes it.
+
+When an actor *A* receives the [Create][] activity, they can determine whether
+they're the *target actor* as follows: If the [object][] ticket's [context][]
+is *A* or a child object of *A*, then *A* is the *target actor*. Otherwise, *A*
+isn't the target actor.
+
+In the following example, Luke wants to open a ticket under Aviva's Game Of
+Life simulation app:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/02Ljp",
+    "type": "Offer",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": {
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "summary": "Test test test",
+        "content": "<p>Just testing</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Just testing"
+        }
+    },
+    "target": "https://dev.example/aviva/game-of-life"
+}
+```
+
+The *target actor* SHOULD send an [Accept][] or a [Reject][] activity to the
+Offer's author in response. In the *offer* flow, the *target actor* is asked to
+host a copy of the object. If the *target actor* sends an Accept, it MUST
+either host its own copy, or add the object's [id][] to the expected list, as
+in the *Creation* flow described above (but that's possible only if the Offer's
+[object][] has an [id][]) It SHOULD host a copy, and that is the recommended
+behavior.
+
+If the *target actor* sends a [Reject][], it MUST NOT host a copy and MUST NOT
+list the object. However if the *target actor* doesn't make any use of the
+object, it MAY choose not to send a Reject, e.g. to protect user privacy. The
+`Accept` or `Reject` may also be delayed, e.g. until review by a human user;
+that is implementation dependent, and implementations should not rely on a
+
+In the [Accept][] activity:
+
+- [object][] MUST be the Create activity or its [id][]
+- [result][] MUST be specified and be the URI of the copy, if the *target
+  actor* has decided to publish and host its own separate copy of the object,
+  but MUST NOT be specified if the *target actor* has listed the URI and hasn't
+  published a copy
+
+In the following example, Luke's ticket is opened automatically and Aviva's
+Game Of Life repository, which is an actor, automatically sends Luke an Accept
+activity:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/outbox/096al",
+    "type": "Accept",
+    "actor": "https://dev.example/aviva/game-of-life",
+    "to": [
+        "https://forge.example/luke",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/02Ljp",
+    "result": "https://dev.example/aviva/game-of-life/issues/113"
+}
+```
+
+### The Accept Response
+
+[Create][] and [Offer][] indicate different requests made by the sender, but
+regardless of which one is sent, the *target actor* has a choice how to react.
+It may choose to list the object's URI, and it may choose to host its own copy,
+regardless of what the sender asked (although the recommended behavior is to
+react according to what the sender asked). Therefore senders should be prepared
+for both options.
+
+The action that has been taken by the *target actor* is indicated to the object
+author as follows:
+
+- If a [Reject][] was sent, it means the object neither got listed nor got
+  copied
+- If an [Accept][] was sent, and the Accept specifies a [result][], it means a
+  copy was made and is hosted on the target's side
+- If an [Accept][] without a [result][] was sent, that means the object's
+  [id][] got listed in a list or collection the *target actor* maintains (which
+  list exactly, depends on the object type), and the object author will be
+  hosting the object
 
 # Client to Server Interactions
 
