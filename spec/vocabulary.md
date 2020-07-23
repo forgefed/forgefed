@@ -310,7 +310,7 @@ reverse chronological order.
 
 **Functional:** Yes
 
-**Inverse of:** (None)
+**Inverse of:** (None, but see [currentVersion](#prop-currentversion))
 
 **Example:**
 
@@ -323,12 +323,45 @@ reverse chronological order.
     "id": "https://dev.example/aviva/notes/107",
     "type": "Note",
     "attributedTo": "https://dev.example/aviva",
-    "content": "I agree!",
+    "content": "I agree!!!!! (edit: fixed a typo)",
     "previousVersions": [
        "https://dev.example/aviva/notes/107_old_version",
        "https://dev.example/aviva/notes/107_very_old_version",
        "https://dev.example/aviva/notes/107_ancient_version"
     ]
+}
+```
+
+## currentVersion {#prop-currentversion}
+
+**URI:** `https://forgefed.peers.community/ns#currentVersion`
+
+**Notes** Specifies the latest. current, up-to-date version of the subject.
+Once the subject specifies the `currentVersion` property, it SHOULD NOT get any
+changes to any other properties. The exception is `currentVersion` itself,
+which MUST be updated whenever needed, to always point to the latest version.
+
+**Domain:** [Object][]
+
+**Range:** [Object][], of the same `@type` as the subject
+
+**Functional:** Yes
+
+**Inverse of:** (None, but see [previousVersions](#prop-previousversions))
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/notes/107_old_version",
+    "type": "Note",
+    "attributedTo": "https://dev.example/aviva",
+    "content": "I agree!!111",
+    "currentVersion": "https://dev.example/aviva/notes/107"
 }
 ```
 

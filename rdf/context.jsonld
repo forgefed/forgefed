@@ -21,6 +21,9 @@
             "@id": "forge:previousVersions",
             "@type": "@id",
             "@container": "@list" },
+        "currentVersion": {
+            "@id": "forge:currentVersion",
+            "@type": "@id" },
         "assignedTo": {
             "@id": "forge:assignedTo",
             "@type": "@id" },
