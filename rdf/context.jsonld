@@ -17,12 +17,19 @@
         "earlyItems": {
             "@id": "forge:earlyItems",
             "@type": "@id" },
+        "previousVersions": {
+            "@id": "forge:previousVersions",
+            "@type": "@id",
+            "@container": "@list" },
         "assignedTo": {
             "@id": "forge:assignedTo",
             "@type": "@id" },
         "isResolved": {
             "@id": "forge:isResolved",
             "@type": "xsd:boolean" },
+        "resolvedBy": {
+            "@id": "forge:resolvedBy",
+            "@type": "@id" },
         "dependsOn": {
             "@id": "forge:dependsOn",
             "@type": "@id" },
@@ -59,9 +66,6 @@
         "ref": {
             "@id": "forge:ref",
             "@type": "xsd:string" },
-        "resolvedBy": {
-            "@id": "forge:resolvedBy",
-            "@type": "@id" },
         "team": {
             "@id": "forge:team",
             "@type": "@id" },

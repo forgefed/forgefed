@@ -297,6 +297,41 @@ examle, if `items` lists items in reverse chronogical order, then so does
 }
 ```
 
+## previousVersions {#prop-previousversions}
+
+**URI:** `https://forgefed.peers.community/ns#previousVersions`
+
+**Notes** Specifies the previous versions of the subject, as an ordered list in
+reverse chronological order.
+
+**Domain:** [Object][]
+
+**Range:** `rdf:List` of objects of the same `@type` as the subject
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.peers.community/ns"
+    ],
+    "id": "https://dev.example/aviva/notes/107",
+    "type": "Note",
+    "attributedTo": "https://dev.example/aviva",
+    "content": "I agree!",
+    "previousVersions": [
+       "https://dev.example/aviva/notes/107_old_version",
+       "https://dev.example/aviva/notes/107_very_old_version",
+       "https://dev.example/aviva/notes/107_ancient_version"
+    ]
+}
+```
+
 ## assignedTo {#prop-assignedto}
 
 **URI:** `https://forgefed.peers.community/ns#assignedTo`
