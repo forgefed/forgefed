@@ -33,6 +33,9 @@
         "resolvedBy": {
             "@id": "forge:resolvedBy",
             "@type": "@id" },
+        "resolved": {
+            "@id": "forge:resolved",
+            "@type": "xsd:dateTime" },
         "dependsOn": {
             "@id": "forge:dependsOn",
             "@type": "@id" },

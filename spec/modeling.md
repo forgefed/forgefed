@@ -286,6 +286,7 @@ Properties:
 - [isResolved][prop-isresolved]: Whether the work on this ticket is done
 - [resolvedBy][prop-resolvedby]: If the work on this ticket is done, who marked
   the ticket as resolved
+- [resolved][prop-resolved]: When the ticket has been marked as resolved
 
 Example:
 
@@ -314,7 +315,8 @@ Example:
     "dependants": "https://dev.example/aviva/game-of-life/issues/107/rdeps",
     "dependencies": "https://dev.example/aviva/game-of-life/issues/107/deps",
     "isResolved": true,
-    "resolvedBy": "https://code.example/martin"
+    "resolvedBy": "https://code.example/martin",
+    "resolved": "2020-02-07T06:45:03.281314Z"
 }
 ```
 
@@ -378,6 +380,7 @@ Example:
 [prop-hashbefore]:       /vocabulary.html#prop-hashbefore
 [prop-isresolved]:       /vocabulary.html#prop-isresolved
 [prop-ref]:              /vocabulary.html#prop-ref
+[prop-resolved]:         /vocabulary.html#prop-resolved
 [prop-resolvedby]:       /vocabulary.html#prop-resolvedby
 [prop-sendpatchesto]:    /vocabulary.html#prop-sendpatchesto
 [prop-team]:             /vocabulary.html#prop-team
