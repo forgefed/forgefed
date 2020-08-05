@@ -403,12 +403,12 @@ work on it is done and it doesn't need to attract attention anymore.
 
 **URI:** `https://forgefed.peers.community/ns#resolvedBy`
 
-**Notes:** Identifies the [Actor][] who has resolved the
-[Ticket](#type-ticket).
+**Notes:** Identifies the Actor who has resolved the [Ticket](#type-ticket), or
+the activity that has resolved the Ticket.
 
 **Domain:** [Ticket](#type-ticket)
 
-**Range:** [Object][] than is an actor
+**Range:** [Object][] than is an actor, or [Activity][]
 
 **Functional:** Yes
 

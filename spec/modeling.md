@@ -285,7 +285,7 @@ Properties:
   which this ticket depends
 - [isResolved][prop-isresolved]: Whether the work on this ticket is done
 - [resolvedBy][prop-resolvedby]: If the work on this ticket is done, who marked
-  the ticket as resolved
+  the ticket as resolved, or which activity did so
 - [resolved][prop-resolved]: When the ticket has been marked as resolved
 
 Example:
