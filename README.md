@@ -16,7 +16,7 @@ In order to consolidate development and community discussions, there is now a **
 
 Thanks to SocialHub and FeNeAs for making that possible.
 
-**Web Forum**: https://socialhub.network/c/forgefed
+**Web Forum**: https://talk.feneas.org/c/forgefed
 
 ### ForgeFed in the Fediverse
 
