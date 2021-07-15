@@ -170,6 +170,7 @@ Example:
     "ticketsTrackedBy": "https://dev.example/aviva/treesim",
     "sendPatchesTo": "https://dev.example/aviva/treesim",
     "name": "Tree Growth 3D Simulation",
+    "attributedTo": "https://example.dev/bob",
     "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
 }
 ```
