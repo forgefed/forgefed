@@ -1,0 +1,1 @@
+pandoc --standalone --table-of-contents --number-sections --output forgefed.html forgefed.md 
