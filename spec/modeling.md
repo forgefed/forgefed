@@ -130,7 +130,8 @@ Properties:
 * [type][]: ["Repository"][type-repository]
 * [name][]: The user given name of the repository, e.g. "My cool repo"
 * [attributedTo][]: The actor(s) in charge of the repository, e.g. a person or
-  an organization
+  an organization; if their actor URI is unknown, it MAY be
+  their email address as a `mailto` URI
 * [published][]: The time the repository was created on the server
 * [summary][]: A one-line user provided description of the repository, as HTML,
   e.g. "`<p>A command-line tool that does cool things</p>`"
