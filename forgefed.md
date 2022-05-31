@@ -5,7 +5,7 @@ date: 2020-2022
 ...
 
 
-# Satus of this document
+# Status of this document
 
 This document is still a work in progress. The ForgeFed specification
 is still not finalized.
@@ -13,23 +13,30 @@ is still not finalized.
 
 # Introduction
 
-ForgeFed is an upcoming federation protocol for enabling interoperability between
-version control services. It’s built as an extension to the ActivityPub protocol,
-allowing users of any ForgeFed-compliant service to interact with the repositories
-hosted on other instances.
+ForgeFed is a protocol for federation of project-management activities through ActivityPub.
+The objective of the project is to establish a standard for ActivityPub federation,
+capable of supporting the activities of project management such as bug reports,
+patches, and notifications across ActivityPub instances. ForgeFed compliant servers
+will allow projects to become part of the broader ActivityPub federation.
 
-The goal of the project is to support all of the major activities connected with
-project management, including bug reports, merge requests, and notifications across
-instances.
+The ForgeFed working group was established for reaching consensus about the protocol
+among the interested parties. This document is the result of the workgroup discussion.
 
-{ Add more details here }
-
-Because ForgeFed is built upon ActivityPub, the reader should be familiar with the
-[ActivityPub specification](https://www.w3.org/TR/activitypub/) before attempting to
-read this document (in particular section [*7. Server to Server Interactions*](https://www.w3.org/TR/activitypub/#server-to-server-interactions)).
+This revision of the specification establishes the basic mechanisms for ActivityPub
+federation, while deferring more advanced features for future revisions or extensions.
+Because ForgeFed is built upon ActivityPub, the reader is expected to be already familiar
+with the [ActivityPub specification](https://www.w3.org/TR/activitypub/) before reading
+this document, and in particular with section [*7. Server to Server Interactions*](https://www.w3.org/TR/activitypub/#server-to-server-interactions).
 
 
 # Tickets
+
+The workgroup discussion has highlighted two contrasting views for managing tickets
+in the federation. One view is that tickets should be owned by the actor that created
+the ticket; the other view is that tickets should be owned by the [TicketTracker]
+receiving the ticket. This revision of the specification only takes into consideration
+the latter case, thus recognizing [TicketTracker] as the entity in complete control of
+the ticket lifecycle.
 
 ## Open
 
@@ -41,22 +48,22 @@ Example:
     "@context" : [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
     "id": "https://example.org/activities/create/1",
     "type": "Create",
-    "actor": "https://example.org/username",
+    "actor": "https://example.org/alice",
     "object": {
         "type": "Ticket",
-        "id": "https://example.org/username/repository/issues/1",
-        "context": "https://example.org/username/repository/issues",
-        "attributedTo": "https://example.org/username",
+        "context": "https://example.org/bob/repository/issues",
+        "attributedTo": "https://example.org/alice",
         "summary": "Ticket title",
-        "content": "Ticket content"
+        "content": "Ticket content",
     }
 }
 ```
 
-In response to this request, the [TicketTracker] will either [Accept] or [Reject]
-the Create activity. The response MUST contain the `result` property with the `id`
-of the newly created Ticket object. The response MUST be sent to all the
-followers of the TicketTracker.
+In response to this request, the [TicketTracker] MUST [Accept] or [Reject] the
+Create activity. If the ticket is accepted, the response MUST contain the `result`
+property with the `id` of the newly created Ticket object. If the ticket is submitted
+with a value in the `id` property, servers MUST ignore this and generate a new one.
+The response MUST be sent to all the followers of the TicketTracker.
 
 Example:
 ```json
@@ -72,9 +79,11 @@ Example:
 
 ## Comment
 
-Tickets can be commented on by users, by creating a [Note] and notifying the
-[TicketTracker] about it. Upon receiving the new Note, the TicketTracker MUST
-notify its followers by forwarding the activity.
+Tickets can be commented on by creating a new [Note]. The [Create] activity MUST
+be delivered to the [TicketTracker] responsible for the ticket. The Note MUST have
+the `context` property, with the ticket `id` as value.
+Upon receiving the new Note, the TicketTracker MUST notify its followers by forwarding
+the activity.
 
 Example:
 ```json
@@ -84,15 +93,24 @@ Example:
     "type": "Create",
     "actor": "https://example.org/alice",
     "to": "https://example.org/bob/repository/issues",
-    "object": "https://example.org/alice/comments/1",
+    "object": {
+        "id": "https://example.org/alice/comments/1",
+        "type": "Note",
+        "context": "https://example.org/bob/repository/issues/1",
+        "attributedTo": "https://example.org/alice",
+        "content": "Comment text",
+        "published": "2022-01-01 00:00"
+    }
 }
 ```
 
 ## Close
 
-A [Ticket] is closed by sending a [Resolve] activity to a [TicketTracker] actor.
-The TicketTracker is responsible for checking that the actor which resolved the
-Ticket has the rights to do so.
+A [Ticket] is closed by sending a [Resolve] activity to the [TicketTracker] managing
+the Ticket. The TicketTracker is responsible for checking that the actor which
+resolved the Ticket has the rights to do so. If the actor has permission to modify
+the ticket, the TicketTracker MUST update the `isResolved` property of the ticket
+accordingly, and finally notify its followers by forwarding the activity.
 
 Example:
 ```json
@@ -101,34 +119,114 @@ Example:
     "id": "https://example.org/activities/abcdef0123456789",
     "type": "Resolve",
     "actor": "https://example.org/alice",
-    "object": "https://example.org/username/repository/issues/1",
+    "object": "https://example.org/bob/repository/issues/1",
 }
 ```
 
 
-# Merge requests
+# Patches
 
-## Open
+There are two popular ways for submitting changes when using distributed version
+control systems. "Merge requests", which have been popularized by web-based
+hosting services, consist in comparing the branches of two repositories. "Patches"
+instead consist in preparing patch files with all the changes to be submitted.
+A considerable side effect of merge-requests is that the receiving server has to
+download the remote repositories in order to fetch the changes and create a diff
+file. This behaviour is undesirable because of the excessive burden on the receiving
+server, and is not included in this revision of the specification. Patch files
+do not carry the same side effect since they already include the list of changes.
+
+## Submit
+
+[Patch] are submitted by sending a [Create] activity to a [Repository] actor. The
+[Repository] MUST forward the activity to all its followers.
+
+Example:
+
+```json
+{
+    "@context" : [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
+    "id": "https://example.org/activities/create/1",
+    "type": "Create",
+    "actor": "https://example.org/alice",
+    "to": "https://example.org/bob/repository.git",
+    "object": {
+        "id": "https://example.org/alice/patch/1",
+        "type": "Patch",
+        "attributedTo": "https://example.org/alice",
+        "summary": "Patch title",
+        "content": "Content of the patch",
+        "downstream": {
+            "repository": "",
+            "branch": ""
+        },
+        "upstream": {
+            "repository": "",
+            "branch": ""
+        },
+    }
+}
+```
 
 ## Comment
 
-## Close
+Patches can be commented on by users, by creating a [Note].
+
+Patches can be commented on by creating a new [Note]. The [Create] activity MUST
+be delivered to the target [Repository]. The Note MUST have
+the `context` property, with the patch `id` as value.
+Upon receiving the new Note, the Repository MUST notify its followers by forwarding
+the activity.
+
+Example:
+
+```json
+{
+    "@context" : [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
+    "id": "https://example.org/activities/abcdef0123456789",
+    "type": "Create",
+    "actor": "https://example.org/alice",
+    "to": "https://example.org/bob/repository.git",
+    "object": {
+        "id": "https://example.org/alice/comments/1",
+        "type": "Note",
+        "context": "https://example.org/bob/repository.git",
+        "attributedTo": "https://example.org/alice",
+        "content": "Comment text",
+        "published": "2022-01-01 00:00"
+    }
+}
+```
+
+## Apply
+
+Once a [Patch] has been applied, the [Repository] SHOULD notify its followers by
+sending an [Apply] activity.
+
+Example:
+```json
+{
+    "@context" : [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
+    "id": "https://example.org/activities/abcdef0123456789",
+    "type": "Apply",
+    "actor": "https://example.org/bob",
+    "object": "https://example.org/alice/patch/1"
+}
+```
 
 
 # Vocabulary
 
 ForgeFed extends the core set of ActivityPub objects with new types and properties.
-This section describes the ForgeFed vocabulary which is intended to be used in the
-context of project management.
+This section describes the ForgeFed vocabulary.
 
 The base URI of all ForgeFed terms is `https://forgefed.peers.community/ns#`.
 The ForgeFed vocabulary has a JSON-LD context whose URI is
-`https://forgefed.peers.community/ns`. Implementations MUST either include the
-ActivityPub and ForgeFed contexts in their object definitions, or other
-contexts that would result with the ActivityPub and ForgeFed terms being
-assigned they correct full URIs. Implementations MAY include additional contexts
-and terms as appropriate. A typical `@context` of a ForgeFed object may look like
-this:
+`https://forgefed.peers.community/ns`. Implementations MUST include the ActivityPub
+and ForgeFed contexts in their object definitions, or other contexts that would result
+in the ActivityPub and ForgeFed terms being assigned they correct URIs. Implementations
+MAY include additional contexts and terms as appropriate. A typical `@context` of a
+ForgeFed object looks like this:
 
 ```json
 {
@@ -142,7 +240,37 @@ this:
 
 ## Activity types
 
+### Apply
+
+Indicates that a [Patch] has been applied to a repository.
+
+Example:
+
+```json
+{
+    "@context": [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
+    "type": "Apply",
+    "id": "https://example.org/activities/1",
+    "actor": "https://example.org/bob",
+    "object": "https://example.org/alice/patch/1"
+}
+```
+
 ### Resolve
+
+Indicates that an actor has resolved a ticket.
+
+Example:
+
+```json
+{
+    "@context" : [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
+    "id": "https://example.org/activities/abcdef0123456789",
+    "type": "Resolve",
+    "actor": "https://example.org/alice",
+    "object": "https://example.org/bob/repository/issues/1",
+}
+```
 
 ## Actor types
 
@@ -166,8 +294,6 @@ Example:
     "publicKey": "https://example.org/username/key.pub",
     "name": "User Name",
     "preferredUsername": "username",
-    "sshKey": [ ],
-    "roles": [ ]
 }
 ```
 
@@ -185,8 +311,6 @@ Example:
     "id": "https://example.org/groupname",
     "name": "Group Name",
     "preferredUsername": "groupname",
-    "summary": "",
-    "roles": [ ]
 }
 ```
 
@@ -209,7 +333,6 @@ Example:
     "name": "Repository full name",
     "preferredUsername": "repository",
     "project": "https://example.org/project",
-    "refs": "https://example.org/username/repository.git/refs"
 }
 ```
 
@@ -272,78 +395,6 @@ Example:
 }
 ```
 
-### Commit
-
-Represents a commit of a repository.
-
-Example:
-
-```json
-{
-    "@context": [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
-    "type": "Commit",
-    "id": "https://example.org/username/repository/commit/abcdef0123456789",
-    "context": "https://example.org/username/repository",
-    "attributedTo": "",
-    "committedBy": "",
-    "hash": "abcdef0123456789",
-    "summary": "",
-    "description": "",
-    "created": "",
-    "committed": "2022-01-01 00:00"
-}
-```
-
-### Roles
-
-Example:
-
-```json
-{
-    "@context": [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
-    "type": "Role",
-    "id": "https://example.org/roles/admin/1",
-    "name": "admin",
-    "context": "https://example.org/project1"
-}
-```
-
-### Cryptographic keys
-
-Example:
-
-```json
-{
-    "@context": ,
-    "type": "CryptographicKey",
-    "id": ,
-    "owner": ,
-    "publicKeyPem": ,
-    "created": ,
-    "expires": ,
-    "revoked": ,
-    "privateKeyPem": ,
-}
-```
-
-### SSH keys
-
-Example:
-
-```json
-{
-    "@context": ,
-    "type": "SshKey",
-    "id": ,
-    "owner": ,
-    "sshKeyType": ,
-    "content": ,
-    "created": ,
-    "expires": ,
-    "revoked": ,
-}
-```
-
 ### Ticket
 
 Represents a ticket in a ticket tracker.
@@ -359,16 +410,7 @@ Example:
     "attributedTo": "https://example.org/username",
     "summary": "Ticket title",
     "content": "Ticket content",
-    "mediaType": "text/plain",
-    "source": {
-        "content": "Ticket content",
-        "mediaType": "text/markdown; variant=CommonMark"
-    },
-    "assignedTo": [ ],
     "isResolved": true,
-    "depends": [ "https://example.org/username/repository/issues/2" ],
-    "tags": [ "tag 1", "tag 2" ],
-    "milestones": [ "milestone 1" ]
 }
 ```
 
@@ -389,30 +431,25 @@ Example:
     "context": "https://example.org/bob/repository/issues/1",
     "attributedTo": "https://example.org/alice",
     "inReplyTo": null,
-    "mediaType": "text/plain",
     "content": "Comment text",
-    "source": {
-        "mediaType": "text/markdown; variant=Commonmark",
-        "content": "Comment text"
-    },
     "published": "2022-01-01 00:00"
 }
 ```
 
-### MergeRequest
+### Patch
 
-Represents a request to merge a [Branch] into another.
+Represents a patch file.
 
 Example:
 
 ```json
 {
     "@context": [ "https://www.w3.org/ns/activitystreams", "https://w3id.org/security/v1", "https://forgefed.peers.community/ns" ],
-    "type": "MergeRequest",
-    "id": "https://example.org/alice/mr/1",
+    "type": "Patch",
+    "id": "https://example.org/alice/patch/1",
     "attributedTo": "https://example.org/alice",
-    "summary": "Merge request title",
-    "content": "Merge request description",
+    "summary": "Patch title",
+    "content": "Content of the patch",
     "downstream": {
         "repository": "",
         "branch": ""
@@ -421,14 +458,12 @@ Example:
         "repository": "",
         "branch": ""
     },
-    "commit_start": "",
-    "commit_stop": ""
 }
 ```
 
-### Merge requests comments
+### Patch comments
 
-Represents a comment submitted to a [MergeRequest].
+Represents a comment submitted to a [Patch].
 ForgeFed does not introduce a new type for comments, relying instead on the
 ActivityPub's [Note] type. ForgeFed does introduce however new properties for
 this type.
@@ -443,12 +478,7 @@ Example:
     "context": "https://example.org/alice/mr/1",
     "attributedTo": "https://example.org/bob",
     "inReplyTo": null,
-    "mediaType": "text/plain",
     "content": "Comment text",
-    "source": {
-        "mediaType": "text/markdown; variant=Commonmark",
-        "content": "Comment text"
-    },
     "published": "2022-01-01 00:00"
 }
 ```
@@ -456,6 +486,7 @@ Example:
 
 ## Properties
 
+TODO add list of properties here
 
 
 
@@ -467,6 +498,7 @@ Example:
 [MergeRequest]: #mergerequest
 [Note]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [Organization]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-organization
+[Patch]: #patch
 [Person]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 [Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
 [Resolve]: #resolve
