@@ -129,6 +129,8 @@ Properties:
 
 * [type][]: ["Repository"][type-repository]
 * [name][]: The user given name of the repository, e.g. "My cool repo"
+* [cloneUri][]: The endpoint from which the content of the repository can be
+  obtained via the native protocol (Git, Hg, etc.)
 * [attributedTo][]: The actor(s) in charge of the repository, e.g. a person or
   an organization; if their actor URI is unknown, it MAY be
   their email address as a `mailto` URI
@@ -158,6 +160,7 @@ Example:
         "https://forgefed.peers.community/ns"
     ],
     "id": "https://dev.example/aviva/treesim",
+    "cloneUri": "https://dev.example/aviva/treesim.git",
     "type": "Repository",
     "publicKey": {
         "id": "https://dev.example/aviva/treesim#main-key",
