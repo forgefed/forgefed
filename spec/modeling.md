@@ -129,7 +129,7 @@ Properties:
 
 * [type][]: ["Repository"][type-repository]
 * [name][]: The user given name of the repository, e.g. "My cool repo"
-* [cloneUri][]: The endpoint from which the content of the repository can be
+* [cloneUri][prop-cloneuri]: The endpoint from which the content of the repository can be
   obtained via the native protocol (Git, Hg, etc.)
 * [attributedTo][]: The actor(s) in charge of the repository, e.g. a person or
   an organization; if their actor URI is unknown, it MAY be
@@ -373,6 +373,7 @@ Example:
 [type-repository]: /vocabulary.html#type-repository
 [type-ticket]:     /vocabulary.html#type-ticket
 
+[prop-cloneuri]:         /vocabulary.html#prop-cloneuri
 [prop-committed]:        /vocabulary.html#prop-committed
 [prop-committedby]:      /vocabulary.html#prop-committedby
 [prop-description]:      /vocabulary.html#prop-description
