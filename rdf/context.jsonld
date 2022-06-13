@@ -51,6 +51,9 @@
         "description": {
             "@id": "forge:description",
             "@type": "@id" },
+        "cloneUri": {
+            "@id": "forge:cloneUri",
+            "@type": "@id" },
         "committedBy": {
             "@id": "forge:committedBy",
             "@type": "@id" },
