@@ -333,6 +333,8 @@ Example:
     "name": "Repository full name",
     "preferredUsername": "repository",
     "project": "https://example.org/project",
+    "cloneUri": [ "https://example.org/username/repository.git",
+                  "git@example.org/username/repository.git" ]
 }
 ```
 
