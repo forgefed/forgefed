@@ -4,7 +4,7 @@ Who has access to manage project resources:
 - ForgeFed category at [SocialHub][] forum: fr33 (add more people!)
 - [Mastodon account][]: fr33, bill-auger
 - [notabug.org/ForgeFed_Bot](https://notabug.org/ForgeFed_Bot) for mirroring: @6543, fr33
-- OpenCollective account: 6543 will create it, then add more people!
+- [OpenCollective](https://opencollective.com/forgefed): @6543, wip: we need to add more people!
 - Liberapay team: fr33 (soon also aravinth)
 
 [SocialHub]:        https://socialhub.activitypub.rocks
