@@ -570,13 +570,13 @@ range of the ActivityPub [source][] property works.
 
 **URI:** `https://forgefed.peers.community/ns#cloneUri`
 
-**Notes:** The endpoint that can be used with a VCS protocol such as Git or Mercurial for a given repository.
+**Notes:** An endpoint that can be used with a VCS protocol such as Git or Mercurial to access a given repository.
 
 **Domain:** [Repository](#type-repository)
 
 **Range:** [Object][]
 
-**Functional:** Yes
+**Functional:** No
 
 **Inverse of:** (None)
 
