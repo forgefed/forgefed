@@ -1,5 +1,7 @@
 *
 !.gitignore
+!.woodpecker/
+!.woodpecker/*
 !COPYING
 !README.md
 

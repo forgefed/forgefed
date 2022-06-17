@@ -1,0 +1,20 @@
+pipeline:
+  deploy-dry:
+    image: debian:bullseye
+    commands:
+      - apt-get -qq update >/dev/null && apt-get -qq install -y git pandoc >/dev/null
+      - bash build.sh
+      - git diff
+    when:
+      event: ["push", "pull_request"]
+
+  deploy:
+    image: debian:bullseye
+    commands:
+      - apt-get -qq update >/dev/null && apt-get -qq install -y git pandoc >/dev/null
+      - bash build.sh
+      - bash deploy.sh
+    secrets: ["bot_token"]
+    when:
+      event: ["push", "tag"]
+      branch: ${CI_REPO_DEFAULT_BRANCH}
