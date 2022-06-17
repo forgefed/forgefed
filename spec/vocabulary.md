@@ -19,9 +19,9 @@ vocabulary, to support the ForgeFed protocol.
 
 # Types
 
-The base URI of all ForgeFed terms is `https://forgefed.peers.community/ns#`.
+The base URI of all ForgeFed terms is `https://forgefed.org/ns#`.
 The ForgeFed vocabulary has a JSON-LD context whose URI is
-`https://forgefed.peers.community/ns`. Implementers MUST either include the
+`https://forgefed.org/ns`. Implementers MUST either include the
 ActivityPub and ForgeFed contexts in their object definitions, or other
 contexts that would result with the ActivityPub and ForgeFed terms being
 assigned they correct full URIs. Implementers MAY include additional contexts
@@ -32,7 +32,7 @@ A typical `@context` of a ForgeFed object may look like this:
 ```json
 "@context": [
     "https://www.w3.org/ns/activitystreams",
-    "https://forgefed.peers.community/ns"
+    "https://forgefed.org/ns"
 ]
 ```
 
@@ -40,7 +40,7 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ### Push {#act-push}
 
-**URI:** `https://forgefed.peers.community/ns#Push`
+**URI:** `https://forgefed.org/ns#Push`
 
 **Notes:** Indicates that new content has been pushed to the
 [Repository](#type-repository).
@@ -53,7 +53,7 @@ A typical `@context` of a ForgeFed object may look like this:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://example.dev/aviva/outbox/reBGo",
     "type": "Push",
@@ -89,7 +89,7 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ### Repository {#type-repository}
 
-**URI:** `https://forgefed.peers.community/ns#Repository`
+**URI:** `https://forgefed.org/ns#Repository`
 
 **Notes:** Represents a version control system repository.
 
@@ -102,7 +102,7 @@ A typical `@context` of a ForgeFed object may look like this:
     "@context": [
         "https://www.w3.org/ns/activitystreams",
         "https://w3id.org/security/v1",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/treesim",
     "type": "Repository",
@@ -124,7 +124,7 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ### Branch {#type-branch}
 
-**URI:** `https://forgefed.peers.community/ns#Branch`
+**URI:** `https://forgefed.org/ns#Branch`
 
 **Notes:** Represents a named variable reference to a version of the
 [Repository](#type-repository), typically used for committing changes in
@@ -139,7 +139,7 @@ the main history line.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://example.dev/luke/myrepo/branches/master",
     "type": "Branch",
@@ -151,7 +151,7 @@ the main history line.
 
 ### Commit {#type-commit}
 
-**URI:** `https://forgefed.peers.community/ns#Commit`
+**URI:** `https://forgefed.org/ns#Commit`
 
 **Notes:** Represents a named set of changes in the history of a
 [Repository](#type-repository).  This is called "commit" in Git, Mercurial and
@@ -168,7 +168,7 @@ and pushed to a repo, resulting with a `Commit`.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
     "type": "Commit",
@@ -188,7 +188,7 @@ and pushed to a repo, resulting with a `Commit`.
 
 ### TicketDependency {#type-ticketdependency}
 
-**URI:** `https://forgefed.peers.community/ns#TicketDependency`
+**URI:** `https://forgefed.org/ns#TicketDependency`
 
 **Notes:** Represents a relationship between 2 [Ticket](#type-ticket)s, in
 which the resolution of one ticket requires the other ticket to be resolved
@@ -203,7 +203,7 @@ the `relationship` property MUST be [dependsOn](#prop-dependson).
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "type": ["Relationship", "TicketDependency"],
     "id": "https://example.dev/ticket-deps/2342593",
@@ -218,7 +218,7 @@ the `relationship` property MUST be [dependsOn](#prop-dependson).
 
 ### Ticket {#type-ticket}
 
-**URI:** `https://forgefed.peers.community/ns#Ticket`
+**URI:** `https://forgefed.org/ns#Ticket`
 
 **Notes:** Represents an item that requires work or attention. Tickets exist in
 the context of a project (which may or may not be a version-control
@@ -232,7 +232,7 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "type": "Ticket",
     "id": "https://example.dev/alice/myrepo/issues/42",
@@ -254,7 +254,7 @@ repository), and are used to track ideas, proposals, tasks, bugs and more.
 
 ## earlyItems {#prop-earlyitems}
 
-**URI:** `https://forgefed.peers.community/ns#earlyItems`
+**URI:** `https://forgefed.org/ns#earlyItems`
 
 **Notes:** In an ordered collection (or an ordered collection page) in which
 [items][] (or [orderedItems][]) contains a continuous subset of the
@@ -279,7 +279,7 @@ examle, if `items` lists items in reverse chronogical order, then so does
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/outbox",
     "type": "OrderedCollection",
@@ -299,7 +299,7 @@ examle, if `items` lists items in reverse chronogical order, then so does
 
 ## previousVersions {#prop-previousversions}
 
-**URI:** `https://forgefed.peers.community/ns#previousVersions`
+**URI:** `https://forgefed.org/ns#previousVersions`
 
 **Notes** Specifies the previous versions of the subject, as an ordered list in
 reverse chronological order.
@@ -318,7 +318,7 @@ reverse chronological order.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/notes/107",
     "type": "Note",
@@ -334,7 +334,7 @@ reverse chronological order.
 
 ## currentVersion {#prop-currentversion}
 
-**URI:** `https://forgefed.peers.community/ns#currentVersion`
+**URI:** `https://forgefed.org/ns#currentVersion`
 
 **Notes** Specifies the latest. current, up-to-date version of the subject.
 Once the subject specifies the `currentVersion` property, it SHOULD NOT get any
@@ -355,7 +355,7 @@ which MUST be updated whenever needed, to always point to the latest version.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/notes/107_old_version",
     "type": "Note",
@@ -367,7 +367,7 @@ which MUST be updated whenever needed, to always point to the latest version.
 
 ## assignedTo {#prop-assignedto}
 
-**URI:** `https://forgefed.peers.community/ns#assignedTo`
+**URI:** `https://forgefed.org/ns#assignedTo`
 
 **Notes:** Identifies the [Person][] assigned to work on this
 [Ticket](#type-ticket).
@@ -384,7 +384,7 @@ which MUST be updated whenever needed, to always point to the latest version.
 
 ## isResolved {#prop-isresolved}
 
-**URI:** `https://forgefed.peers.community/ns#isResolved`
+**URI:** `https://forgefed.org/ns#isResolved`
 
 **Notes:** Specifies whether the [Ticket](#type-ticket) is closed, i.e. the
 work on it is done and it doesn't need to attract attention anymore.
@@ -401,7 +401,7 @@ work on it is done and it doesn't need to attract attention anymore.
 
 ## resolvedBy {#prop-resolvedby}
 
-**URI:** `https://forgefed.peers.community/ns#resolvedBy`
+**URI:** `https://forgefed.org/ns#resolvedBy`
 
 **Notes:** Identifies the Actor who has resolved the [Ticket](#type-ticket), or
 the activity that has resolved the Ticket.
@@ -418,7 +418,7 @@ the activity that has resolved the Ticket.
 
 ## resolved {#prop-resolved}
 
-**URI:** `https://forgefed.peers.community/ns#resolved`
+**URI:** `https://forgefed.org/ns#resolved`
 
 **Notes:** For a resolved [Ticket](#type-ticket), specifies the time the Ticket
 has been resolved.
@@ -435,7 +435,7 @@ has been resolved.
 
 ## dependsOn {#prop-dependson}
 
-**URI:** `https://forgefed.peers.community/ns#dependsOn`
+**URI:** `https://forgefed.org/ns#dependsOn`
 
 **Notes:** Identifies one or more tickets on which this [Ticket](#type-ticket)
 depends, i.e. it can't be resolved without those tickets being resolved too.
@@ -452,7 +452,7 @@ depends, i.e. it can't be resolved without those tickets being resolved too.
 
 ## dependedBy {#prop-dependedby}
 
-**URI:** `https://forgefed.peers.community/ns#dependedBy`
+**URI:** `https://forgefed.org/ns#dependedBy`
 
 **Notes:** Identifies one or more tickets which depend on this
 [Ticket](#type-ticket), i.e. they can't be resolved without this tickets being
@@ -470,7 +470,7 @@ resolved too.
 
 ## dependencies {#prop-dependencies}
 
-**URI:** `https://forgefed.peers.community/ns#dependencies`
+**URI:** `https://forgefed.org/ns#dependencies`
 
 **Notes:** Identifies a [Collection] of
 [TicketDependency](#type-ticketdependency) which specify tickets that this
@@ -490,7 +490,7 @@ resolved too.
 
 ## dependants {#prop-dependants}
 
-**URI:** `https://forgefed.peers.community/ns#dependants`
+**URI:** `https://forgefed.org/ns#dependants`
 
 **Notes:** Identifies a [Collection] of
 [TicketDependency](#type-ticketdependency) which specify tickets that depends
@@ -510,7 +510,7 @@ on this [Ticket](#type-ticket), i.e. this ticket is the [object][] of the
 
 ## repository (DEPRECATED) {#prop-repository}
 
-**URI:** `https://forgefed.peers.community/ns#repository`
+**URI:** `https://forgefed.org/ns#repository`
 
 **Notes:** Identifies the repository to which a commit belongs. DEPRECATED: Use
 the standard ActivityPub `context` property instead.
@@ -527,7 +527,7 @@ the standard ActivityPub `context` property instead.
 
 ## description {#prop-description}
 
-**URI:** `https://forgefed.peers.community/ns#description`
+**URI:** `https://forgefed.org/ns#description`
 
 **Notes:** Specifies the description text of a [Commit](#type-commit), which is
 an optional possibly multi-line text provided in addition to the one-line
@@ -549,7 +549,7 @@ range of the ActivityPub [source][] property works.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
     "type": "Commit",
@@ -568,7 +568,7 @@ range of the ActivityPub [source][] property works.
 
 ## cloneUri {#prop-cloneuri}
 
-**URI:** `https://forgefed.peers.community/ns#cloneUri`
+**URI:** `https://forgefed.org/ns#cloneUri`
 
 **Notes:** The endpoint that can be used with a VCS protocol such as Git or Mercurial for a given repository.
 
@@ -584,7 +584,7 @@ range of the ActivityPub [source][] property works.
 
 ## committedBy {#prop-committedby}
 
-**URI:** `https://forgefed.peers.community/ns#committedBy`
+**URI:** `https://forgefed.org/ns#committedBy`
 
 **Notes:** Identifies the actor (usually a person, but could be something else,
 e.g. a bot) that added a set of changes to the version-control
@@ -608,7 +608,7 @@ repository.
 
 ## hash {#prop-hash}
 
-**URI:** `https://forgefed.peers.community/ns#hash`
+**URI:** `https://forgefed.org/ns#hash`
 
 **Notes:** Specifies the hash associated with a [Commit](#type-commit), which
 is a unique identifier of the commit within the [Repository](#type-repository),
@@ -628,7 +628,7 @@ the commit; in Darcs it would be the SHA1 hash of the patch info.
 
 ## committed {#prop-committed}
 
-**URI:** `https://forgefed.peers.community/ns#committed`
+**URI:** `https://forgefed.org/ns#committed`
 
 **Notes:** Specifies the time that a set of changes was committed into the
 [Repository](#type-repository) and became a [Commit](#type-commit) in it. This
@@ -650,7 +650,7 @@ and the latter event "committed", and this latter event is specified by the
 
 ## filesAdded {#prop-filesadded}
 
-**URI:** `https://forgefed.peers.community/ns#filesAdded`
+**URI:** `https://forgefed.org/ns#filesAdded`
 
 **Notes:** Specifies a filename, as a relative path, relative to the top of the
 tree of files in the [Repository](#type-repository), of a file that got added
@@ -669,7 +669,7 @@ tree.
 
 ## filesModified {#prop-filesmodified}
 
-**URI:** `https://forgefed.peers.community/ns#filesModified`
+**URI:** `https://forgefed.org/ns#filesModified`
 
 **Notes:** Specifies a filename, as a relative path, relative to the top of the
 tree of files in the [Repository](#type-repository), of a file that existed in
@@ -688,7 +688,7 @@ the previous version of the tree, and its contents got modified in this
 
 ## filesRemoved {#prop-filesremoved}
 
-**URI:** `https://forgefed.peers.community/ns#filesRemoved`
+**URI:** `https://forgefed.org/ns#filesRemoved`
 
 **Notes:** Specifies a filename, as a relative path, relative to the top of the
 tree of files in the [Repository](#type-repository), of a file that existed in
@@ -707,7 +707,7 @@ the previous version of the tree, and got removed from the tree in this
 
 ## ref {#prop-ref}
 
-**URI:** `https://forgefed.peers.community/ns#ref`
+**URI:** `https://forgefed.org/ns#ref`
 
 **Notes:** Specifies an identifier for a [Branch](#type-branch), that is used
 in the [Repository](#type-repository) to uniquely refer to it. For example, in
@@ -727,7 +727,7 @@ Git, "refs/heads/master" would be the `ref` of the master branch.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://example.dev/luke/myrepo/branches/master",
     "type": "Branch",
@@ -740,7 +740,7 @@ Git, "refs/heads/master" would be the `ref` of the master branch.
 
 ## team {#prop-team}
 
-**URI:** `https://forgefed.peers.community/ns#team`
+**URI:** `https://forgefed.org/ns#team`
 
 **Notes:**: Specifies a [Collection][] of actors who are working on the object,
 or responsible for it, or managing or administrating it, or having edit access
@@ -764,7 +764,7 @@ A repository *https://dev.example/aviva/treesim*:
     "@context": [
         "https://www.w3.org/ns/activitystreams",
         "https://w3id.org/security/v1",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/treesim",
     "type": "Repository",
@@ -801,7 +801,7 @@ The repository's team *https://dev.example/aviva/treesim/team*:
 
 ## ticketsTrackedBy {#prop-ticketstrackedby}
 
-**URI:** `https://forgefed.peers.community/ns#ticketsTrackedBy`
+**URI:** `https://forgefed.org/ns#ticketsTrackedBy`
 
 **Notes:** Identifies the actor which tracks tickets related to the given
 object. This is the actor to whom you send tickets you'd like to open against
@@ -821,7 +821,7 @@ the object.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/treesim",
     "type": "Repository",
@@ -833,7 +833,7 @@ the object.
 
 ## tracksTicketsFor {#prop-tracksticketsfor}
 
-**URI:** `https://forgefed.peers.community/ns#tracksTicketsFor`
+**URI:** `https://forgefed.org/ns#tracksTicketsFor`
 
 **Notes:** Identifies objects for which which this ticket tracker tracks
 tickets. When you'd like to open a ticket against those objects, you can send
@@ -853,7 +853,7 @@ them to this tracker.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://bugs.example/treesim",
     "type": "Project",
@@ -867,7 +867,7 @@ them to this tracker.
 
 ## sendPatchesTo {#prop-sendpatchesto}
 
-**URI:** `https://forgefed.peers.community/ns#sendPatchesTo`
+**URI:** `https://forgefed.org/ns#sendPatchesTo`
 
 **Notes:** Identifies the actor which tracks patches and merge requests related
 to the given repository. This is the actor to whom you send patches and merge
@@ -887,7 +887,7 @@ requests you'd like to open against the repository.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/treesim",
     "type": "Repository",
@@ -899,7 +899,7 @@ requests you'd like to open against the repository.
 
 ## tracksPatchesFor {#prop-trackspatchesfor}
 
-**URI:** `https://forgefed.peers.community/ns#tracksPatchesFor`
+**URI:** `https://forgefed.org/ns#tracksPatchesFor`
 
 **Notes:** Identifies repositories for which which this patch and merge request
 tracker tracks patches and merge requests. When you'd like to open patches or
@@ -919,7 +919,7 @@ merge requests against those repositories, you can send them to this tracker.
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://project.example/treesim",
     "type": "Project",
@@ -933,7 +933,7 @@ merge requests against those repositories, you can send them to this tracker.
 
 ## forks {#prop-forks}
 
-**URI:** `https://forgefed.peers.community/ns#forks`
+**URI:** `https://forgefed.org/ns#forks`
 
 **Notes:** Identifies an [OrderedCollection][] of
 [Repository](#type-repository)s which were created as forks of this

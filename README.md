@@ -102,7 +102,7 @@ The ForgeFed logo was contributed by Libera IRC user: ['iko'][iko].
 
 
 [activity-pub]:    https://www.w3.org/TR/activitypub/
-[website]:         https://forgefed.peers.community/
+[website]:         https://forgefed.org/
 
 [feneas-forum]:    https://talk.feneas.org/c/forgefed
 [overview]:        https://notabug.org/peers/forgefed/src/master/doc/README.md

@@ -187,7 +187,7 @@ Life simulation app:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://forge.example/luke/outbox/02Ljp",
     "type": "Create",
@@ -245,7 +245,7 @@ activity:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/game-of-life/outbox/096al",
     "type": "Accept",
@@ -292,7 +292,7 @@ Life simulation app:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://forge.example/luke/outbox/02Ljp",
     "type": "Offer",
@@ -347,7 +347,7 @@ activity:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/game-of-life/outbox/096al",
     "type": "Accept",
@@ -497,7 +497,7 @@ Life simulation app:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://forge.example/luke/outbox/02Ljp",
     "type": "Create",
@@ -531,7 +531,7 @@ which is an actor, automatically sends Luke an Accept activity:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/game-of-life/outbox/096al",
     "type": "Accept",
@@ -568,7 +568,7 @@ Life simulation app:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://forge.example/luke/outbox/02Ljp",
     "type": "Offer",
@@ -600,7 +600,7 @@ which is an actor, automatically sends Luke an Accept activity:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/game-of-life/outbox/096al",
     "type": "Accept",

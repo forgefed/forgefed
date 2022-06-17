@@ -4,7 +4,7 @@
         "@vocab": "_:",
         "xsd":    "http://www.w3.org/2001/XMLSchema#",
         "as":     "https://www.w3.org/ns/activitystreams#",
-        "forge":  "https://forgefed.peers.community/ns#",
+        "forge":  "https://forgefed.org/ns#",
         "sec":    "https://w3id.org/security#",
         
         "Branch": "forge:Branch",

@@ -67,7 +67,7 @@ Example:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
     "type": "Commit",
@@ -110,7 +110,7 @@ Example:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://example.dev/luke/myrepo/branches/master",
     "type": "Branch",
@@ -157,7 +157,7 @@ Example:
     "@context": [
         "https://www.w3.org/ns/activitystreams",
         "https://w3id.org/security/v1",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/treesim",
     "cloneUri": "https://dev.example/aviva/treesim.git",
@@ -213,7 +213,7 @@ Example:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/outbox/E26bE",
     "type": "Push",
@@ -299,7 +299,7 @@ Example:
 {
     "@context": [
         "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.peers.community/ns"
+        "https://forgefed.org/ns"
     ],
     "id": "https://dev.example/aviva/game-of-life/issues/107",
     "type": "Ticket",
