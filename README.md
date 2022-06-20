@@ -38,7 +38,7 @@ the FeNeAs forum is no longer in service. Attend the next
 
 The formal work-group and associated development discussions are conducted openly
 ~~on the [ForgeFed Community Forum][feneas-forum] on the FeNeAs website~~; with
-informal, real-time Collaboration often taking place on the #peers IRC channel on
+informal, real-time Collaboration often taking place on the #forgefed IRC channel on
 the libera.chat network. Everyone is invited to participate in either venue. Before
 posting, please read [this primer][overview] for a brief overview of the project
 motivation and goals. For a detailed overview of the project motivation and goals,
@@ -104,11 +104,8 @@ The ForgeFed logo was contributed by Libera IRC user: ['iko'][iko].
 [activity-pub]:    https://www.w3.org/TR/activitypub/
 [website]:         https://forgefed.org/
 
-[feneas-forum]:    https://talk.feneas.org/c/forgefed
-[overview]:        https://notabug.org/peers/forgefed/src/master/doc/README.md
+[overview]:        https://codeberg.org/ForgeFed/ForgeFed/src/branch/master/doc/README.md
 [mail-archive]:    https://framalistes.org/sympa/arc/git-federation
-[notabug-issues]:  https://notabug.org/peers/forgefed/issues
-[notabug-wiki]:    https://notabug.org/peers/forgefed/wiki
 
 [notabug-repo]:    https://notabug.org/peers/forgefed/
 [pagure-repo]:     https://pagure.io/forge-fed/forge-fed

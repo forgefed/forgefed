@@ -27,7 +27,7 @@ platform.
 
 The best way to keep track of our progress is to follow us on the
 [Fediverse](https://floss.social/@forgefed). Our roadmap is
-[here](https://notabug.org/peers/forgefed/issues/87).
+[here](https://codeberg.org/forgefed/forgefed/issues/87).
 
 We publish specification drafts, implement them in our reference
 implementation, and publish demos that demonstrate ForgeFed federation
