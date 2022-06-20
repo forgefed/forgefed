@@ -5,7 +5,7 @@ Who has access to manage project resources:
 - [Mastodon account](https://floss.social/@forgefed): @fr33domlover, bill-auger
 - [notabug.org/ForgeFed_Bot](https://notabug.org/ForgeFed_Bot) for mirroring: @6543, @fr33domlover
 - [OpenCollective](https://opencollective.com/forgefed): @6543, @Ta180m
-- Liberapay team: @fr33domlover, @realaravinth
+- [Liberapay](https://liberapay.com/ForgeFed) team: @fr33domlover, @realaravinth
 
 [SocialHub]:        https://socialhub.activitypub.rocks
 [Mastodon account]: https://floss.social/@forgefed
