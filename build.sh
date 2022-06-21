@@ -2,6 +2,9 @@
 
 set -e
 
+# Fixes pandoc mangling emojis
+LANG=C.UTF-8
+
 inputs="behavior modeling vocabulary"
 
 git_branch=`git rev-parse --abbrev-ref HEAD`
