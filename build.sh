@@ -3,7 +3,7 @@
 set -e
 
 # Fixes pandoc mangling emojis
-LANG=C.UTF-8
+export LANG=C.UTF-8
 
 inputs="behavior modeling vocabulary"
 
