@@ -951,6 +951,27 @@ items is by reverse chronological order of the forking events.
 
 **Example:**
 
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/",
+    "type": "Repository",
+    "forks": {
+        "type": "OrderedCollection",
+        "totalItems": 1,
+        "items": [
+            {
+                "id": "https://example.dev/alice/myfork/",
+                "type": "Repository",
+            }
+        ]
+    },
+}
+```
+
 [Activity]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Link]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-link
