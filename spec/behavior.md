@@ -692,8 +692,8 @@ he submitted earlier against her Game Of Life simulation app repository:
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 [followers]:    https://www.w3.org/TR/activitypub/#followers
 [id]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
-[name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 [result]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
+[summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 [to]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
 [type]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
