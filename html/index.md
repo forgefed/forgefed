@@ -54,14 +54,13 @@ platform for testing the protocol and trying new features
     * [Behavior](/behavior.html)
     * [Modeling](/modeling.html)
     * [Vocabulary](/vocabulary.html)
-- [dokk](https://dokk.org/ForgeFed)
 - <a rel="me" href="https://floss.social/@forgefed">Fediverse</a>
 
 
 [ActivityPub]:    https://www.w3.org/TR/activitypub/
 [NotABug]:        https://notabug.org
 [Pagure]:         https://pagure.io
-[Vervis]:         https://dev.angeley.es/s/fr33domlover/r/vervis
+[Vervis]:         https://dev.openheart.work/s/fr33domlover/r/vervis
 [mcfi]:           https://notabug.org/zPlus/mcfi
 [ForgeFed Forum]: https://talk.feneas.org/c/forgefed
 [Gitea]:          https://gitea.io
