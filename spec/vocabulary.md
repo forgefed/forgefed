@@ -962,7 +962,7 @@ items is by reverse chronological order of the forking events.
     "forks": {
         "type": "OrderedCollection",
         "totalItems": 1,
-        "items": [
+        "orderedItems": [
             {
                 "id": "https://example.dev/alice/myfork/",
                 "type": "Repository",
