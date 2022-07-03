@@ -28,6 +28,7 @@ platform.
 The best way to keep track of our progress is to follow us on the
 [Fediverse](https://floss.social/@forgefed). Our roadmap is
 [here](https://codeberg.org/forgefed/forgefed/issues/87).
+You can join our chat using [Matrix][] or on [Libera.Chat](https://libera.chat/) at #forgefed.
 
 We publish specification drafts, implement them in our reference
 implementation, and publish demos that demonstrate ForgeFed federation
@@ -64,3 +65,4 @@ platform for testing the protocol and trying new features
 [mcfi]:           https://notabug.org/zPlus/mcfi
 [ForgeFed Forum]: https://talk.feneas.org/c/forgefed
 [Gitea]:          https://gitea.io
+[Matrix]:    https://matrix.to/#/#forgefed:libera.chat
