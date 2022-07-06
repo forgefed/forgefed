@@ -122,7 +122,7 @@ The ForgeFed logo was contributed by Libera IRC user: ['iko'][iko].
 [peers]:           https://peers.community/
 [socialhome]:      https://socialhome.network/
 [srht]:            https://meta.sr.ht/
-[vervis]:          https://dev.angeley.es/s/fr33domlover/r/vervis
+[vervis]:          https://vervis.peers.community/
 
 [fediverse]:       https://floss.social/@forgefed
 
