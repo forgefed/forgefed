@@ -164,7 +164,7 @@ federation in [Pagure](https://pagure.io/pagure).
 
 The following subtasks are software development work which continues the
 implementation of federation in
-[Vervis](https://dev.angeley.es/s/fr33domlover/r/vervis).
+[Vervis](https://vervis.peers.community/).
 
 - **(V1)** Discoverability of instances via NodeInfo/ServiceInfo and the
   fediverse server discovery websites: implementation of NodeInfo/ServiceInfo

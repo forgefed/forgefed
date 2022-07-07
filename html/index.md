@@ -61,7 +61,7 @@ platform for testing the protocol and trying new features
 [ActivityPub]:    https://www.w3.org/TR/activitypub/
 [NotABug]:        https://notabug.org
 [Pagure]:         https://pagure.io
-[Vervis]:         https://dev.openheart.work/s/fr33domlover/r/vervis
+[Vervis]:         https://vervis.peers.community/
 [mcfi]:           https://notabug.org/zPlus/mcfi
 [ForgeFed Forum]: https://talk.feneas.org/c/forgefed
 [Gitea]:          https://gitea.io
