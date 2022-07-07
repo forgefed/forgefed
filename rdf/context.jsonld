@@ -90,6 +90,9 @@
         "tracksPatchesFor": {
             "@id": "forge:tracksPatchesFor",
             "@type": "@id" },
+        "forkedFrom": {
+            "@id": "forge:forkedFrom",
+            "@type": "@id" },
         "forks": {
             "@id": "forge:forks",
             "@type": "@id" }

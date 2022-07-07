@@ -931,6 +931,38 @@ merge requests against those repositories, you can send them to this tracker.
 }
 ```
 
+## forkedFrom {#prop-forkedfrom}
+
+**URI:** `https://forgefed.org/ns#forkedFrom`
+
+**Notes:** Identifies the [Repository](#type-repository)s which this
+[Repository](#type-repository) was created as a fork of, i.e. by cloning it.
+
+**Domain:** [Repository](#type-repository)
+
+**Range:** [Repository](#type-repository)
+
+**Functional:** Yes
+
+**Inverse of:** [forks](#prop-forks)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/myfork/",
+    "type": "Repository",
+    "forkedFrom": {
+        "type": "Repository",
+        "id": "https://example.dev/luke/myrepo/"
+    }
+}
+```
+
 ## forks {#prop-forks}
 
 **URI:** `https://forgefed.org/ns#forks`
@@ -947,7 +979,7 @@ items is by reverse chronological order of the forking events.
 
 **Functional:** Yes
 
-**Inverse of:** (None)
+**Inverse of:** [forkedFrom](#prop-forkedfrom)
 
 **Example:**
 
