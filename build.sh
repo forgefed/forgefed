@@ -29,20 +29,8 @@ runPandoc () {
         local toc=""
     fi
 
-    local theme="$4"
-
-    if [ "$theme" == "light" ]; then
-        local otherTheme="/index/dark"
-        local otherThemeName="🌑"
-        local output="html/$file.html"
-        local suffix=".html"
-    else
-        local otherTheme="/index"
-        local otherThemeName="🌞"
-        local output="html/$file/dark.html"
-        local suffix="/dark.html"
-        mkdir -p "html/$file"
-    fi
+    local output="html/$file.html"
+    local suffix=".html"
 
     pandoc $dir/$file.md \
         --from markdown \
@@ -53,9 +41,7 @@ runPandoc () {
         --variable "gitcommitid:$git_commit_id" \
         --variable "gitcommitidshort:$git_commit_id_short" \
         --variable "date:$now" \
-        --variable "theme:$theme" \
         --variable "other-theme:$otherTheme" \
-        --variable "other-theme-name:$otherThemeName" \
         --variable "suffix:$suffix" \
         --output "$output"
         #$gitdirty \
@@ -65,8 +51,7 @@ render () {
     local dir="$1"
     local file="$2"
     local toc="$3"
-    runPandoc $dir $file $toc "light"
-    runPandoc $dir $file $toc "dark"
+    runPandoc $dir $file $toc
 }
 
 #dirty

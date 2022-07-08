@@ -338,6 +338,12 @@ code.sourceCode .dt { margin: 0 0 0 -2rem; }
 }
 
 
+/* Misc ------------------------------------------------------------- */
+
+#theme-selector:hover {
+    cursor: pointer;
+}
+
 /* Dark theme ------------------------------------------------------------- */
 
 @media (prefers-color-scheme: dark) {

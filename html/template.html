@@ -1,11 +1,17 @@
 <!doctype html>
-<html class="default $theme$">
+<html class="default">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>$title$</title>
     <link rel="stylesheet" type="text/css" href="/theme.css" />
     <link rel="icon" href="/img/logo.svg" />
+    <script>
+      // check whether the default colour scheme has been overridden
+      // must be done as early as possible to avoid FOUC
+      let theme = sessionStorage.getItem("theme")
+      if (theme) document.documentElement.classList.add(theme)
+    </script>
   </head>
   <body class="body">
     <header class="header">
@@ -14,7 +20,7 @@
             <img src="/img/logo-with-name.svg" alt="ForgeFed" title="ForgeFed" />
         </a>
       </h1>
-      <nav class="nav">
+      <nav class="nav" id="site-nav">
         <a class="nav__link"
            href="/behavior$suffix$">🗲 behavior</a>
         <a class="nav__link"
@@ -27,8 +33,6 @@
            href="https://socialhub.activitypub.rocks/c/software/forgefed/60">🗪 forum</a>
         <a class="nav__link"
            href="https://matrix.to/#/#forgefed:libera.chat">💬 chat</a>
-        <a class="nav__link"
-           href="$other-theme$.html">$other-theme-name$</a>
       </nav>
     </header>
     <main class="main">
@@ -88,5 +92,37 @@
         </a>
       </p>
     </footer>
+    <script>
+      let html = document.documentElement
+      let siteNav = document.getElementById("site-nav")
+
+      function currentColorScheme() {
+        if (html.classList.contains("dark")) return "dark"
+        if (html.classList.contains("light")) return "light"
+        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark"
+        return "light"  // default
+      }
+
+      let themeSelectionElement = document.createElement("a")
+      themeSelectionElement.className = "nav__link"
+      themeSelectionElement.id="theme-selector"
+      themeSelectionElement.onclick=toggleTheme
+      themeSelectionElement.innerText = (currentColorScheme() == "dark") ? "🌞" : "🌑"
+      siteNav.appendChild(themeSelectionElement)
+
+      function toggleTheme() {
+        if (currentColorScheme() == "light") {
+          html.classList.remove("light")
+          html.classList.add("dark")
+          themeSelectionElement.innerText = "🌞"
+          sessionStorage.setItem("theme", "dark")
+        } else {
+          html.classList.remove("dark")
+          html.classList.add("light")
+          themeSelectionElement.innerText = "🌑"
+          sessionStorage.setItem("theme", "light")
+        }
+      }
+    </script>
   </body>
 </html>
