@@ -1,130 +1,141 @@
 # ForgeFed - Federation Protocol for Forge Services
 
-ForgeFed is a federation protocol extending the W3C's [ActivityPub][activity-pub]
-protocol to provide a uniform server-to-server API for interoperability across
-networked software project management services (aka: forges), with limited
-pub/sub access for messaging and notifications to and from the larger fediverse.
-It's domain model is maximally generic, as to allow a proliferation of
-heterogeneous peers to define their own use-cases, by implementing feature
-compatibility selectively.
+<a href="https://codeberg.org/ForgeFed/ForgeFed">
+    <img alt="Get it on Codeberg" src="https://codeberg.org/Codeberg/GetItOnCodeberg/media/branch/main/get-it-on-neon-blue.png" height="60">
+</a>
 
-In plain words, forges can communicate and share project data and metadata
-(code, tickets, patches, activity-streams, and so on), regardless of which forge
-software is running and which host it is running on. Furthermore, interoperability
-is not limited to forges. Dedicated services, implementing any of the project
-management tools, commonly offered by forges (version control, code review,
-issue trackers, forums, mailing lists, and so on), as well as any custom tools,
-can share any of the same project data, which is relevant to that tool.
-It allows users of any ForgeFed-compliant service to interact with other
-ForgeFed-compliant services, without being a registered user of any foreign service,
-just as if they were registered. In this way, people who choose to self-host
-services or use custom tools, have the additional benefit/responsibility
-of fully controlling of their own authentication/identity and their own data.
+---
 
-All of the most common user interactions are supported such as: cloning/forking,
-merge-requests/patches, bug-reports/code-review, subscriptions/favorites with
-VCS-agnostic, service-agnostic, and client-agnostic genericity.
+[ForgeFed][] is a **federation protocol for software forges** and other web
+services dealing with version control repositories, project tracking and other
+aspects of the software development lifecycle and ecosystem. This includes
+repository hosting websites, issue trackers, code review management
+applications and more.
 
-You can find the published specification on the [ForgeFed website][website].
+**Federation** means that these websites can interact, allowing the humans
+using them to interact too, despite being registered on different websites. For
+example, imagine you could host your Git repos anywhere you want, perhaps even
+your own personal website, but still be able to open issues and submit pull
+requests against other people's repos hosted elsewhere, without having to
+create accounts on those other websites!
 
+Without federation, we end up having to choose between:
 
-## Work-group Collaboration
+- Centralizing into huge profit-oriented websites, where we're powerless
+- Hosting our code on a small website where we're in control and freedom but
+  isolated from the community
 
-***UPDATE 2022-05: The following information is due to change soon. For example,
-the FeNeAs forum is no longer in service. Attend the next
-[online conference][online-conference] if you are interested.***
+With federation, all the websites now communicate with each other to form
+**a network and community of collaboration** in which we're all both free and
+connected. It puts the power back into our hands to create tools and
+collaborate in ways that are aligned with human needs, powerful and safe ways
+that allow us to include everyone and that don't depend on some big company's
+policies or some website suddenly shutting down. Let's create the future
+together!
 
-[online-conference]: https://forum.forgefriends.org/t/forgefed-videoconference-june-13th-2pm-utc/715
+# How does it work?
 
-The formal work-group and associated development discussions are conducted openly
-~~on the [ForgeFed Community Forum][feneas-forum] on the FeNeAs website~~; with
-informal, real-time Collaboration often taking place on the #forgefed IRC channel on
-the libera.chat network. Everyone is invited to participate in either venue. Before
-posting, please read [this primer][overview] for a brief overview of the project
-motivation and goals. For a detailed overview of the project motivation and goals,
-you could read the archive of the [2018 exploratory discussions][mail-archive].
+ForgeFed is an [ActivityPub][] extension. ActivityPub is an actor-model based
+protocol for federation of web services and applications.
 
-The artifacts produced by this work-group are still in the early stages; and there
-is still much work to do, and ample design-space for discussion and contributions.
-In order to be most widely adopted, we strive to assemble the most diverse and
-representative group of stake-holders including: users, implementers, and various
-domain experts. Anyone who is experienced with working on an existing forge or a
-federated "social" service, or who is planning to implement new ones, and anyone
-with experience in writing technical specification documents, or has UX expertise
-is encouraged to join the work-group and/or contribute artifacts. Please submit
-any tangible contributions (artwork, software, documentation) and technical critique
-regarding the published artifacts to the [ForgeFed issue tracker][notabug-issues]
-and [ForgeFed wiki][notabug-wiki] on NotABug.
+It's a bit like e-mail, except the data sent is JSON objects (i.e. structured
+computer-readable data), and not only humans have inboxes where they can be
+contacted, but also repositories and issue trackers have inboxes through which
+they can be remotely and safely interacted with.
 
-- [Working Group](https://talk.feneas.org/t/working-group-instructions/196)
-- [Community Group](https://talk.feneas.org/t/monthly-community-review-round-instructions/192)
+On top of ActivityPub's vocabulary (common language for websites to use for
+communicating) and protocol, ForgeFed defines new vocabulary terms related to
+repositories, commits, patches, issues, etc. and the protocol for creating and
+interacting with such objects across servers.
 
-### The VCS is mirrored on multiple hosts:
+# So how do I use it?
+
+ForgeFed is a protocol, i.e. instructions for how websites can communicate with each other. For
+forge federation to really happen, we need to code it into forge software. This
+is still in progress, but there are demos and prototypes you can play with if
+you're curious :-) See below for ways to get updates on the latest work on this.
+
+# What's the status? Where do I talk with you and ask questions?
+
+The ForgeFed protocol specification is on the [website][ForgeFed]. The website
+is generated from the Markdown sources found in this repository. There are
+links there to Matrix and IRC chat, our [forum][], issue tracker, list of
+ForgeFed implementations and their status, and more. You can also follow our
+progress on the [fediverse][Mastodon].
+
+Come talk with us :-)
+
+# How can I contribute?
+
+There's so much variety of tasks to do! Come talk with us on the chat/forum.
+
+More eyes going over the spec are always welcome! And feel free to open issue
+if you notice missing details or unclear text or have improvement suggestions
+or requests!
+
+However, to maintain a manageable working environment, we do reserve the issue
+tracker for *practical, actionable work items*. If you want to talk first to
+achieve more clarity, we prefer you write to us on the [forum][] or chat, and
+opening an issue may come later.
+
+If you wish to join the work on the ForgeFed specification, here are some
+technical but important details:
+
+- We don't push commits to the master branch, we always open a pull request
+- Pull requests making changes to the specification content must have at least
+  2 reviews and then they wait for a cooldown period of 2 weeks during which
+  more people can provide feedback, raise challenges and conflicts, improve the
+  proposed changes etc.
+- So if you wish to continuously participate in shaping the specification, it
+  would be useful to go over the open PRs once a week or so, to make sure you
+  have a chance to communicate your needs, ideas and thoughts before changes
+  get merged into the spec
+
+Important files in this repo to know about:
+
+- The file `resources.md` lists which team members have access to which project
+  resources, openness and transparency are important to us!
+- The actual specification source texts are in the `spec/` directory
+- JSON-LD context files are in the `rdf/` directory
+
+# Repo mirrors
+
+This repo is mirrored at:
 
 * [ForgeFed on Notabug][notabug-repo]
 * [ForgeFed on Pagure][pagure-repo]
-* [ForgeFed on Codeberg][codeberg-repo]
+* [ForgeFed on GitHub][github-repo]
 
-### Projects participating in the discussions have included:
-
-* [Federated Networks Association][feneas]
-* [GitDit][git-dit]
-* [GitLab][gitlab]
-* [Gitea][gitea]
-* [GoFed][go-fed]
-* [Gogs][gogs]
-* [NotABug][notabug]
-* [Pagure][pagure]
-* [Peers Community][peers]
-* [SocialHome][socialhome]
-* [sr.ht][srht]
-* [Vervis][vervis]
-
-
-## ForgeFed on the Fediverse
-
-Connect with [ForgeFed on the fediverse][fediverse] for
-progress updates and general tooting.
-
-
-## Website build instructions
+# Website build instructions
 
     ./build.sh
 
-
-## License
+# License
 
 All artifacts produced by the ForgeFed work-group are freely available under
 the [CC0 1.0 Universal (CC0 1.0) Public Domain Dedication][cc0]. All
 contributions to the wiki must also be offered freely as such.
 
-The ForgeFed logo was contributed by Libera IRC user: ['iko'][iko].
+The ForgeFed logo was created by [iko][].
 
+# Historical resources
 
-[activity-pub]:    https://www.w3.org/TR/activitypub/
-[website]:         https://forgefed.org/
+ForgeFed started its life on a mailing list, [here's the archive][Mail].
 
-[overview]:        https://codeberg.org/ForgeFed/ForgeFed/src/branch/master/doc/README.md
-[mail-archive]:    https://framalistes.org/sympa/arc/git-federation
+The ForgeFed forum, now at a [new location][forum], used to be at
+`talk.feneas.org`, the old forum and posts can be viewed via the Internet
+Archive's [wayback machine][old-forum].
 
-[notabug-repo]:    https://notabug.org/peers/forgefed/
-[pagure-repo]:     https://pagure.io/forge-fed/forge-fed
-[codeberg-repo]:   https://codeberg.org/ForgeFed/forgefed
+[ActivityPub]: https://www.w3.org/TR/activitypub/
+[ForgeFed]:    https://forgefed.org
+[Forum]:       https://socialhub.activitypub.rocks/c/software/forgefed
+[Mail]:        https://framalistes.org/sympa/arc/git-federation
+[Mastodon]:    https://floss.social/@forgefed
+[Old-forum]:   https://web.archive.org/web/20210306224235/https://talk.feneas.org/c/forgefed/10
 
-[feneas]:          https://feneas.org
-[git-dit]:         https://github.com/neithernut/git-dit
-[gitlab]:          https://about.gitlab.com/
-[gitea]:           https://gitea.io/en-us/
-[go-fed]:          http://go-fed.org/
-[gogs]:            https://gogs.io/
-[notabug]:         https://notabug.org/
-[pagure]:          https://pagure.io/
-[peers]:           https://peers.community/
-[socialhome]:      https://socialhome.network/
-[srht]:            https://meta.sr.ht/
-[vervis]:          https://vervis.peers.community/
+[notabug-repo]: https://notabug.org/peers/forgefed/
+[pagure-repo]:  https://pagure.io/forge-fed/forge-fed
+[github-repo]:  https://github.com/forgefed/forgefed
 
-[fediverse]:       https://floss.social/@forgefed
-
-[cc0]:             https://creativecommons.org/publicdomain/zero/1.0/
-[iko]:             https://iko.im/
+[cc0]: https://creativecommons.org/publicdomain/zero/1.0/
+[iko]: https://iko.im/
