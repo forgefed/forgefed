@@ -38,6 +38,40 @@ A typical `@context` of a ForgeFed object may look like this:
 
 ## Activity Types
 
+### Grant {#act-grant}
+
+**URI:** `https://forgefed.org/ns#Grant`
+
+**Notes:** Indicates that [target][] is being given (by the [actor][]) access
+to a resource specified by [context][] under the role/permission specified by
+[object][].
+
+**Extends:** [Activity][]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/aviva/outbox/reBGo",
+    "type": "Grant",
+    "actor": "https://example.dev/aviva",
+    "to": [
+        "https://example.dev/aviva/followers",
+        "https://example.dev/aviva/myproject",
+        "https://example.dev/aviva/myproject/followers",
+        "https://example.dev/bob",
+        "https://example.dev/bob/followers"
+    ],
+    "object": "https://example.dev/roles/developer",
+    "context": "https://example.dev/aviva/myproject",
+    "target": "https://example.dev/bob"
+}
+```
+
 ### Push {#act-push}
 
 **URI:** `https://forgefed.org/ns#Push`
@@ -1004,6 +1038,48 @@ items is by reverse chronological order of the forking events.
 }
 ```
 
+## fulfills {#prop-fulfills}
+
+**URI:** `https://forgefed.org/ns#fulfills`
+
+**Notes**: For an activity *A* that `fulfills` some other activity *B*,
+specifies that *A* has been published as part of fulfilling the action
+requested by *B*. For example, if Alice creates a new repository using
+`Create`, she may want to instantly automatically start following this new
+repository using `Follow` (to be notified when her friends push commits there).
+This `Follow` `fulfills` the `Create`; it's an activity automatically sent as
+part of creating a new repository.
+
+**Domain:** [Activity][]
+
+**Range:** [Activity][]
+
+**Functional:** No
+
+**Inverse of:** None
+
+**Example:**
+
+## capability {#prop-capability}
+
+**URI:** `https://forgefed.org/ns#capability`
+
+**Notes**: Specifies a previously published [Grant](#act-grant) activity
+providing relevant access permissions. For example, if Alice wants to resolve
+a [Ticket](#type-ticket) under some project, she will send an activity with
+`capability` referring to the `Grant` activity that gave her collaborator
+access to that project, which happens to include permission to resolve tickets.
+
+**Domain:** [Activity][]
+
+**Range:** [Grant](#act-grant)
+
+**Functional:** Yes
+
+**Inverse of:** None
+
+**Example:**
+
 [Activity]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Link]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-link
@@ -1011,6 +1087,7 @@ items is by reverse chronological order of the forking events.
 [OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
 [Person]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 
+[actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 [items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype

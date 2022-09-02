@@ -364,9 +364,32 @@ Example:
 }
 ```
 
+# Grant
+
+To give some actor access to a shared resource (such as a repository or a
+ticket tracker), use a ForgeFed [Grant][act-grant] activity.
+
+Properties:
+
+- [type][]: ["Grant"][act-grant]
+- [actor][]: The entity (person, bot, etc.) that is giving access
+- [object][]: The role or permission specifying which operations on the
+  resource are being allowed
+- [context][]: The resource, access to which is being given (for example, a
+  repository)
+- [target][]: The actor who is being gives access to the resource
+- [fulfills][prop-fulfills]: If the Grant activity is being sent
+  automatically, this is the activity that triggered the automatic Grant (for
+  example, if Alice [Create][]s a new repository, the repository may
+  automatically send back a [Grant][act-grant] giving Alice admin access, and
+  this Grant's `fulfills` refers to the [Create][] that Alice sent)
+- [result][]: A URI that can be used later for verifying that the given access
+  is still approved, thus allowing the actor granting the access to revoke it
+
 [xsd:dateTime]:    https://www.w3.org/TR/xmlschema11-2/#dateTime
 
-[act-push]: /vocabulary.html#act-push
+[act-grant]: /vocabulary.html#act-grant
+[act-push]:  /vocabulary.html#act-push
 
 [type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
@@ -381,6 +404,7 @@ Example:
 [prop-dependencies]:     /vocabulary.html#prop-dependencies
 [prop-earlyitems]:       /vocabulary.html#prop-earlyitems
 [prop-forks]:            /vocabulary.html#prop-forks
+[prop-fulfills]:         /vocabulary.html#prop-fulfills
 [prop-hash]:             /vocabulary.html#prop-hash
 [prop-hashafter]:        /vocabulary.html#prop-hashafter
 [prop-hashbefore]:       /vocabulary.html#prop-hashbefore
