@@ -1149,6 +1149,45 @@ access to that project, which happens to include permission to resolve tickets.
 
 **Example:**
 
+## managedBy {#prop-managedby}
+
+**URI:** `https://forgefed.org/ns#managedBy`
+
+**Notes:** Identifies the actor that controls the given resource, and to whom
+activities asking to modify the resource may be submitted.
+
+**Domain:** [Object][]
+
+**Range:** [Object][] than is an actor
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "type": "Ticket",
+    "id": "https://example.dev/alice/myrepo/issues/42",
+    "context": "https://example.dev/alice/myrepo",
+    "managedBy": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://dev.community/bob",
+    "summary": "Nothing works!",
+    "content": "<p>Please fix. <i>Everything</i> is broken!</p>",
+    "mediaType": "text/html",
+    "source": {
+        "content": "Please fix. *Everything* is broken!",
+        "mediaType": "text/markdown; variant=CommonMark"
+    },
+    "isResolved": false
+}
+```
+
 [Activity]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Link]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-link
