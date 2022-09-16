@@ -87,56 +87,6 @@ resource/helper distinction:
   implementation detail and not to concepts of version control and project
   management.
 
-## Actors
-
-This specification doesn't mandate which types and objects should be actors,
-but it does provide guidelines that implementations SHOULD follow:
-
-- Resource objects that have self-contained stand-alone meaning should be
-  actors
-- Objects that handle access control for updates of themselves should be actors
-- Objects that need to be able to send activities should be actors
-- Objects whose meaning is inherently tied to a parent object, or whose access
-  control is managed by a parent object, can have all their interactions done
-  via the parent object, and not be actors themselves
-- If an object doesn't need to send or receive activities, even if it's self
-  contained, there's probably no need to make it an actor, because it
-  practically doesn't participate in actor-model communication
-
-Here are some examples and their rationale:
-
-- A ticket/issue/bug is created with respect to some project, repo, software,
-  system, the ticket is inherently a part of that parent object, so tickets
-  would generally not be actors
-- A project or repository are generally self-contained entities, and even if
-  some forge has users as top-level namespace and repos are created under
-  users, the user managing/owning/sharing a repo is just a matter of access
-  control and authority, *it isn't a part of the meaning of the repo itself*,
-  and the repo could easily change hands and change maintainers while remaining
-  the same repo, same software, same content, same meaning. So, repos and
-  projects would generally be actors.
-- A group/organization/team is a self-contained object, a set of users along
-  with access control and roles and so on, and it needs to be able to receive
-  update activities that update the team members list, structure and access and
-  so on, even though a team isn't a user and probably doesn't publish
-  activities. So, teams would generally be actors.
-
-The proposal here is that the following types typically be actors:
-
-- Person
-- Project
-- Repository
-- Group/Organization/Team
-
-And other types such as these typically not be actors:
-
-- Commit
-- Ticket
-- Merge request
-- Patch
-- Diff
-- Discussion thread
-
 ## Object Publishing and Hosting {#publishing}
 
 In ForgeFed, actors host their child objects locally, i.e. the actor and the

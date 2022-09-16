@@ -145,7 +145,7 @@ Properties:
 * [ticketsTrackedBy][prop-ticketstrackedby]: The ticket tracker that tracks
   tickets for this repository, this can be the repository itself if it manages
   its own tickets
-* [sendPatchesTo][prop-sendpatchesto]: The actor that tracks tickets for this
+* [sendPatchesTo][prop-sendpatchesto]: The actor that tracks patches for this
   repository, this can be the repository itself if it manages its own patches
   and merge requests. For example it may be some external tracker or service,
   or the user or team to whom the repository belongs.
@@ -269,8 +269,8 @@ TODO properly document `history` or remove it from example
 Properties:
 
 - [type][]: ["Ticket"][type-ticket]
-- [context][]: The project to which this ticket belongs (a repository, an issue
-  tracker, etc.)
+- [context][]: The [TicketTracker][type-tickettracker] or
+  [PatchTracker][type-patchtracker] to which this ticket belongs
 - [attributedTo][]: The actor (person, bot, etc.) who submitted the ticket
 - [summary][]: The ticket's one-line title, as HTML-escaped plain text
 - [content][], [mediaType][]: The ticket's (possibly multi-line) detailed
@@ -393,8 +393,10 @@ Properties:
 
 [type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
+[type-patchtracker]: /vocabulary.html#type-patchtracker
 [type-repository]: /vocabulary.html#type-repository
 [type-ticket]:     /vocabulary.html#type-ticket
+[type-tickettracker]: /vocabulary.html#type-tickettracker
 
 [prop-cloneuri]:         /vocabulary.html#prop-cloneuri
 [prop-committed]:        /vocabulary.html#prop-committed

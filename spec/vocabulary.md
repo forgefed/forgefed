@@ -154,6 +154,75 @@ to a resource specified by [context][] under the role/permission specified by
 }
 ```
 
+### TicketTracker {#type-tickettracker}
+
+**URI:** `https://forgefed.org/ns#TicketTracker`
+
+**Notes:** Represents a
+[ticket tracker](https://en.wikipedia.org/wiki/Issue_tracking_system), i.e. a
+project managing a list of work items.
+
+**Extends:** [Object][]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": ["Repository", "TicketTracker"],
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+```
+
+### PatchTracker {#type-patchtracker}
+
+**URI:** `https://forgefed.org/ns#PatchTracker`
+
+**Notes:** Represents a tracker of
+[merge requests](https://en.wikipedia.org/wiki/Distributed_version_control#Pull_requests)
+i.e. a project managing a list of patches or branches submitted as proposed
+changes to a given [Repository](#type-repository).
+
+**Extends:** [Object][]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": ["Repository", "TicketTracker", "PatchTracker"],
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+```
+
 ## Object Types
 
 ### Branch {#type-branch}
