@@ -364,10 +364,52 @@ Example:
 }
 ```
 
+# Invite
+
+To offer some actor access to a shared resource (such as a repository or a
+ticket tracker), use an ActivityPub [Invite][] activity.
+
+Properties:
+
+- [type][]: ["Invite"][Invite]
+- [actor][]: The entity (person, bot, etc.) that is offering access
+- [instrument][]: The role or permission specifying which operations on the
+  resource are being allowed
+- [target][]: The resource, access to which is being given (for example, a
+  repository)
+- [object][]: The actor who is being gives access to the resource
+- [capability][prop-capability]: A previously published `Grant`, giving the
+  `actor` permission to invite more actors to access the resource
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox/B47d3",
+    "type": "Invite",
+    "actor": "https://dev.example/aviva",
+    "to": [
+        "https://dev.example/aviva/followers",
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "target": "https://coding.community/repos/game-of-life",
+    "object": "https://software.site/bob",
+    "capability": "https://coding.community/repos/game-of-life/outbox/2c53A"
+}
+```
+
 # Grant
 
-To give some actor access to a shared resource (such as a repository or a
-ticket tracker), use a ForgeFed [Grant][act-grant] activity.
+To give some actor access to a shared resource, use a ForgeFed
+[Grant][act-grant] activity.
 
 Properties:
 
@@ -378,13 +420,38 @@ Properties:
 - [context][]: The resource, access to which is being given (for example, a
   repository)
 - [target][]: The actor who is being gives access to the resource
-- [fulfills][prop-fulfills]: If the Grant activity is being sent
-  automatically, this is the activity that triggered the automatic Grant (for
-  example, if Alice [Create][]s a new repository, the repository may
-  automatically send back a [Grant][act-grant] giving Alice admin access, and
-  this Grant's `fulfills` refers to the [Create][] that Alice sent)
+- [fulfills][prop-fulfills]: The activity that triggered the sending of the
+  `Grant`, such as a related `Invite` (another example: if Alice [Create][]s a
+  new repository, the repository may automatically send back a
+  [Grant][act-grant] giving Alice admin access, and this Grant's `fulfills`
+  refers to the [Create][] that Alice sent)
 - [result][]: A URI that can be used later for verifying that the given access
   is still approved, thus allowing the actor granting the access to revoke it
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://coding.community/repos/game-of-life/outbox/9fA8c",
+    "type": "Grant",
+    "actor": "https://coding.community/repos/game-of-life",
+    "to": [
+        "https://dev.example/aviva",
+        "https://dev.example/aviva/followers",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "object": "https://roles.example/maintainer",
+    "context": "https://coding.community/repos/game-of-life",
+    "target": "https://software.site/bob",
+    "fulfills": "https://dev.example/aviva/outbox/B47d3"
+}
+```
 
 [xsd:dateTime]:    https://www.w3.org/TR/xmlschema11-2/#dateTime
 
@@ -398,6 +465,7 @@ Properties:
 [type-ticket]:     /vocabulary.html#type-ticket
 [type-tickettracker]: /vocabulary.html#type-tickettracker
 
+[prop-capability]:       /vocabulary.html#prop-capability
 [prop-cloneuri]:         /vocabulary.html#prop-cloneuri
 [prop-committed]:        /vocabulary.html#prop-committed
 [prop-committedby]:      /vocabulary.html#prop-committedby
@@ -421,6 +489,8 @@ Properties:
 [prop-created]:     http://purl.org/dc/terms/created
 
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
+[Create]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
+[Invite]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-invite
 [Note]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
 [Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
@@ -432,11 +502,13 @@ Properties:
 [items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [followers]:    https://www.w3.org/TR/activitypub/#followers
 [inReplyTo]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
+[instrument]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 [ordereditems]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-ordereditems
 [published]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
 [replies]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
+[result]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
 [source]:       https://www.w3.org/TR/activitypub/#source-property
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target

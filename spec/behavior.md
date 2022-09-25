@@ -396,28 +396,331 @@ he submitted earlier against her Game Of Life simulation app repository:
 }
 ```
 
+## Granting access to shared resources
+
+An actor that wishes to give other specific actors access to view or modify it
+(or a child object of it), SHOULD do so according to the following
+instructions.
+
+### Object capabilities using Grant activities {#s2s-grant-flow}
+
+An Object Capability (or in short OCap or OCAP) is a token providing access to
+certain operations on a certain resource. An actor wishing to act on a resource
+provides the token to the resource, alongside the Activity they wish to
+perform. The resource verifies the token, and if and only if it finds the token
+valid, and access to the requested Activity is allowed by the token, *then* the
+resource allows the Activity to be performed.
+
+The token provided by the actor to the resource, i.e. the OCAP, is the ID URI
+of a previously published [Grant][act-grant] activity.
+
+The fundamental steps for accessing shared resources using OCAPs are:
+
+1. The actor managing the resource (which may be the resource itself) sends a
+   `Grant` activity to the actor to whom it wishes to grant access
+2. When the actor who received the access wishes to operate on the resource, it
+   sends the activity to the actor managing the resource, along with the ID URI
+   of the `Grant` sent in step 1
+3. The actor managing the resource verifies the access provided by the `Grant`
+   whose ID URI is provided, and allows the activity to be performed only if
+   the verification passes
+
+Requirements for the `Grant` activity, i.e. step 1:
+
+- The `Grant`'s [context][], i.e. the resource for which access is being given,
+  MUST be the `Grant's` sender (i.e. its [actor][]) or a child object of it
+- The `Grant`'s [object][] MUST be provided and specify a *role* determining
+  which operations the recipient actor may perform on the resource; however
+  this specification doesn't (yet) specify how to define or find such roles
+- The `Grant`'s [target][] MUST be provided, and specify exactly one actor to
+  whom access is being given
+
+Requirements for the activity (referred below as *activity A*) sent in step 3:
+
+- The OCAP, i.e. a URI of a `Grant`, is provided in *activity A*'s
+  [capability][prop-capability] property
+- If the actor managing the resource (from now on *the resource actor*)
+  requires an OCAP for the action being requested by *activity A*, it MUST deny
+  the activity unless all of the following holds:
+    - The activity referred by the OCAP is a `Grant` activity
+    - The `Grant` activity's [actor][] is indeed the *resource actor*, and the
+      *resource actor* can verify that it indeed published a `Grant` with the
+      given URI
+    - The `Grant`'s [context][] is the resource that *activity A* is requesting
+      to access (to view and/or to modify)
+    - The `Grant`'s [target][] is the sender (and [actor][]) of *activity A*
+    - The action being requested by *activity A* to perform on the resource is
+      within what the *resource actor* permits for the role specified by the
+      `Grant`'s [object][]
+
+### Identifying resources and their managing actors
+
+Some shared resources are themselves actors, and some shared resources aren't
+actors, but they are child objects of actors. When some actor *A* wishes to
+access a resource *R* and perform a certain operation, it needs to determine
+which actor to contact in order to request that operation. Actor *A* then looks
+at resource *R*, and the following MUST hold:
+
+- Either the resource *R* isn't an actor (i.e. doesn't have an [inbox][]) but
+  does specify which actor manages it via the [managedBy][prop-managedby]
+  property ;
+- Or the resource *R* is an actor, i.e. it has an [inbox][] (it doesn't have to
+  specify [managedBy][prop-managedby], but if it does, then it MUST refer to
+  itself)
+
+Therefore any object that wishes to be specified as the [context][] of a
+[Grant][act-grant] MUST either be an actor or be [managedBy][prop-managedby] an
+actor.
+
+### Initial Grant upon resource creation
+
+When an actor *A* requests to create a new shared resource *R*, and the
+*resource actor* approves and creates it, then the *resource actor* SHOULD send
+a `Grant` to actor *A*, which provides actor *A* with access to resource *R*.
+
+Typically, this `Grant` would provide actor *A* with what the *resource actor*
+considers full/admin access to resource *R*, which would typically include the
+ability to gives access to resource *R* to more actors (using an [Invite][]
+activity, see below).
+
+If such a `Grant` is sent by the *resource actor* upon the creation of resource
+*R*, then the `Grant`'s [fulfills][prop-fulfills] property MUST be provided and
+specify the ID URI of the activity (published by actor *A*) that requested to
+create resource *R* (typically this would be an [Offer][] activity, see
+[Object Publishing and Hosting](#publishing)).
+
+### Offering access using Invite activities
+
+When an actor *A* wishes to offer actor *B* access to resource *R* (where the
+*resource actor* who manages *R* is neither *A* nor *B*), then actor *A* SHOULD
+use an [Invite][act-invite] activity, and the following steps:
+
+1. Actor *A* publishes and delivers an [Invite][act-invite], at least to actor
+   *B* and to the *resource actor* of *R*, with a relevant
+   [capability][prop-capability] (see [Modeling specification][model-invite]
+   for details on the properties to use)
+2. If actor *B* wishes to have the offered access, it publishes and delivers
+   (at least to the *resource actor* of *R*) an [Accept][] activity whose
+   [object][] specifies the `Invite` sent by actor *A*
+3. The *resource actor* of *R* receives the `Invite` and the `Accept` and:
+    1. Verifies the `Invite` is authorized, as described above in
+       [Object capabilities using Grant activities](#s2s-grant-flow)
+    2. Verifies that the `Accept`'s [object][] specifies the `Invite` and the
+       `Accept`'s [actor][] is the `Invite`'s [object][]
+    3. Publishes and delivers a [Grant][act-grant] activity (see
+       [Modeling specification][model-grant] for more details on the
+       properties) where:
+        - [object][] is the `Invite`'s [instrument][]
+        - [context][] is the `Invite`'s [target][], which is resource *R*
+        - [target][] is the `Invite`'s [object][], which is actor *B*
+        - [fulfills][prop-fulfills] is the `Invite`
+
+Actor *B* can now use the URI of that new `Grant` as the
+[capability][prop-capability] when it sends activities that access or
+manipulate resource *R*.
+
+### Example
+
+Aviva creates a new [Repository][type-repository] for her 3D Tree Growth
+Simulation software:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/oU6QGAqr-create-treesim",
+    "type": "Create",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/users/aviva/followers"
+    ],
+    "object": {
+        "id": "https://forge.community/repos/treesim",
+        "type": "Repository",
+        "name": "Tree Growth 3D Simulation",
+        "summary": "A graphical simulation of trees growing"
+    }
+}
+```
+
+The newly created *treesim* `Repository` automatically sends back a `Grant` to
+Aviva, allowing her full access to the repo:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva",
+    "type": "Grant",
+    "actor": "https://forge.community/repos/treesim",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/aviva/followers"
+    ],
+    "object": "https://roles.example/admin",
+    "context": "https://forge.community/repos/treesim",
+    "target": "https://forge.community/aviva",
+    "fulfills": "https://forge.community/users/aviva/outbox/oU6QGAqr-create-treesim"
+}
+```
+
+Aviva can now use this `Grant`, e.g. to update the repo's description text:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/RmTygyuj",
+    "type": "Update",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/users/aviva/followers",
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers"
+    ],
+    "object": {
+        "id": "https://forge.community/repos/treesim",
+        "type": "Repository",
+        "name": "Tree Growth 3D Simulation",
+        "summary": "Tree growth 3D simulator for my nature exploration game"
+    },
+    "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
+}
+```
+
+Aviva can invite Luke to have access to the *treesim* repo:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke",
+    "type": "Invite",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/aviva/followers",
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke",
+        "https://software.site/people/luke/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "target": "https://forge.community/repos/treesim",
+    "object": "https://software.site/people/luke",
+    "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
+}
+```
+
+And it appears that Luke accepts the invitation:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/people/luke/activities/mEYYmt8u",
+    "type": "Accept",
+    "actor": "https://software.site/people/luke",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/aviva/followers",
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke/followers"
+    ],
+    "object": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke"
+}
+```
+
+Seeing the `Invite` and the `Accept`, the *treesim* repo sends Luke a `Grant`
+giving him the access that Aviva offered, and which he accepted:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/repos/treesim/outbox/D5uod3pz-grant-maintainer-to-luke",
+    "type": "Grant",
+    "actor": "https://forge.community/repos/treesim",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/aviva/followers",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke",
+        "https://software.site/people/luke/followers"
+    ],
+    "object": "https://roles.example/maintainer",
+    "context": "https://forge.community/repos/treesim",
+    "target": "https://software.site/people/luke",
+    "fulfills": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke"
+}
+```
+
+Luke can now use this `Grant`, e.g. to delete some old obsolete branch of the
+*treesim* repo:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/people/luke/activities/vShj2aIe",
+    "type": "Delete",
+    "actor": "https://software.site/people/luke",
+    "to": [
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke/followers"
+    ],
+    "object": "https://forge.community/repos/treesim/branches/fixes-for-release-0.1.3",
+    "origin": "https://forge.community/repos/treesim",
+    "capability": "https://forge.community/repos/treesim/outbox/D5uod3pz-grant-maintainer-to-luke"
+}
+```
+
 # Acknowledgements
 
-[act-push]: /vocabulary.html#act-push
+[act-grant]:  /vocabulary.html#act-grant
+[act-invite]: /vocabulary.html#act-invite
+[act-push]:   /vocabulary.html#act-push
 
 [type-repository]: /vocabulary.html#type-repository
 [type-ticket]:     /vocabulary.html#type-ticket
 
+[prop-capability]:       /vocabulary.html#prop-capability
+[prop-fulfills]:         /vocabulary.html#prop-fulfills
+[prop-managedby]:        /vocabulary.html#prop-managedby
 [prop-team]:             /vocabulary.html#prop-team
 [prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby
 [prop-tracksticketsfor]: /vocabulary.html#prop-tracksticketsfor
 
 [model-comment]: /modeling.html#comment
+[model-grant]:   /modeling.html#grant
+[model-invite]:  /modeling.html#invite
 [model-push]:    /modeling.html#push
 [model-ticket]:  /modeling.html#ticket
 
 [Accept]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 [Create]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
+[Invite]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-invite
+[Offer]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
+[Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
+
 [Image]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-image
 [Note]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [Object]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
-[Offer]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
-[Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
 
 [actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 [attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
@@ -425,6 +728,8 @@ he submitted earlier against her Game Of Life simulation app repository:
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 [followers]:    https://www.w3.org/TR/activitypub/#followers
 [id]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
+[inbox]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inbox
+[instrument]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
 [result]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
