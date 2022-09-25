@@ -561,8 +561,10 @@ it to gain access to *R* without external approval:**
 2. If some actor *B*, that has previously received a `Grant` from the *resource
    actor* of *R* authorizing it to approve joins, sees the `Join` sent by actor
    *A* and decides to approve it, then actor *B* publishes and delivers (at
-   least to the *resource actor* of *R*) an [Accept][] activity whose
-   [object][] specifies the `Join` sent by actor *A*
+   least to the *resource actor* of *R*) an [Accept][] activity where:
+      - [object][] specifies the `Join` sent by actor *A*
+      - [capability][prop-capability] is the `Grant` mentioned above,
+        authorizing to approve or deny Joins
 3. The *resource actor* of *R* receives the `Join` and the `Accept` and:
     a. Verifies the `Accept` is authorized, as described above in
        [Object capabilities using Grant activities](#s2s-grant-flow)
@@ -578,6 +580,32 @@ it to gain access to *R* without external approval:**
 Actor *A* can now use the URI of that new `Grant` as the
 [capability][prop-capability] when it sends activities that access or
 manipulate resource *R*.
+
+In step 2, actor *B* may choose to deny the request of actor *A*, by sending a
+[Reject][] activity (at least to the *resource actor* of *R*) where:
+
+- [object][] specifies the `Join` that actor *A* sent
+- [capability][prop-capability] is the `Grant` mentioned in step 2, authorizing
+  actor *B* to approve or deny Joins
+
+If the *resource actor* of *R* receives the `Reject`:
+
+a. It MUST verify the `Reject` is authorized, as described above in
+   [Object capabilities using Grant activities](#s2s-grant-flow)
+b. it MUST verify that the `Reject`'s [object][] specifies the `Join`
+c. Consider this `Join` request canceled: If actor *B*, or some other actor
+   *C*, tries again to `Accept` the `Join`, then:
+      i. The *resource actor* MUST NOT send a `Grant` to actor *A*, even if the
+         `Accept` is authorized
+      ii. The *resource actor* MAY publish and deliver a `Reject` activity, at
+          least to the actor that sent the `Accept`, where [object][] specifies
+          the `Accept`
+d. It SHOULD publish and deliver a `Reject` activity, at least to actor *A*,
+   where [object][] specifies the `Join` that actor *A* sent
+
+So, once a `Join` is rejected (using an authorized `Reject`), it cannot be
+accepted. But actor *A* MAY send a new `Join`, which could then possibly get
+accepted.
 
 ### Example
 
