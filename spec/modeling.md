@@ -364,7 +364,9 @@ Example:
 }
 ```
 
-# Invite
+# Access Control
+
+## Invite
 
 To offer some actor access to a shared resource (such as a repository or a
 ticket tracker), use an ActivityPub [Invite][] activity.
@@ -406,7 +408,46 @@ Example:
 }
 ```
 
-# Grant
+## Join
+
+To request access to a shared resource, use an ActivityPub [Join][] activity.
+
+Properties:
+
+- [type][]: ["Join"][Join]
+- [actor][]: The entity (person, bot, etc.) that is requesting access
+- [instrument][]: The role or permission specifying which operations on the
+  resource are being requested
+- [object][]: The resource, access to which is being given (for example, a
+  repository)
+- [capability][prop-capability]: *(optional)* A previously published `Grant`,
+  giving the `actor` permission to gain access to the resource without the
+  approval of another actor. If `capability` isn't provided, the resource won't
+  grant access before someone with adequate access approves the Join request.
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/bob/outbox/c97E3",
+    "type": "Join",
+    "actor": "https://software.site/bob",
+    "to": [
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "object": "https://coding.community/repos/game-of-life",
+    "capability": "https://coding.community/repos/game-of-life/outbox/d38Fa"
+}
+```
+
+## Grant
 
 To give some actor access to a shared resource, use a ForgeFed
 [Grant][act-grant] activity.
@@ -491,6 +532,7 @@ Example:
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
 [Create]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
 [Invite]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-invite
+[Join]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-join
 [Note]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
 [Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object

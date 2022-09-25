@@ -493,9 +493,9 @@ create resource *R* (typically this would be an [Offer][] activity, see
 
 When an actor *A* wishes to offer actor *B* access to resource *R* (where the
 *resource actor* who manages *R* is neither *A* nor *B*), then actor *A* SHOULD
-use an [Invite][act-invite] activity, and the following steps:
+use an [Invite][] activity, and the following steps:
 
-1. Actor *A* publishes and delivers an [Invite][act-invite], at least to actor
+1. Actor *A* publishes and delivers an [Invite][], at least to actor
    *B* and to the *resource actor* of *R*, with a relevant
    [capability][prop-capability] (see [Modeling specification][model-invite]
    for details on the properties to use)
@@ -503,11 +503,11 @@ use an [Invite][act-invite] activity, and the following steps:
    (at least to the *resource actor* of *R*) an [Accept][] activity whose
    [object][] specifies the `Invite` sent by actor *A*
 3. The *resource actor* of *R* receives the `Invite` and the `Accept` and:
-    1. Verifies the `Invite` is authorized, as described above in
+    a. Verifies the `Invite` is authorized, as described above in
        [Object capabilities using Grant activities](#s2s-grant-flow)
-    2. Verifies that the `Accept`'s [object][] specifies the `Invite` and the
+    b. Verifies that the `Accept`'s [object][] specifies the `Invite` and the
        `Accept`'s [actor][] is the `Invite`'s [object][]
-    3. Publishes and delivers a [Grant][act-grant] activity (see
+    c. Publishes and delivers a [Grant][act-grant] activity (see
        [Modeling specification][model-grant] for more details on the
        properties) where:
         - [object][] is the `Invite`'s [instrument][]
@@ -516,6 +516,66 @@ use an [Invite][act-invite] activity, and the following steps:
         - [fulfills][prop-fulfills] is the `Invite`
 
 Actor *B* can now use the URI of that new `Grant` as the
+[capability][prop-capability] when it sends activities that access or
+manipulate resource *R*.
+
+### Requesting access using Join activities
+
+When an actor *A* wishes to request access to resource *R* (where the *resource
+actor* who manages *R* isn't *A*), then actor *A* SHOULD use a
+[Join][] activity, and the following steps. There are two options detailed
+below, depending on whether actor *A* has been previously given a
+[Grant][act-grant] authorizing it to gain access to resource *R* without
+needing someone else to approve. For example, perhaps actor *A* already has
+some access to a resource collection to which *R* belongs, and that access
+allows *A* to freely `Join` *R* without needing to wait for human approval.
+
+**Option 1: Actor *A* already has a `Grant` allowing it to gain access to *R*
+without external approval:**
+
+1. Actor *A* publishes and delivers a [Join][], at least to the
+   *resource actor* of *R*, with the relevant [capability][prop-capability] it
+   has (see [Modeling specification][model-join] for details on the properties
+   to use)
+2. The *resource actor* of *R* receives the `Join` and:
+    a. Verifies the `Join` is authorized, as described above in
+       [Object capabilities using Grant activities](#s2s-grant-flow)
+    b. Publishes and delivers a [Grant][act-grant] activity (see
+       [Modeling specification][model-grant] for more details on the
+       properties) where:
+        - [object][] is the `Join`'s [instrument][]
+        - [context][] is the `Join`'s [object][], which is resource *R*
+        - [target][] is the `Join`'s [actor][], which is actor *A*
+        - [fulfills][prop-fulfills] is the `Join`
+
+Actor *A* can now use the URI of that new `Grant` as the
+[capability][prop-capability] when it sends activities that access or
+manipulate resource *R*.
+
+**Option 2: Actor *A* doesn't have (or chooses not to use) a `Grant` allowing
+it to gain access to *R* without external approval:**
+
+1. Actor *A* publishes and delivers a [Join][], at least to the
+   *resource actor* of *R* (see [Modeling specification][model-join] for
+   details on the properties to use)
+2. If some actor *B*, that has previously received a `Grant` from the *resource
+   actor* of *R* authorizing it to approve joins, sees the `Join` sent by actor
+   *A* and decides to approve it, then actor *B* publishes and delivers (at
+   least to the *resource actor* of *R*) an [Accept][] activity whose
+   [object][] specifies the `Join` sent by actor *A*
+3. The *resource actor* of *R* receives the `Join` and the `Accept` and:
+    a. Verifies the `Accept` is authorized, as described above in
+       [Object capabilities using Grant activities](#s2s-grant-flow)
+    b. Verifies that the `Accept`'s [object][] specifies the `Join`
+    c. Publishes and delivers a [Grant][act-grant] activity (see
+       [Modeling specification][model-grant] for more details on the
+       properties) where:
+        - [object][] is the `Join`'s [instrument][]
+        - [context][] is the `Join`'s [object][], which is resource *R*
+        - [target][] is the `Join`'s [actor][], which is actor *A*
+        - [fulfills][prop-fulfills] is the `Join`
+
+Actor *A* can now use the URI of that new `Grant` as the
 [capability][prop-capability] when it sends activities that access or
 manipulate resource *R*.
 
@@ -591,6 +651,19 @@ Aviva can now use this `Grant`, e.g. to update the repo's description text:
         "summary": "Tree growth 3D simulator for my nature exploration game"
     },
     "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
+}
+```
+
+Aviva wants to keep track of events related to the *treesim* repo:
+
+```json
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://forge.community/users/aviva/outbox/gqtpAhm2",
+    "type": "Follow",
+    "actor": "https://forge.community/users/aviva",
+    "to": "https://forge.community/repos/treesim",
+    "object": "https://forge.community/repos/treesim",
 }
 ```
 
@@ -690,10 +763,80 @@ Luke can now use this `Grant`, e.g. to delete some old obsolete branch of the
 }
 ```
 
+Celine requests to have developer access to the *treesim* repo:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
+    "type": "Join",
+    "actor": ""https://dev.online/@celine",
+    "to": [
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://dev.online/@celine/followers"
+    ],
+    "object": ""https://forge.community/repos/treesim",
+    "instrument": "https://roles.example/developer"
+}
+```
+
+Aviva sees the `Join` request, talks with Celine and decides to approve her
+request:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/PzRtDydu",
+    "type": "Accept",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://dev.online/@celine",
+        "https://dev.online/@celine/followers"
+    ],
+    "object": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
+    "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
+}
+```
+
+Seeing the `Join` and the `Accept`, the *treesim* repo sends Celine a `Grant`
+giving her the access that she requested, and which Aviva approved:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/repos/treesim/outbox/D5uod3pz-grant-developer-to-celine",
+    "type": "Grant",
+    "actor": "https://forge.community/repos/treesim",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/repos/treesim/followers",
+        "https://dev.online/@celine",
+        "https://dev.online/@celine/followers"
+    ],
+    "object": "https://roles.example/developer",
+    "context": "https://forge.community/repos/treesim",
+    "target": "https://dev.online/@celine",
+    "fulfills": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join"
+}
+```
+
+Celine can now use this `Grant` to access the *treesim* repo.
+
 # Acknowledgements
 
 [act-grant]:  /vocabulary.html#act-grant
-[act-invite]: /vocabulary.html#act-invite
 [act-push]:   /vocabulary.html#act-push
 
 [type-repository]: /vocabulary.html#type-repository
@@ -709,12 +852,14 @@ Luke can now use this `Grant`, e.g. to delete some old obsolete branch of the
 [model-comment]: /modeling.html#comment
 [model-grant]:   /modeling.html#grant
 [model-invite]:  /modeling.html#invite
+[model-join]:    /modeling.html#join
 [model-push]:    /modeling.html#push
 [model-ticket]:  /modeling.html#ticket
 
 [Accept]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 [Create]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
 [Invite]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-invite
+[Join]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-join
 [Offer]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
 [Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
 
