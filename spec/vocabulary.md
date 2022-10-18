@@ -1038,7 +1038,7 @@ merge requests against those repositories, you can send them to this tracker.
 
 **URI:** `https://forgefed.org/ns#forkedFrom`
 
-**Notes:** Identifies the [Repository](#type-repository)s which this
+**Notes:** Identifies the [Repository](#type-repository) which this
 [Repository](#type-repository) was created as a fork of, i.e. by cloning it.
 
 **Domain:** [Repository](#type-repository)
@@ -1185,6 +1185,136 @@ activities asking to modify the resource may be submitted.
         "mediaType": "text/markdown; variant=CommonMark"
     },
     "isResolved": false
+}
+```
+
+## mirrors {#prop-mirrors}
+
+**URI:** `https://forgefed.org/ns#mirrors`
+
+**Notes:** Identifies the [Repository](#type-repository) which this
+[Repository](#type-repository) copies content from (ie. what this repository
+is a "pull mirror" of).
+
+**Domain:** [Repository](#type-repository)
+
+**Range:** [Repository](#type-repository)
+
+**Functional:** Yes
+
+**Inverse of:** [mirroredBy](#prop-mirroredby)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/mymirror/",
+    "type": "Repository",
+    "mirrors": {
+        "type": "Repository",
+        "id": "https://example.dev/luke/myrepo/"
+    }
+}
+```
+
+## mirroredBy {#prop-mirroredby}
+
+**URI:** `https://forgefed.org/ns#mirroredby`
+
+**Notes:** Identifies a [Repository](#type-repository) which
+copies content from this repository (ie. "pull mirror" of this repository).
+
+**Domain:** [Repository](#type-repository)
+
+**Range:** [Repository](#type-repository)
+
+**Functional:** No
+
+**Inverse of:** [mirrors](#prop-mirrors)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/",
+    "type": "Repository",
+    "mirroredBy": {
+        "type": "Repository",
+        "id": "https://example.dev/alice/mymirror/"
+    }
+}
+```
+
+## mirrorsTo {#prop-mirrorsTo}
+
+**URI:** `https://forgefed.org/ns#mirrorsto`
+
+**Notes:** Identifies a [Repository](#type-repository) which
+this repository copies content to (ie. "push mirror" of this repository)
+
+**Domain:** [Repository](#type-repository)
+
+**Range:** [Repository](#type-repository)
+
+**Functional:** No
+
+**Inverse of:** [mirroredFrom](#prop-mirroredfrom)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/myrepo/",
+    "type": "Repository",
+    "mirrorsTo": {
+        "type": "Repository",
+        "id": "https://example.dev/alice-backup/myrepo/"
+    }
+}
+```
+
+## mirroredFrom {#prop-mirroredfrom}
+
+**URI:** `https://forgefed.org/ns#mirroredfrom`
+
+**Notes:** Identifies the [Repository](#type-repository) which copies
+its content to this [Repository](#type-repository) (ie. what this
+repository is a "push mirror" of).
+
+**Domain:** [Repository](#type-repository)
+
+**Range:** [Repository](#type-repository)
+
+**Functional:** Yes
+
+**Inverse of:** [mirrorsto](#prop-mirrorsto)
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice-backup/myrepo/",
+    "type": "Repository",
+    "mirroredFrom": {
+        "type": "Repository",
+        "id": "https://example.dev/alice/myrepo/"
+    }
 }
 ```
 

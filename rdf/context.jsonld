@@ -95,6 +95,18 @@
             "@type": "@id" },
         "forks": {
             "@id": "forge:forks",
+            "@type": "@id" },
+        "mirrors": {
+            "@id": "forge:mirrors",
+            "@type": "@id" },
+        "mirroredBy": {
+            "@id": "forge:mirroredBy",
+            "@type": "@id" },
+        "mirrorsTo": {
+            "@id": "forge:mirrorsTo",
+            "@type": "@id" },
+        "mirroredFrom": {
+            "@id": "forge:mirroredFrom",
             "@type": "@id" }
     }
 }
