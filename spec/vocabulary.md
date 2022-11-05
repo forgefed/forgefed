@@ -223,6 +223,58 @@ changes to a given [Repository](#type-repository).
 }
 ```
 
+### Project {#type-project}
+
+**URI:** `https://forgefed.org/ns#Project`
+
+**Notes:** Represents a project, a planned endeavor that involves usage of
+tools related to the software development lifecycle. It may be a software
+project, but may also be totally unrelated to software development. For
+example, it may be a book that is being written using Markdown files kept in a
+Git repository. A `Project` object is a way to collect forge related components
+together under one title.
+
+**Extends:** [Object][]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "components": {
+        "type": "Collection",
+        "totalItems": 7,
+        "items": [
+            https://dev.example/repos/opengl-vegetation",
+            https://dev.example/repos/opengl-vegetation/patch-tracker",
+            https://dev.example/repos/treesim",
+            https://dev.example/repos/treesim/patch-tracker",
+            https://dev.example/repos/wanderer",
+            https://dev.example/repos/wanderer/patch-tracker",
+            https://dev.example/issue-trackers/wanderer"
+        ]
+    },
+
+    "publicKey": {
+        "id": "https://dev.example/projects/wanderer#main-key",
+        "owner": "https://dev.example/projects/wanderer",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
+}
+```
+
 ## Object Types
 
 ### Branch {#type-branch}
@@ -465,6 +517,99 @@ which MUST be updated whenever needed, to always point to the latest version.
     "attributedTo": "https://dev.example/aviva",
     "content": "I agree!!111",
     "currentVersion": "https://dev.example/aviva/notes/107"
+}
+```
+
+## components {#prop-components}
+
+**URI:** `https://forgefed.org/ns#components`
+
+**Notes:** Identifies a [Collection][] listing actors whose services and
+resources are considered to be components of this project.
+
+**Domain:** [Project](#type-project)
+
+**Range:** [Collection][]
+
+**Functional:** Yes
+
+**Inverse of:** None, but see the usage of [context][] in the Modeling
+specification, e.g. in [Repository][model-repository]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "components": {
+        "type": "Collection",
+        "totalItems": 7,
+        "items": [
+            "https://dev.example/repos/opengl-vegetation",
+            "https://dev.example/repos/opengl-vegetation/patch-tracker",
+            "https://dev.example/repos/treesim",
+            "https://dev.example/repos/treesim/patch-tracker",
+            "https://dev.example/repos/wanderer",
+            "https://dev.example/repos/wanderer/patch-tracker",
+            "https://dev.example/issue-trackers/wanderer"
+        ]
+    },
+
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
+}
+```
+
+## subprojects {#prop-subprojects}
+
+**URI:** `https://forgefed.org/ns#subprojects`
+
+**Notes:** Identifies a [Collection][] listing subprojects of this
+[Project](#type-project).
+
+**Domain:** [Project](#type-project)
+
+**Range:** [Collection][] of [Project](#type-project)s
+
+**Functional:** Yes
+
+**Inverse of:** None, but see the usage of [context][] in the
+[Modeling specification][model-project]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "subprojects": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/projects/nature-3d-models",
+            "https://dev.example/projects/wanderer-fundraising"
+        ]
+    },
+
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
 }
 ```
 
@@ -1327,9 +1472,13 @@ repository is a "push mirror" of).
 
 [actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
+[context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 [items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [orderedItems]: https://www.w3.org/TR/activitystreams-core/#collections
 [relationship]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
 [source]:       https://www.w3.org/TR/activitypub/#source-property
 [subject]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject
+
+[model-project]:    /modeling.html#project
+[model-repository]: /modeling.html#repository

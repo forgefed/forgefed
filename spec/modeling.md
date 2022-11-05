@@ -149,6 +149,7 @@ Properties:
   repository, this can be the repository itself if it manages its own patches
   and merge requests. For example it may be some external tracker or service,
   or the user or team to whom the repository belongs.
+* [context][]: The [Project][type-project](s) to which this repository belongs
 
 Example:
 
@@ -176,6 +177,65 @@ Example:
     "name": "Tree Growth 3D Simulation",
     "attributedTo": "https://example.dev/bob",
     "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+```
+
+# Project
+
+Properties:
+
+* [type][]: ["Project"][type-project]
+* [name][]: The user-given name of the project, e.g. "My cool project"
+* [published][]: The time the project was created on the server
+* [summary][]: A one-line user provided description of the project, as HTML,
+  e.g. "`<p>A command-line tool that does cool things</p>`"
+* [ticketsTrackedBy][prop-ticketstrackedby]: The default ticket tracker to use
+  when submitting a ticket to this project (this tracker MUST be listed under
+  the project's [components][prop-components])
+* [subprojects][prop-subprojects]: A [Collection][] of the subprojects of this
+  project
+* [context][]: The parent [Project][type-project](s) to which this project
+  belongs
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "components": {
+        "type": "Collection",
+        "totalItems": 7,
+        "items": [
+            https://dev.example/repos/opengl-vegetation",
+            https://dev.example/repos/opengl-vegetation/patch-tracker",
+            https://dev.example/repos/treesim",
+            https://dev.example/repos/treesim/patch-tracker",
+            https://dev.example/repos/wanderer",
+            https://dev.example/repos/wanderer/patch-tracker",
+            https://dev.example/issue-trackers/wanderer"
+        ]
+    },
+    "subprojects": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/projects/nature-3d-models",
+            "https://dev.example/projects/wanderer-fundraising"
+        ]
+    },
+    "ticketsTrackedBy": "https://dev.example/issue-trackers/wanderer",
+
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
 }
 ```
 
@@ -502,6 +562,7 @@ Example:
 [type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
 [type-patchtracker]: /vocabulary.html#type-patchtracker
+[type-project]:    /vocabulary.html#type-project
 [type-repository]: /vocabulary.html#type-repository
 [type-ticket]:     /vocabulary.html#type-ticket
 [type-tickettracker]: /vocabulary.html#type-tickettracker
@@ -510,6 +571,7 @@ Example:
 [prop-cloneuri]:         /vocabulary.html#prop-cloneuri
 [prop-committed]:        /vocabulary.html#prop-committed
 [prop-committedby]:      /vocabulary.html#prop-committedby
+[prop-components]:       /vocabulary.html#prop-components
 [prop-description]:      /vocabulary.html#prop-description
 [prop-dependants]:       /vocabulary.html#prop-dependants
 [prop-dependencies]:     /vocabulary.html#prop-dependencies
@@ -524,6 +586,7 @@ Example:
 [prop-resolved]:         /vocabulary.html#prop-resolved
 [prop-resolvedby]:       /vocabulary.html#prop-resolvedby
 [prop-sendpatchesto]:    /vocabulary.html#prop-sendpatchesto
+[prop-subprojects]:      /vocabulary.html#prop-subprojects
 [prop-team]:             /vocabulary.html#prop-team
 [prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby
 
