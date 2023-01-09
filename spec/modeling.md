@@ -239,6 +239,110 @@ Example:
 }
 ```
 
+# Team Membership
+
+Properties:
+
+- [type][]: [Relationship][]
+- [subject][]: A [Team][type-team]
+- [relationship][]: [hasMember][prop-hasmember]
+- [object][]: A [Person][] who is a member of the `Team`
+- [tag][]: The role that the member has in the team
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/teams/mobilizon-dev-team/members/ThmsicTj",
+    "type": "Relationship",
+    "subject": "https://dev.example/teams/mobilizon-dev-team",
+    "relationship": "hasMember",
+    "object": "https://dev.example/people/celine",
+    "tag": "https://roles.example/developer"
+}
+```
+
+# Team
+
+Properties:
+
+* [type][]: ["Team"][type-team]
+* [name][]: The user-given name of the team, e.g. "Gitea Development Team"
+* [published][]: The time the team was created on the server
+* [summary][]: A one-line user provided description of the project, as HTML,
+  e.g. `"We are creating a code hosting platform"`
+* [members][prop-members]: [Collection][] of the members of this team (see
+  details in [Vocabulary specification][prop-members])
+* [subteams][prop-subteams]: Subteams of this team, i.e. teams whose members
+  (and subteams) inherit the access that this team has been granted (to
+  projects, repositories, etc.)
+- [context][]: Parent [Team][type-team]s of this team, i.e. teams from which
+  this team inherits access to projects, components and resources, e.g.
+  repositories, ticket trackers (and passes them to its [members][prop-members]
+  and inherits them to its own [subteams][prop-subteams])
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/teams/mobilizon-dev-team",
+    "type": "Team",
+    "name": "Mobilizon Development Team",
+    "summary": "We're creating a federated tool for organizing events!",
+    "members": {
+        "type": "Collection",
+        "totalItems": 3,
+        "items": [
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/alice",
+              "tag": "https://roles.example/admin"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/bob",
+              "tag": "https://roles.example/maintainer"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/celine",
+              "tag": "https://roles.example/developer"
+            }
+        ]
+    },
+    "subteams": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/teams/mobilizon-backend-team",
+            "https://dev.example/teams/mobilizon-frontend-team"
+        ]
+    },
+    "context": "https://dev.example/teams/framasoft-developers",
+
+    "publicKey": {
+        "id": "https://dev.example/teams/mobilizon-dev-team#main-key",
+        "owner": "https://dev.example/teams/mobilizon-dev-team",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/teams/mobilizon-dev-team/inbox",
+    "outbox": "https://dev.example/teams/mobilizon-dev-team/outbox",
+    "followers": "https://dev.example/teams/mobilizon-dev-team/followers"
+}
+```
+
 # Push
 
 To represent an event of [Commit][type-commit]s being pushed to a
@@ -564,6 +668,7 @@ Example:
 [type-patchtracker]: /vocabulary.html#type-patchtracker
 [type-project]:    /vocabulary.html#type-project
 [type-repository]: /vocabulary.html#type-repository
+[type-team]:       /vocabulary.html#type-team
 [type-ticket]:     /vocabulary.html#type-ticket
 [type-tickettracker]: /vocabulary.html#type-tickettracker
 
@@ -579,14 +684,17 @@ Example:
 [prop-forks]:            /vocabulary.html#prop-forks
 [prop-fulfills]:         /vocabulary.html#prop-fulfills
 [prop-hash]:             /vocabulary.html#prop-hash
+[prop-hasmember]:        /vocabulary.html#prop-hasmember
 [prop-hashafter]:        /vocabulary.html#prop-hashafter
 [prop-hashbefore]:       /vocabulary.html#prop-hashbefore
 [prop-isresolved]:       /vocabulary.html#prop-isresolved
+[prop-members]:          /vocabulary.html#prop-members
 [prop-ref]:              /vocabulary.html#prop-ref
 [prop-resolved]:         /vocabulary.html#prop-resolved
 [prop-resolvedby]:       /vocabulary.html#prop-resolvedby
 [prop-sendpatchesto]:    /vocabulary.html#prop-sendpatchesto
 [prop-subprojects]:      /vocabulary.html#prop-subprojects
+[prop-subteams]:         /vocabulary.html#prop-subteams
 [prop-team]:             /vocabulary.html#prop-team
 [prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby
 
@@ -599,6 +707,7 @@ Example:
 [Note]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
 [Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
+[Person]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 
 [actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 [attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
@@ -612,9 +721,12 @@ Example:
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 [ordereditems]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-ordereditems
 [published]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
+[relationship]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
 [replies]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
 [result]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
 [source]:       https://www.w3.org/TR/activitypub/#source-property
+[subject]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
+[tag]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tag
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 [type]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type

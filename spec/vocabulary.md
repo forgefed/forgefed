@@ -275,6 +275,75 @@ together under one title.
 }
 ```
 
+### Team {#type-team}
+
+**URI:** `https://forgefed.org/ns#Team`
+
+**Notes:** Represents a group of people working together, collaborating on
+shared resources. Each member [Person][] in the team has a defined role,
+affecting the level of access they have to the team's shared resources and to
+managing the team itself.
+
+**Extends:** [Object][]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/teams/mobilizon-dev-team",
+    "type": "Team",
+    "name": "Mobilizon Development Team",
+    "summary": "We're creating a federated tool for organizing events!",
+    "members": {
+        "type": "Collection",
+        "totalItems": 3,
+        "items": [
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/alice",
+              "tag": "https://roles.example/admin"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/bob",
+              "tag": "https://roles.example/maintainer"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/celine",
+              "tag": "https://roles.example/developer"
+            }
+        ]
+    },
+    "subteams": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/teams/mobilizon-backend-team",
+            "https://dev.example/teams/mobilizon-frontend-team"
+        ]
+    },
+    "context": "https://dev.example/teams/framasoft-developers",
+
+    "publicKey": {
+        "id": "https://dev.example/teams/mobilizon-dev-team#main-key",
+        "owner": "https://dev.example/teams/mobilizon-dev-team",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/teams/mobilizon-dev-team/inbox",
+    "outbox": "https://dev.example/teams/mobilizon-dev-team/outbox",
+    "followers": "https://dev.example/teams/mobilizon-dev-team/followers"
+}
+```
+
 ## Object Types
 
 ### Branch {#type-branch}
@@ -612,6 +681,58 @@ specification, e.g. in [Repository][model-repository]
     "followers": "https://dev.example/projects/wanderer/followers"
 }
 ```
+
+## hasMember {#prop-hasmember}
+
+**URI:** `https://forgefed.org/ns#hasMember`
+
+**Notes:** Identifier a [Person][] who is a member of this [Team](#type-team).
+
+**Domain:** [Team](#type-team)
+
+**Range:** [Person][]
+
+**Functional:** No
+
+**Inverse of:** (None)
+
+**Example:**
+
+## members {#prop-members}
+
+**URI:** `https://forgefed.org/ns#members`
+
+**Notes:** Identifies a collection of the members of this [Team](#type-team),
+represented as [hasMember](#prop-hasmember) [Relationship][]s.
+
+**Domain:** [Team](#type-team)
+
+**Range:** [Collection][] of [Relationship][]s whose [relationship][] is
+[hasMember](#prop-hasmember) and whose [subject][] is this `Team`.
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
+
+## subteams {#prop-subteams}
+
+**URI:** `https://forgefed.org/ns#subteams`
+
+**Notes:** Identifies a collection of the subteams of this [Team](#type-team),
+i.e. teams whose members inherit the access that this team's members have to
+projects and to project components (such as [Repository](#type-repository)s).
+
+**Domain:** [Team](#type-team)
+
+**Range:** [Collection][] of [Team](#type-team)s.
+
+**Functional:** Yes
+
+**Inverse of:** (None)
+
+**Example:**
 
 ## assignedTo {#prop-assignedto}
 
