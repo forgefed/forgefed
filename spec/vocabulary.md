@@ -254,13 +254,13 @@ together under one title.
         "type": "Collection",
         "totalItems": 7,
         "items": [
-            https://dev.example/repos/opengl-vegetation",
-            https://dev.example/repos/opengl-vegetation/patch-tracker",
-            https://dev.example/repos/treesim",
-            https://dev.example/repos/treesim/patch-tracker",
-            https://dev.example/repos/wanderer",
-            https://dev.example/repos/wanderer/patch-tracker",
-            https://dev.example/issue-trackers/wanderer"
+            "https://dev.example/repos/opengl-vegetation",
+            "https://dev.example/repos/opengl-vegetation/patch-tracker",
+            "https://dev.example/repos/treesim",
+            "https://dev.example/repos/treesim/patch-tracker",
+            "https://dev.example/repos/wanderer",
+            "https://dev.example/repos/wanderer/patch-tracker",
+            "https://dev.example/issue-trackers/wanderer"
         ]
     },
 
