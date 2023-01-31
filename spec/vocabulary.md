@@ -56,19 +56,49 @@ to a resource specified by [context][] under the role/permission specified by
         "https://www.w3.org/ns/activitystreams",
         "https://forgefed.org/ns"
     ],
-    "id": "https://example.dev/aviva/outbox/reBGo",
+    "id": "https://example.dev/myproject/outbox/reBGo",
     "type": "Grant",
-    "actor": "https://example.dev/aviva",
+    "actor": "https://example.dev/myproject",
     "to": [
-        "https://example.dev/aviva/followers",
-        "https://example.dev/aviva/myproject",
-        "https://example.dev/aviva/myproject/followers",
-        "https://example.dev/bob",
-        "https://example.dev/bob/followers"
+        "https://example.dev/myproject/followers",
+        "https://example.dev/users/aviva"
     ],
     "object": "https://example.dev/roles/developer",
-    "context": "https://example.dev/aviva/myproject",
-    "target": "https://example.dev/bob"
+    "context": "https://example.dev/myproject",
+    "target": "https://example.dev/users/aviva"
+}
+```
+
+### Revoke {#act-revoke}
+
+**URI:** `https://forgefed.org/ns#Revoke`
+
+**Notes:** Indicates that the [actor][] is canceling [target][]'s access to a
+resource specified by [context][] under the role specified by [instrument][],
+making the [Grant](#act-grant) activities specified by [object][] unusable
+anymore in other activities' [capability](#prop-capability) field.
+
+**Extends:** [Activity][]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/myproject/outbox/nlTxb",
+    "type": "Revoke",
+    "actor": "https://example.dev/myproject",
+    "to": [
+        "https://example.dev/myproject/followers",
+        "https://example.dev/users/aviva"
+    ],
+    "object": "https://example.dev/myproject/outbox/reBGo",
+    "instrument": "https://example.dev/roles/developer",
+    "context": "https://example.dev/myproject",
+    "target": "https://example.dev/users/aviva"
 }
 ```
 
@@ -1594,12 +1624,14 @@ repository is a "push mirror" of).
 [actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
+[instrument]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
 [items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [orderedItems]: https://www.w3.org/TR/activitystreams-core/#collections
 [relationship]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
 [source]:       https://www.w3.org/TR/activitypub/#source-property
 [subject]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject
+[target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 
 [model-project]:    /modeling.html#project
 [model-repository]: /modeling.html#repository

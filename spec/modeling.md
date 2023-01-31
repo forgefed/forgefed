@@ -530,7 +530,9 @@ Example:
 
 # Access Control
 
-## Invite
+## Giving Access
+
+### Invite
 
 To offer some actor access to a shared resource (such as a repository or a
 ticket tracker), use an ActivityPub [Invite][] activity.
@@ -572,7 +574,7 @@ Example:
 }
 ```
 
-## Join
+### Join
 
 To request access to a shared resource, use an ActivityPub [Join][] activity.
 
@@ -611,7 +613,7 @@ Example:
 }
 ```
 
-## Grant
+### Grant
 
 To give some actor access to a shared resource, use a ForgeFed
 [Grant][act-grant] activity.
@@ -658,10 +660,157 @@ Example:
 }
 ```
 
+## Canceling Access
+
+### Remove
+
+To disable an actor's membership in a shared resource, invalidating their
+access to it, use an ActivityPub [Remove][] activity.
+
+Properties:
+
+- [type][]: ["Remove"][Remove]
+- [actor][]: The actor (person, bot, etc.) that is disabling access
+  disabled
+- [object][]: The actor whose access to the resource is being taken away
+- [origin][]: The resource, access to which is being taken away (for example, a
+  repository)
+- [capability][prop-capability]: A previously published `Grant`, giving the
+  `actor` permission to disable the [object][] actor's access to the resource
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox/F941b",
+    "type": "Remove",
+    "actor": "https://dev.example/aviva",
+    "to": [
+        "https://dev.example/aviva/followers",
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "origin": "https://coding.community/repos/game-of-life",
+    "object": "https://software.site/bob",
+    "capability": "https://coding.community/repos/game-of-life/outbox/2c53A"
+}
+```
+
+### Leave
+
+To withdraw your consent for membership in a shared resource, invalidating
+your access to it, use an ActivityPub [Leave][] activity.
+
+Properties:
+
+- [type][]: ["Leave"][Leave]
+- [actor][]: The actor (person, bot, etc.) that is requesting to disable their
+  own access
+- [object][]: The resource, access to which is being disabled (for example, a
+  repository)
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/bob/outbox/d08F4",
+    "type": "Leave",
+    "actor": "https://software.site/bob",
+    "to": [
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob/followers"
+    ],
+    "object": "https://coding.community/repos/game-of-life"
+}
+```
+
+### Revoke
+
+Another activity that can be used for disabling access is [Revoke][act-revoke].
+While [Remove](#remove) and [Leave](#leave) are meant for undoing the effects
+of [Invite](#invite) and [Join](#join), `Revoke` is provided as an opposite of
+[Grant](#grant). See the Behavior specification for more information about the
+usage of these different activity types in revocation of access to shared
+resources.
+
+Properties:
+
+- [type][]: ["Revoke"][act-revoke]
+- [actor][]: The actor (person, bot, etc.) that is revoking access
+- [instrument][]: The role or permission that the [origin][] actor had with
+  respect to accessing the resource, and which is now being taken away
+- [context][]: The resource, access to which is being revoked
+- [origin][]: The actor whose access to the resource is being revoked
+- [fulfills][prop-fulfills]: An activity that triggered the sending of the
+  `Grant`, such as a related `Remove` or `Leave`
+- [object][]: specific [Grant](#grant) activities being undone, i.e. the access
+  that they granted is now disabled and it cannot be used anymore as the
+  [capability][prop-capability] of activities
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://coding.community/repos/game-of-life/outbox/1C0e2",
+    "type": "Revoke",
+    "actor": "https://coding.community/repos/game-of-life",
+    "to": [
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "context": "https://coding.community/repos/game-of-life",
+    "origin": "https://software.site/bob",
+    "object": "https://coding.community/repos/game-of-life/outbox/9fA8c"
+}
+```
+
+### Undo a Grant {#undo-grant}
+
+The Behavior spec describes flows in which the [Revoke](#revoke) activity is
+used by resources (more accurately, by the actors managing them) to announce
+that they're disabling [Grant](#grant)s that they previously sent. To allow for
+a clear distinction, another activity is provided here, for *other* actors to
+*request* the revocation of specific [Grant](#grant)s: The ActivityPub [Undo][]
+activity.
+
+It's likely that `Grant`s would exist behind-the-scenes in applications, and
+human actors would then use activities such as `Remove` and `Leave` for
+disabling access. But the ability to disable specific `Grant`s may be required
+for ensuring and maintaining system security, therefore `Undo` is provided here
+as well.
+
+Properties:
+
+- [type][]: ["Undo"][Undo]
+- [actor][]: The actor (person, bot, etc.) that is revoking access
+- [object][]: specific [Grant](#grant) activities being undone, i.e. the access
+  that they granted is now disabled and it cannot be used anymore as the
+  [capability][prop-capability] of activities
+- [capability][prop-capability]: A previously published `Grant`, giving the
+  `actor` permission to disable the [object][] actor's access to the resource
+
 [xsd:dateTime]:    https://www.w3.org/TR/xmlschema11-2/#dateTime
 
-[act-grant]: /vocabulary.html#act-grant
-[act-push]:  /vocabulary.html#act-push
+[act-grant]:  /vocabulary.html#act-grant
+[act-push]:   /vocabulary.html#act-push
+[act-revoke]: /vocabulary.html#act-revoke
 
 [type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
@@ -704,10 +853,13 @@ Example:
 [Create]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
 [Invite]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-invite
 [Join]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-join
+[Leave]:             https://www.w3.org/TR/activitystreams-vocabulary/#dfn-leave
 [Note]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
 [Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 [Person]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
+[Remove]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-remove
+[Undo]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-undo
 
 [actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 [attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
@@ -720,6 +872,7 @@ Example:
 [mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [name]:         https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 [ordereditems]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-ordereditems
+[origin]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-origin
 [published]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
 [relationship]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
 [replies]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies

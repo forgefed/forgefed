@@ -402,7 +402,9 @@ An actor that wishes to give other specific actors access to view or modify it
 (or a child object of it), SHOULD do so according to the following
 instructions.
 
-### Object capabilities using Grant activities {#s2s-grant-flow}
+### Object capabilities
+
+#### Object capabilities using Grant activities {#s2s-grant-flow}
 
 An Object Capability (or in short OCap or OCAP) is a token providing access to
 certain operations on a certain resource. An actor wishing to act on a resource
@@ -453,7 +455,45 @@ Requirements for the activity (referred below as *activity A*) sent in step 3:
       within what the *resource actor* permits for the role specified by the
       `Grant`'s [object][]
 
-### Identifying resources and their managing actors
+#### Disabling object capabilities and sending Revoke activities {#s2s-revoke}
+
+At any point after an actor *A* publishes a [Grant][model-grant] in which it
+grants some actor *B* access to a resource that actor *A* manages, actor *A*
+MAY cancel that `Grant`, deciding it's no longer a valid OCAP to use via the
+[capability][prop-capability] property of activies that actor *B* sends.
+
+If actor *A* cancels such a `Grant`, it SHOULD publish and deliver, at least to
+actor *B*, a [Revoke][act-revoke] activity notifying about the canceled
+`Grant`. In the `Revoke` activity, actor *A* MUST provide at least one of the
+following sets of properties:
+
+1. Describe the `Grant`s being canceled:
+    - [object][]: the `Grant` activities being undone, i.e. the access
+      that they granted is now disabled
+2. Describe the access being canceled:
+    - [origin][]: The actor whose access to the resource is being revoked, i.e.
+      actor *B*
+    - [instrument][]: The role or permission that the [origin][] actor had with
+      respect to accessing the resource, and which is now being taken away
+    - [context][]: The resource, access to which is being revoked
+
+Actor *A* MAY provide both sets of properties. If it does, then:
+
+- The `Revoke`'s `origin` MUST be identical to the `target` of every `Grant`
+  listed as an `object` in the `Revoke`
+- The `Revoke`'s `instrument` MUST be identical to the `object` of every
+  `Grant` listed as an `object` in the `Revoke`
+- The `Revoke`'s `context` MUST be identical to the `context` of every `Grant`
+  listed as an `object` in the `Revoke`
+
+Once actor *A* publishes the `Revoke`, it MUST from now on refuse to execute
+requests from actor *B* to access resources that actor *A* manages, coming as
+activities that specify any of the canceled `Grant`s in the `capability`
+property. If actor *A* receives such an activity from actor *B*, it SHOULD
+publish and send back a [Reject][] activity, whose [object][] specifies the
+activity that actor *B* sent.
+
+#### Identifying resources and their managing actors
 
 Some shared resources are themselves actors, and some shared resources aren't
 actors, but they are child objects of actors. When some actor *A* wishes to
@@ -472,7 +512,9 @@ Therefore any object that wishes to be specified as the [context][] of a
 [Grant][act-grant] MUST either be an actor or be [managedBy][prop-managedby] an
 actor.
 
-### Initial Grant upon resource creation
+### Granting access
+
+#### Initial Grant upon resource creation
 
 When an actor *A* requests to create a new shared resource *R*, and the
 *resource actor* approves and creates it, then the *resource actor* SHOULD send
@@ -489,7 +531,7 @@ specify the ID URI of the activity (published by actor *A*) that requested to
 create resource *R* (typically this would be an [Offer][] activity, see
 [Object Publishing and Hosting](#publishing)).
 
-### Offering access using Invite activities
+#### Offering access using Invite activities
 
 When an actor *A* wishes to offer actor *B* access to resource *R* (where the
 *resource actor* who manages *R* is neither *A* nor *B*), then actor *A* SHOULD
@@ -519,7 +561,7 @@ Actor *B* can now use the URI of that new `Grant` as the
 [capability][prop-capability] when it sends activities that access or
 manipulate resource *R*.
 
-### Requesting access using Join activities
+#### Requesting access using Join activities
 
 When an actor *A* wishes to request access to resource *R* (where the *resource
 actor* who manages *R* isn't *A*), then actor *A* SHOULD use a
@@ -606,6 +648,94 @@ d. It SHOULD publish and deliver a `Reject` activity, at least to actor *A*,
 So, once a `Join` is rejected (using an authorized `Reject`), it cannot be
 accepted. But actor *A* MAY send a new `Join`, which could then possibly get
 accepted.
+
+### Revoking access
+
+#### Taking away access using Remove activities
+
+When an actor *A* wishes to cancel the membership of another actor *B* (who
+isn't *A*) in a shared resource *R*, invalidating any active
+[Grant][model-grant]s that the *resource actor* of *R* has granted to actor
+*B*, then actor *A* SHOULD use a [Remove][] activity, and the following steps:
+
+1. Actor *A* publishes and delivers a [Remove][], at least to actor
+   *B* and to the *resource actor* of *R*, with a relevant
+   [capability][prop-capability] (see [Modeling specification][model-remove]
+   for details on the properties to use)
+2. The *resource actor* of *R* receives the `Remove` and:
+    a. Verifies the `Remove` is authorized, as described above in
+       [Object capabilities using Grant activities](#s2s-grant-flow)
+    b. Verifies that actor *B* indeed has active `Grant`s for accessing
+       resource *R*
+    c. Marks those Grants as disabled in its internal state
+    d. Publishes and delivers a [Revoke][model-revoke] activity, as described
+       above in
+       [Disabling object capabilities and sending Revoke activities](#s2s-revoke),
+       where [fulfills][prop-fulfills] specifies the `Remove`
+
+Actor *B* SHOULD no longer use the URI of any `Grant` that has been disabled as
+the [capability][prop-capability] when it sends activities that access or
+manipulate resource *R*.
+
+#### Waiving access using Leave activities
+
+When an actor *A* wishes to cancel their membership in a shared resource *R*
+(where the *resource actor* who manages *R* isn't *A*), invalidating any active
+[Grant][model-grant]s that the *resource actor* of *R* has granted to actor
+*A*, then actor *A* SHOULD use a [Leave][] activity, and the following steps:
+
+1. Actor *A* publishes and delivers a [Leave][], at least to the
+   *resource actor* of *R* (see [Modeling specification][model-leave] for
+   details on the properties to use)
+2. The *resource actor* of *R* receives the `Leave` and:
+    a. Verifies that actor *A* indeed has active `Grant`s for accessing
+       resource *R*
+    b. Marks those Grants as disabled in its internal state
+    c. Publishes and delivers a [Revoke][model-revoke] activity, as described
+       above in
+       [Disabling object capabilities and sending Revoke activities](#s2s-revoke),
+       where [fulfills][prop-fulfills] specifies the `Leave`
+
+Actor *A* SHOULD no longer use the URI of any `Grant` that has been disabled as
+the [capability][prop-capability] when it sends activities that access or
+manipulate resource *R*.
+
+#### Requesting to disable specific Grants using Undo
+
+When an actor *A* wishes to deactivate a specific [Grant][model-grant] activity
+(or multiple `Grant`s), providing access to view or manipulate some resource
+*R* (where the *resource actor* of *R* isn't *A*), then actor *A* SHOULD use an
+[Undo][] activity, and the following steps. The actor *B* to whom
+access-to-resource-*R* was given by the `Grant` may be actor *A* itself, or
+some other actor, as long as actor *A* is authorized by the *resource actor* of
+*R* to deactivate that `Grant`.
+
+NOTE: Upon a successful `Undo`, if actor *B* doesn't have any active `Grants`
+left, that allow access to resource *R*, then the *resource actor* of *R* MAY
+remove actor *B*'s membership in *R*, or it MAY consider actor *B* a member
+without access.
+
+1. Actor *A* publishes and delivers an [Undo][], at least to the
+   *resource actor* of *R* (see [Modeling specification][model-undo-grant] for
+   details on the properties to use)
+2. The *resource actor* of *R* receives the `Undo` and:
+    a. Verifies the `Undo` is authorized, as described above in
+       [Object capabilities using Grant activities](#s2s-grant-flow)
+    b. Verifies that actor *B* indeed has all the active `Grant`s for accessing
+       resource *R*, that are listed as [object][]s of the `Undo` (if more than
+       one `Grant` is listed, the [target][] of all the `Grant`s MUST be
+       identical)
+    c. Marks all of those Grants as disabled in its internal state
+    d. Publishes and delivers a [Revoke][model-revoke] activity, at least to
+       actors *A* and *B*, as described above in
+       [Disabling object capabilities and sending Revoke activities](#s2s-revoke),
+       where:
+          - [object][] MUST specify all the deactivated `Grant`s
+          - [fulfills][prop-fulfills] MUST specify the `Undo`
+
+Actor *B* SHOULD no longer use the URI of any `Grant` that has been disabled as
+the [capability][prop-capability] when it sends activities that access or
+manipulate resource *R*.
 
 ### Example
 
@@ -866,6 +996,7 @@ Celine can now use this `Grant` to access the *treesim* repo.
 
 [act-grant]:  /vocabulary.html#act-grant
 [act-push]:   /vocabulary.html#act-push
+[act-revoke]: /vocabulary.html#act-revoke
 
 [type-repository]: /vocabulary.html#type-repository
 [type-ticket]:     /vocabulary.html#type-ticket
@@ -881,15 +1012,22 @@ Celine can now use this `Grant` to access the *treesim* repo.
 [model-grant]:   /modeling.html#grant
 [model-invite]:  /modeling.html#invite
 [model-join]:    /modeling.html#join
+[model-leave]:   /modeling.html#leave
 [model-push]:    /modeling.html#push
+[model-remove]:  /modeling.html#remove
+[model-revoke]:  /modeling.html#revoke
 [model-ticket]:  /modeling.html#ticket
+[model-undo-grant]: /modeling.html#undo-grant
 
 [Accept]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
 [Create]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
 [Invite]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-invite
 [Join]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-join
+[Leave]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-leave
 [Offer]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
 [Reject]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
+[Remove]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-remove
+[Undo]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-undo
 
 [Image]:  https://www.w3.org/TR/activitystreams-vocabulary/#dfn-image
 [Note]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
@@ -903,6 +1041,7 @@ Celine can now use this `Grant` to access the *treesim* repo.
 [id]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
 [inbox]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inbox
 [instrument]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
+[origin]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-origin
 [result]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
