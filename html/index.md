@@ -2,67 +2,66 @@
 title: ForgeFed
 ---
 
-ForgeFed is an upcoming federation protocol for enabling interoperability
-between version control services. It's built as an extension to the
-[ActivityPub] protocol, allowing users of any ForgeFed-compliant service to
-interact with the repositories hosted on other instances.
+ForgeFed is a **federation protocol for software forges** and code collaboration
+tools for the software development lifecycle and ecosystem. This includes
+repository hosting websites, issue trackers, code review applications, and more.
+ForgeFed provides a common substrate for people to create interoperable code
+collaboration websites and applications.
 
-The goal of the project is to support all of the major activities connected to
-project management, including bug reports, merge requests, and notifications
-across instances.
+**Federation** means that these websites can interact, allowing the humans
+using them to interact too, despite being registered on different websites. For
+example, imagine you could host your Git repos anywhere you want, perhaps even
+your own personal website, but still be able to open issues and submit pull
+requests against other people's repos hosted elsewhere, without having to
+create accounts on those other websites!
 
+Without federation, we end up having to choose between:
 
-# Why ForgeFed?
+- Centralizing into huge profit-oriented websites, where we're powerless
+- Hosting our code on a small website where we're in control and freedom but
+  isolated from the community
 
-The current state of code collaboration is dominated by centralized, proprietary
-platforms. Free alternatives to these platforms exist (for example [NotABug] and
-[Pagure]) but they do not solve the problem of centralization.
+With federation, all the websites now communicate with each other to form
+**a network and community of collaboration** in which we're all both free and
+connected. It puts the power back into our hands to create tools and
+collaborate in ways that are aligned with human needs, powerful and safe ways
+that allow us to include everyone and that don't depend on some big company's
+policies or some website suddenly shutting down. Let's create the future
+together!
 
-This project tries to address exactly this problem. Our wish is to devise a free
-and standardized mechanism for enabling collaboration across any version control
-platform.
+## How does it work?
 
+ForgeFed is an [ActivityPub][] extension. ActivityPub is an actor-model based
+protocol for federation of web services and applications.
 
-# Project status
+It's a bit like e-mail, except the data sent is JSON objects (i.e. structured
+computer-readable data), and not only humans have inboxes where they can be
+contacted, but also repositories and issue trackers have inboxes through which
+they can be remotely and safely interacted with.
 
-The best way to keep track of our progress is to follow us on the
-[Fediverse](https://floss.social/@forgefed). Our roadmap is
-[here](https://codeberg.org/forgefed/forgefed/issues/87).
-You can join our chat using [Matrix][] or on [Libera.Chat](https://libera.chat/) at #forgefed.
+On top of ActivityPub's vocabulary (common language for websites to use for
+communicating) and protocol, ForgeFed defines new vocabulary terms related to
+repositories, commits, patches, issues, etc. and the protocol for creating and
+interacting with such objects across servers.
 
-We publish specification drafts, implement them in our reference
-implementation, and publish demos that demonstrate ForgeFed federation
-features.
+You can find more technical details in our [repository][Codeberg].
 
-*As of June 2022*: After a long period of inactivity, new people are joining
-the team and federation is being implemented in Gitea. There are also new
-projects such as ForgeFriends, which are implementing ForgeFed.
+## Project status
 
+The best way to keep track of our progress is to follow us on the [Fediverse][].
+You can also join our chat using [Matrix][] or Libera.Chat at #forgefed.
 
-# Implementations
+## Implementations
 
-- *[Vervis]* is the reference implementation of ForgeFed. It serves as a demo
-platform for testing the protocol and trying new features
-- [Gitea][] is implementing federation
-- *[mcfi]* is another command line implementation for testing the protocol
+- [Vervis][] is the reference implementation of ForgeFed. It serves as a demo
+platform for testing the protocol and new features.
+- [Forgejo][] is implementing federation.
+- Pagure has an unmaintained [ForgeFed plugin][Pagure].
 
-# Project links
-
-- [Issues tracker](https://codeberg.org/ForgeFed/ForgeFed/issues)
-- [Forum](https://socialhub.activitypub.rocks/c/software/forgefed)
-- [Funding plan](/funding-plan.html)
-- Specifications:
-    * [Behavior](/behavior.html)
-    * [Modeling](/modeling.html)
-    * [Vocabulary](/vocabulary.html)
-- <a rel="me" href="https://floss.social/@forgefed">Fediverse</a>
-
-
-[ActivityPub]:    https://www.w3.org/TR/activitypub/
-[NotABug]:        https://notabug.org
-[Pagure]:         https://pagure.io
-[Vervis]:         https://vervis.peers.community/
-[mcfi]:           https://notabug.org/zPlus/mcfi
-[ForgeFed Forum]: https://talk.feneas.org/c/forgefed
-[Gitea]:          https://gitea.io
-[Matrix]:    https://matrix.to/#/#forgefed:libera.chat
+[ActivityPub]: https://www.w3.org/TR/activitypub/
+[Codeberg]:    https://codeberg.org/ForgeFed/ForgeFed
+[Fediverse]:   https://floss.social/@forgefed
+[Matrix]:      https://matrix.to/#/#forgefed:libera.chat
+[Vervis]:      https://vervis.peers.community/
+[Forgejo]:     https://forgejo.org
+[Pagure]:      https://pagure.io/forge-fed/forge-fed
