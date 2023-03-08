@@ -541,7 +541,7 @@ Properties:
 
 - [type][]: ["Invite"][Invite]
 - [actor][]: The entity (person, bot, etc.) that is offering access
-- [instrument][]: The role or permission specifying which operations on the
+- [instrument][]: A [Role][type-role] specifying which operations on the
   resource are being allowed
 - [target][]: The resource, access to which is being given (for example, a
   repository)
@@ -582,7 +582,7 @@ Properties:
 
 - [type][]: ["Join"][Join]
 - [actor][]: The entity (person, bot, etc.) that is requesting access
-- [instrument][]: The role or permission specifying which operations on the
+- [instrument][]: A [Role][type-role] specifying which operations on the
   resource are being requested
 - [object][]: The resource, access to which is being given (for example, a
   repository)
@@ -622,7 +622,7 @@ Properties:
 
 - [type][]: ["Grant"][act-grant]
 - [actor][]: The entity (person, bot, etc.) that is giving access
-- [object][]: The role or permission specifying which operations on the
+- [object][]: A [Role][type-role] specifying which operations on the
   resource are being allowed
 - [context][]: The resource, access to which is being given (for example, a
   repository)
@@ -634,6 +634,11 @@ Properties:
   refers to the [Create][] that Alice sent)
 - [result][]: A URI that can be used later for verifying that the given access
   is still approved, thus allowing the actor granting the access to revoke it
+- [allows][prop-allows]: Modes of invocation and/or delegation that this
+  `Grant` is meant to be used for
+- [delegates][prop-delegates]: If this `Grant` is a delegation, i.e. it is
+  passing on some access that it has received, `delegates` specifies the parent
+  `Grant` that it has received and now passing on
 
 Example:
 
@@ -656,7 +661,8 @@ Example:
     "object": "https://roles.example/maintainer",
     "context": "https://coding.community/repos/game-of-life",
     "target": "https://software.site/bob",
-    "fulfills": "https://dev.example/aviva/outbox/B47d3"
+    "fulfills": "https://dev.example/aviva/outbox/B47d3",
+    "allows": "invoke"
 }
 ```
 
@@ -748,7 +754,7 @@ Properties:
 
 - [type][]: ["Revoke"][act-revoke]
 - [actor][]: The actor (person, bot, etc.) that is revoking access
-- [instrument][]: The role or permission that the [origin][] actor had with
+- [instrument][]: The [Role][type-role] that the [origin][] actor had with
   respect to accessing the resource, and which is now being taken away
 - [context][]: The resource, access to which is being revoked
 - [origin][]: The actor whose access to the resource is being revoked
@@ -817,15 +823,18 @@ Properties:
 [type-patchtracker]: /vocabulary.html#type-patchtracker
 [type-project]:    /vocabulary.html#type-project
 [type-repository]: /vocabulary.html#type-repository
+[type-role]:       /vocabulary.html#type-role
 [type-team]:       /vocabulary.html#type-team
 [type-ticket]:     /vocabulary.html#type-ticket
 [type-tickettracker]: /vocabulary.html#type-tickettracker
 
+[prop-allows]:           /vocabulary.html#prop-allows
 [prop-capability]:       /vocabulary.html#prop-capability
 [prop-cloneuri]:         /vocabulary.html#prop-cloneuri
 [prop-committed]:        /vocabulary.html#prop-committed
 [prop-committedby]:      /vocabulary.html#prop-committedby
 [prop-components]:       /vocabulary.html#prop-components
+[prop-delegates]:        /vocabulary.html#prop-delegates
 [prop-description]:      /vocabulary.html#prop-description
 [prop-dependants]:       /vocabulary.html#prop-dependants
 [prop-dependencies]:     /vocabulary.html#prop-dependencies

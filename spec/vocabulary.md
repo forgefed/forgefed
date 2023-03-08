@@ -44,7 +44,10 @@ A typical `@context` of a ForgeFed object may look like this:
 
 **Notes:** Indicates that [target][] is being given (by the [actor][]) access
 to a resource specified by [context][] under the role/permission specified by
-[object][].
+[object][]. The resource may either be a resource managed by the [actor][], in
+which case it is directly offering access-to-the-resource to the [target][], or
+it may be a resource managed by some other actor, in which case the `Grant`'s
+[actor][] is passing on (delegating) access.
 
 **Extends:** [Activity][]
 
@@ -375,6 +378,66 @@ managing the team itself.
 ```
 
 ## Object Types
+
+### CapabilityUsage {#type-usage}
+
+**URI:** `https://forgefed.org/ns#CapabilityUsage`
+
+**Notes:** Represents a mode of using a [Grant](#act-grant) as an Object
+Capability (OCAP). There are two conceptual operations for `Grant`s: Invocation
+(acting on the resource under the specified role) and Delegation (passing on
+the access to more actors, possibly with reduced privileges). A value of this
+type refers to one or both of these operations, and possibly to more specific
+conditions and restrictions on applying them.
+
+**Extends:** [Object][]
+
+**Values:** The following 3 values are provided by this specification:
+
+- gatherAndConvey
+    - URI: `https://forgefed.org/ns#gatherAndConvey`
+    - Conditions:
+        * The `Grant`'s [target][] MUST be a [Project](#type-project)
+        * It may delegate the `Grant`, allowing only `gatherAndConvey`, to
+          parent projects
+        * It may delegate the `Grant`, allowing only `distribute`, to teams to
+          which it allows to access it
+        * It may delegate the `Grant`, allowing `invoke` only, to people to
+          which it allows to access it
+- distribute
+    - URI: `https://forgefed.org/ns#distribute`
+    - Conditions:
+        * The `Grant`'s [target][] MUST be a [Team](#type-team)
+        * It may delegate the `Grant`, allowing `distribute` only, to its
+          subteams
+        * It may delegate the `Grant`, allowing `invoke` only, to its members
+- invoke
+    - URI: `https://forgefed.org/ns#invoke`
+    - Conditions:
+        * The `Grant`'s [target][] may invoke it, i.e. use it as the
+          [capability](#prop-capability) in another activity, that requests to
+          access or modify the resource specified by the `Grant`'s [context][]
+
+**Example:**
+
+### Role {#type-role}
+
+**URI:** `https://forgefed.org/ns#Role`
+
+**Notes:** Represents a role that an actor has within a [Team](#type-team), or
+a role defining the level of access an actor has to a resource.
+
+**Extends:** [Object][]
+
+**Values:** This specification currently provides 1 value of the `Role` type:
+
+- delegator
+    - URI: `https://forgefed.org/ns#delegator`
+    - Notes: Authorizes the [Grant](#act-grant) recipient (i.e. [target][]) to
+      send access delegations to the [Grant](#act-grant) sender (i.e.
+      [actor][])
+
+**Example:**
 
 ### Branch {#type-branch}
 
@@ -1425,6 +1488,27 @@ part of creating a new repository.
 
 **Example:**
 
+## allows {#prop-allows}
+
+**URI:** `https://forgefed.org/ns#allows`
+
+**Notes**: Specifies which modes of using this [Grant](#act-grant) are being
+allowd by it. The two conceptual operations that `Grant`s support are
+invocation (acting on the resource under the specified role) and delegation
+(passing on the access to more actors, possibly with reduced privileges). This
+property specifies which of these operations are supported, and under which
+conditions. See [CapabilityUsage](#type-usage) for specific values to use.
+
+**Domain:** [Grant][]
+
+**Range:** [CapabilityUsage](#type-usage)
+
+**Functional:** No
+
+**Inverse of:** None
+
+**Example:**
+
 ## capability {#prop-capability}
 
 **URI:** `https://forgefed.org/ns#capability`
@@ -1613,6 +1697,27 @@ repository is a "push mirror" of).
     }
 }
 ```
+
+## delegates {#prop-delegates}
+
+**URI:** `https://forgefed.org/ns#delegates`
+
+**Notes:** Actors can use [Grant](#act-grant) activities to allow other actors
+to access their resources. They can also allow those other actors to pass on
+(delegate) this access to even more actors. For a `Grant` that delegates access
+provided by an earlier `Grant`, the former uses `delegates` to specify the
+latter. That earlier `Grant` is also called the "parent capability" of this
+`Grant`.
+
+**Domain:** [Grant](#act-grant)
+
+**Range:** [Grant](#act-grant)
+
+**Functional:** Yes
+
+**Inverse of:** None
+
+**Example:**
 
 [Activity]:          https://www.w3.org/TR/activitystreams-vocabulary/#dfn-activity
 [Collection]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-collection
