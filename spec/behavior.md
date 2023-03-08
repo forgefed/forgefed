@@ -249,7 +249,7 @@ other mechanism), in order to guarantee the authenticity of Push activities.
 
 See [example in the modeling specification][model-push].
 
-## Opening a Ticket
+## Opening an issue
 
 The first step for opening a ticket is to determine to which actor to send the
 ticket. We'll refer to this actor as the *ticket tracker*. Given an object
@@ -345,6 +345,144 @@ which is an actor, automatically sends Luke an Accept activity:
     ],
     "object": "https://forge.example/luke/outbox/02Ljp",
     "result": "https://dev.example/aviva/game-of-life/issues/113"
+}
+```
+
+## Opening a merge request
+
+If actor *A* wishes to submit a Merge Request (MR)/Pull Request (PR)/patch
+against a [Repository][type-repository] *R*, it may do so by following these
+steps:
+
+1. Look at *R*'s [sendPatchesTo][prop-sendpatchesto] property: That is the
+   [PatchTracker][type-patchtracker] to which the MR needs to be submitted;
+   let's call it *P*
+2. Verify that *P* consents to handling MRs for repository *R* by verifying
+   that *R* is listed in *P*'s [tracksPatchesFor][prop-trackspatchesfor]
+   property
+3. Publish and deliver, at least to *P*, an [Offer][] activity in which:
+    - [actor][] is *A*
+    - [target][] is *P*
+    - [object][] is a [Ticket][type-ticket] in which:
+        * [id][] isn't specified
+        * [type][] is [Ticket][type-ticket]
+        * [attributedTo][] is *A*
+        * [summary][] is a one-line HTML-escaped plain-text title of the MR
+        * [source][] is the MR's description
+        * [content][] is an HTML rendering of the MR's description
+        * [context][], if specified, is *P*
+        * Among the [attachment][]s there's exactly one of type [Offer][], in
+          which:
+            + [type][] is [Offer][]
+            + [origin][] is the [Repository][type-repository] or
+              [Branch][type-branch] from which the proposed changes are
+              proposed to be merged into the target repository/branch
+            + [target][] is the [Repository][type-repository] or
+              [Branch][type-branch] into which the changes are proposed to be
+              merged
+            + [object][] is an [OrderedCollection][] of [Patch][type-patch]
+              objects in reverse chronological order, all of them with:
+                - the same [mediaType][]
+                - that [mediaType][] MUST match the Version Control System of
+                  the target [Repository][type-repository]
+                - [attributedTo][] MUST be *A*
+            + At least [origin][] or [object][] MUST be provided, both MAY be
+              provided
+
+Actor *P* MAY send back an [Accept][] or [Reject][]. The action that has been
+taken by *P* is indicated to actor *A* as follows:
+
+- If a [Reject][] was sent, it mean the MR has been rejected, and isn't being
+  tracked by *P*
+- If an [Accept][] was sent, it means the MR is now tracked by *P*, and its
+  [id][] is indicated by the [Accept][]'s [result][]
+
+In the following example, Luke wants to open a Merge Request against a Game Of
+Life simulation app:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/uCSW6urN",
+    "type": "Offer",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://dev.example/projects/game-of-life/pr-tracker"
+    ],
+    "cc": [
+        "https://dev.example/projects/game-of-life",
+        "https://dev.example/projects/game-of-life/followers",
+        "https://dev.example/projects/game-of-life/repo",
+        "https://dev.example/projects/game-of-life/repo/followers",
+        "https://dev.example/projects/game-of-life/pr-tracker/followers"
+    ],
+    "object": {
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "summary": "Fix the animation bug",
+        "content": "<p>Please review, thanks!</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Please review, thanks!"
+        },
+        "attachment": {
+            "type": "Offer",
+            "origin": {
+                "type": "Branch",
+                "context": "https://forge.example/luke/game-of-life",
+                "ref": "refs/heads/fix-animation-bug"
+            },
+            "target": {
+                "type": "Branch",
+                "context": "https://dev.example/projects/game-of-life/repo",
+                "ref": "refs/heads/main"
+            },
+            "object": {
+                "type": "OrderedCollection",
+                "totalItems": 1,
+                "items": [
+                    {
+                        "type": "Patch",
+                        "attributedTo": "https://forge.example/luke",
+                        "mediaType": "application/x-git-patch",
+                        "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+                    }
+                ]
+            }
+        }
+    },
+    "target": "https://dev.example/projects/game-of-life/pr-tracker"
+}
+```
+
+Luke's MR is opened automatically and the [PatchTracker][type-patchtracker]
+sends Luke an Accept activity:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/game-of-life/pr-tracker/outbox/qQfFKwJ8",
+    "type": "Accept",
+    "actor": "https://dev.example/projects/game-of-life/pr-tracker",
+    "to": [
+        "https://forge.example/luke"
+    ],
+    "cc": [
+        "https://dev.example/projects/game-of-life",
+        "https://dev.example/projects/game-of-life/followers",
+        "https://dev.example/projects/game-of-life/repo",
+        "https://dev.example/projects/game-of-life/repo/followers",
+        "https://dev.example/projects/game-of-life/pr-tracker/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/uCSW6urN",
+    "result": "https://dev.example/projects/game-of-life/pr-tracker/pulls/1219"
 }
 ```
 
@@ -1390,12 +1528,14 @@ Celine can now use this `Grant` to access the *treesim* repo.
 [act-push]:   /vocabulary.html#act-push
 [act-revoke]: /vocabulary.html#act-revoke
 
+[type-branch]:        /vocabulary.html#type-branch
+[type-patch]:         /vocabulary.html#type-patch
 [type-patchtracker]: /vocabulary.html#type-patchtracker
 [type-project]:    /vocabulary.html#type-project
 [type-repository]: /vocabulary.html#type-repository
 [type-role]:       /vocabulary.html#type-role
 [type-team]:       /vocabulary.html#type-team
-[type-ticket]:     /vocabulary.html#type-ticket
+[type-ticket]:        /vocabulary.html#type-ticket
 [type-tickettracker]: /vocabulary.html#type-tickettracker
 [type-usage]:      /vocabulary.html#type-usage
 
@@ -1405,10 +1545,12 @@ Celine can now use this `Grant` to access the *treesim* repo.
 [prop-delegates]:        /vocabulary.html#prop-delegates
 [prop-fulfills]:         /vocabulary.html#prop-fulfills
 [prop-managedby]:        /vocabulary.html#prop-managedby
+[prop-sendpatchesto]:    /vocabulary.html#prop-sendpatchesto
 [prop-subprojects]:      /vocabulary.html#prop-subprojects
 [prop-subteams]:         /vocabulary.html#prop-subteams
 [prop-team]:             /vocabulary.html#prop-team
 [prop-ticketstrackedby]: /vocabulary.html#prop-ticketstrackedby
+[prop-trackspatchesfor]: /vocabulary.html#prop-trackspatchesfor
 [prop-tracksticketsfor]: /vocabulary.html#prop-tracksticketsfor
 
 [model-comment]: /modeling.html#comment
@@ -1437,7 +1579,13 @@ Celine can now use this `Grant` to access the *treesim* repo.
 [Object]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 [Person]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 
+[Image]:             https://www.w3.org/TR/activitystreams-vocabulary/#dfn-image
+[Note]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
+[Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
+[OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
+
 [actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
+[attachment]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
 [attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
@@ -1445,8 +1593,10 @@ Celine can now use this `Grant` to access the *treesim* repo.
 [id]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
 [inbox]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inbox
 [instrument]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
+[mediaType]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 [origin]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-origin
 [result]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
+[source]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-source
 [summary]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 [target]:       https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 [to]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to

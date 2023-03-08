@@ -503,6 +503,32 @@ and pushed to a repo, resulting with a `Commit`.
 }
 ```
 
+### Patch {#type-patch}
+
+**URI:** `https://forgefed.org/ns#Patch`
+
+**Notes:** Represents a named set of changes that are being proposed for
+applying to a specific [Repository](#type-repository).
+
+**Extends:** [Object][]
+
+**Example:**
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/pulls/825/versions/1/patches/1",
+    "type": "Patch",
+    "attributedTo": "https://forge.example/luke",
+    "context": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+    "mediaType": "application/x-git-patch",
+    "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+}
+```
+
 ### TicketDependency {#type-ticketdependency}
 
 **URI:** `https://forgefed.org/ns#TicketDependency`
@@ -1331,13 +1357,14 @@ them to this tracker.
 
 **URI:** `https://forgefed.org/ns#sendPatchesTo`
 
-**Notes:** Identifies the actor which tracks patches and merge requests related
-to the given repository. This is the actor to whom you send patches and merge
-requests you'd like to open against the repository.
+**Notes:** Identifies the [PatchTracker](#type-patchtracker) which tracks
+patches and merge requests related to the given repository. This is the actor
+to whom you send patches and merge requests you'd like to open against the
+repository.
 
-**Domain:** [Repository][]
+**Domain:** [Repository](#type-repository)
 
-**Range:** [Object][] that is an actor
+**Range:** [PatchTracker](#type-patchtracker)
 
 **Functional:** Yes
 
@@ -1351,11 +1378,11 @@ requests you'd like to open against the repository.
         "https://www.w3.org/ns/activitystreams",
         "https://forgefed.org/ns"
     ],
-    "id": "https://dev.example/aviva/treesim",
+    "id": "https://dev.example/repos/treesim",
     "type": "Repository",
     "name": "Tree Growth 3D Simulation",
     "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>",
-    "sendPatchesTo": "https://bugs.example/projects/treesim"
+    "sendPatchesTo": "https://bugs.example/pr-trackers/treesim"
 }
 ```
 
@@ -1363,13 +1390,13 @@ requests you'd like to open against the repository.
 
 **URI:** `https://forgefed.org/ns#tracksPatchesFor`
 
-**Notes:** Identifies repositories for which which this patch and merge request
+**Notes:** Identifies a repository for which which this patch and merge request
 tracker tracks patches and merge requests. When you'd like to open patches or
-merge requests against those repositories, you can send them to this tracker.
+merge requests against that repository, you can send them to this tracker.
 
-**Domain:** [Object][] that is an actor
+**Domain:** [PatchTracker](#type-patchtracker)
 
-**Range:** [Repository][]
+**Range:** [Repository](#type-repository)
 
 **Functional:** No
 
@@ -1384,7 +1411,7 @@ merge requests against those repositories, you can send them to this tracker.
         "https://forgefed.org/ns"
     ],
     "id": "https://project.example/treesim",
-    "type": "Project",
+    "type": "PatchTracker",
     "tracksPatchesFor": [
         "https://dev.example/aviva/liblsystem",
         "https://dev.example/aviva/3d-tree-models",

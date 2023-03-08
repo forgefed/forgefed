@@ -85,6 +85,36 @@ Example:
 }
 ```
 
+# Patch
+
+* [type][]: ["Patch"][type-patch]
+* [attributedTo][]: The [Person][] who has written the patch
+* [context][]: An [OrderedCollection][] representing a sequence of patches,
+  being submitted together as a proposed change to a certain
+  [Repository][type-repository], and this patch is an item in that collection
+* [content][]: A description of the changes that this patch proposes, encoded
+  in the format specified by [mediaType][]
+* [mediaType][]: A native patch format used by the Version Control System of
+  the [Repository][type-repository] to which the patch is proposed, and in
+  which the [content][] of this patch is encoded
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/pulls/825/versions/1/patches/1",
+    "type": "Patch",
+    "attributedTo": "https://forge.example/luke",
+    "context": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+    "mediaType": "application/x-git-patch",
+    "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+}
+```
+
 # Branch
 
 To represent a repository branch, use the ForgeFed [Branch][type-branch] type.
@@ -457,6 +487,29 @@ Properties:
   the ticket as resolved, or which activity did so
 - [resolved][prop-resolved]: When the ticket has been marked as resolved
 
+There's an important distinction between these two kinds of tickets:
+
+- Task: A work item which tracks some task to be done, in which the task and
+  its results are described in text, but the work itself is done elsewhere.
+  This is often called "issue" in software project hosting platforms. Tasks
+  are general-purpose work items that aren't specific to software development
+  or software projects.
+- Merge request: A work item that includes a proposal or request to apply some
+  specific changes to a specific [Repository][type-repository]. The work
+  requested by the work item is to review and (decide whether to) merge the
+  proposed patches to the repository. This kind of work item is often called
+  "Pull Request" or "Merge Request" on software project hosting platforms.
+
+## Task / Issue
+
+A task is represented as a [Ticket](#ticket) as described above, with the
+following additional requirements:
+
+- [context][] is the [TicketTracker][type-tickettracker] to which this task
+  belongs
+- There is no [attachment][] of type [Offer][] (but there may be attachment of
+  other types)
+
 Example:
 
 ```json
@@ -486,6 +539,90 @@ Example:
     "isResolved": true,
     "resolvedBy": "https://code.example/martin",
     "resolved": "2020-02-07T06:45:03.281314Z"
+}
+```
+
+## Merge Request / Pull Request
+
+A merge request is represented as a [Ticket](#ticket) as described above, with
+the following additional requirements:
+
+- [context][] is the [PatchTracker][type-patchtracker] to which this merge
+  request belongs
+- There is no [attachment][] of type [Offer][] (but there may be attachment of
+  other types)
+- There is exactly one [attachment][] of type [Offer][], as described below
+- There MAY be more [attachment][]s, but they MUST NOT be of type [Offer][]
+
+In that special [attachment][] of type [Offer][]:
+
+- [type][] is [Offer][]
+- [origin][] is the [Repository][type-repository] or [Branch][type-branch] from
+  which the proposed changes are proposed to be merged into the target
+  repository/branch
+- [target][] is the [Repository][type-repository] or [Branch][type-branch] into
+  which the changes are proposed to be merged
+- [object][] is an [OrderedCollection][] of [Patch][type-patch]es in reverse
+  chronological order, in which, in addition to standard [OrderedCollection][]
+  properties:
+    - [context][] is (the [id][] of) the [Ticket](#ticket)
+    - [previousVersions][prop-previousversions] is a list of previous versions
+      of the merge request's proposed changes, i.e. previous versions of this
+      [OrderedCollection][]; each of those uses
+      [currentVersion][prop-currentversion] to point back to this latest
+      version
+
+Example:
+
+```json
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/pulls/825",
+    "type": "Ticket",
+    "context": "https://dev.example/aviva/game-of-life",
+    "attributedTo": "https://forge.example/luke",
+    "summary": "Fix the empty window title bug",
+    "content": "<p>This fixes the bug making the title disappear</p>",
+    "mediaType": "text/html",
+    "source": {
+        "mediaType": "text/markdown; variant=Commonmark",
+        "content": "This fixes the bug making the title disappear",
+    },
+    "published": "2022-09-15T14:52:00.125987Z",
+    "followers": "https://dev.example/aviva/game-of-life/pulls/825/followers",
+    "replies": "https://dev.example/aviva/game-of-life/pulls/825/discussion",
+    "isResolved": false,
+    "attachment": {
+        "type": "Offer",
+        "origin": {
+            "type": "Branch",
+            "context": "https://forge.example/luke/game-of-life",
+            "ref": "refs/heads/fix-title-bug"
+        },
+        "target": {
+            "type": "Branch",
+            "context": "https://dev.example/aviva/game-of-life",
+            "ref": "refs/heads/main"
+        },
+        "object": {
+            "id": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+            "type": "OrderedCollection",
+            "totalItems": 1,
+            "items": [
+                {
+                    "type": "Patch",
+                    "attributedTo": "https://forge.example/luke",
+                    "context": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+                    "mediaType": "application/x-git-patch",
+                    "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+                }
+            ],
+            "context": "https://dev.example/aviva/game-of-life/pulls/825"
+        }
+    }
 }
 ```
 
@@ -820,6 +957,7 @@ Properties:
 
 [type-branch]:     /vocabulary.html#type-branch
 [type-commit]:     /vocabulary.html#type-commit
+[type-patch]:      /vocabulary.html#type-patch
 [type-patchtracker]: /vocabulary.html#type-patchtracker
 [type-project]:    /vocabulary.html#type-project
 [type-repository]: /vocabulary.html#type-repository
@@ -834,6 +972,7 @@ Properties:
 [prop-committed]:        /vocabulary.html#prop-committed
 [prop-committedby]:      /vocabulary.html#prop-committedby
 [prop-components]:       /vocabulary.html#prop-components
+[prop-currentversion]:   /vocabulary.html#prop-currentversion
 [prop-delegates]:        /vocabulary.html#prop-delegates
 [prop-description]:      /vocabulary.html#prop-description
 [prop-dependants]:       /vocabulary.html#prop-dependants
@@ -847,6 +986,7 @@ Properties:
 [prop-hashbefore]:       /vocabulary.html#prop-hashbefore
 [prop-isresolved]:       /vocabulary.html#prop-isresolved
 [prop-members]:          /vocabulary.html#prop-members
+[prop-previousversions]: /vocabulary.html#prop-previousversions
 [prop-ref]:              /vocabulary.html#prop-ref
 [prop-resolved]:         /vocabulary.html#prop-resolved
 [prop-resolvedby]:       /vocabulary.html#prop-resolvedby
@@ -866,14 +1006,17 @@ Properties:
 [Note]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 [OrderedCollection]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-orderedcollection
 [Object]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
+[Offer]:             https://www.w3.org/TR/activitystreams-vocabulary/#dfn-offer
 [Person]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
 [Remove]:            https://www.w3.org/TR/activitystreams-vocabulary/#dfn-remove
 [Undo]:              https://www.w3.org/TR/activitystreams-vocabulary/#dfn-undo
 
 [actor]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
+[attachment]:   https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
 [attributedTo]: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
 [content]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 [context]:      https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
+[id]:           https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
 [items]:        https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 [followers]:    https://www.w3.org/TR/activitypub/#followers
 [inReplyTo]:    https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
