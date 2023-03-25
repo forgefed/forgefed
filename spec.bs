@@ -74,7 +74,7 @@ inputs and outputs of behavior descriptions there are defined here in the
 **modeling specification**.
 
 **The ForgeFed behavior specification** is a set of instructions for
-representing version control system and project management related transactions
+representing version control systems and project management related transactions
 using ActivityPub activity objects, and it describes the side effects and
 expected results of sending and receiving these activities. The vocabulary for
 these activities includes standard ActivityPub terms, new terms defined by
@@ -87,8 +87,8 @@ forge federation.
 
 The ForgeFed modeling specification defines rules for representing forge
 related objects as ActivityPub JSON-LD objects, and these objects are used in
-the **behavior specification**, included in activities or mentioned in
-activities or modified due to activity side-effects.
+the **behavior specification**, included in activities, mentioned in
+activities, or modified as a result of activity side-effects.
 
 # Objects
 
@@ -109,37 +109,37 @@ outboxes.
 There are 4 kinds of objects in ForgeFed:
 
 : Activities
-::  These are objects that describe actions (actions that happened,
-    or actions that are happening, or a request to perform an action), and
-    their primary use is for S2S interaction between actors, by being sent to
-    an actor's inbox, and C2S interaction between a person or a program and
-    actor they control, by being sent to the actor's outbox. Activities can
-    also appear or be linked inside other objects and activities and be listed
-    in Collections.
+::  These are objects that describe actions, such as actions that
+    happened, actions that are happening, or a request to perform an action.
+    Their primary use is for server-to-server interaction between actors by
+    being sent to an actor's inbox, and client-to-server interaction between a
+    person or program and an actor they control by being sent to the actor's
+    outbox. Activities can also appear or be linked inside other objects and
+    activities and be listed in Collections.
 
 : Actors
 ::  These are static persistent objects that have an [=inbox=] and can be
     directly interacted with by POSTing activities to it. Their primary use is
     to contain or represent information and output of user actions or program
-    actions, and to manage access this information and to modification of it.
+    actions, and to manage access to this information and modifications of it.
 
 : Child objects
-::  These are persistent objects which, like actors, contain or
+::  These are persistent objects that, like actors, contain or
     represent information and output of user actions or program actions, but
-    they don't have their own [=inbox=] and aren't directly interacted with. A
-    managed static object always has a parent object, which is an actor, and
+    they do not have their own [=inbox=] and are not directly interacted with.
+    A managed static object always has a parent object, which is an actor, and
     that actor's inbox is the way to interact with the child object. The parent
     actor manages access and modification of the child object.
 
 : Global helper objects
-::  These are objects that don't belong to any actor and
-    don't need any interaction through activities. As such, they don't exactly
-    fit into the actor model, but may be involved in implementation details and
-    practical considerations.
+::  These are objects that do not belong to any actor and do not need any
+    interaction through activities. As such, they do not exactly fit into the
+    actor model, but may be involved in implementation details and practical
+    considerations.
 
-Actors, children and globals are referred in ForgeFed as the *static* objects,
-while activities are the *dynamic* objects (the terms *constant* and *variable*
-are used for stating whether an object changes during its lifetime or not).
+Actors, children, and globals are referred to in ForgeFed as *static* objects,
+while activities are *dynamic* objects. The terms *constant* and *variable*
+are used to indicate whether an object changes during its lifetime or not.
 
 *Static* objects, in addition to being an actor or child or global, also have a
 resource/helper distinction:
@@ -157,10 +157,10 @@ resource/helper distinction:
 
 ## Object Publishing and Hosting ## {#publishing}
 
-In ForgeFed, actors host their child objects locally, i.e. the actor and the
-child object are hosted on the same instance. Actors may create remote objects
-by *offering* them to the relevant actor, which then may create the object on
-their side and assign it a URI.
+In ForgeFed, actors host their child objects locally, meaning the actor and the
+child object are hosted on the same instance. Actors may create remote objects by
+*offering* them to the relevant actor, which then may create the object on their
+side and assign it a URI.
 
 The process begins with an [=Offer=] activity, in which:
 
@@ -171,12 +171,12 @@ The process begins with an [=Offer=] activity, in which:
     itself)
 
 Among the recipients listed in the [=Offer=]'s recipient fields, exactly one
-recipient is the actor who's responsible for inspecting and possibly publishing
-the newly object, and possibly sending back an [=Accept=] or a [=Reject=].
-We'll refer to this actor as the *target actor*. Specific object types
-described throughout this specification have a specific meaning for the *target
-actor*, which processing and inspection it is expected to do, and where it is
-expected to list the URI of the object once it publishes it.
+recipient is the actor who is responsible for inspecting and possibly publishing
+the newly created object, and possibly sending back an [=Accept=] or a [=Reject=].
+We'll refer to this actor as the *target actor*. Specific object types described
+throughout this specification have a specific meaning for the *target actor*,
+which processing and inspection it is expected to do, and where it is expected
+to list the URI of the object once it publishes it.
 
 The sender is essentially asking that the target actor hosts the object as a
 child object and assigns is a URI, allowing to observe and interact with the
