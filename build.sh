@@ -5,8 +5,6 @@ set -e
 # Fixes pandoc mangling emojis
 export LANG=C.UTF-8
 
-inputs="behavior modeling vocabulary"
-
 git_branch=`git rev-parse --abbrev-ref HEAD`
 
 git_commit_id=`git rev-parse HEAD`
@@ -67,6 +65,8 @@ render html index "false"
 
 render html funding-plan "false"
 
-for file in $inputs; do
-    render spec $file "true"
-done
+mkdir -p html/spec
+bikeshed spec "spec.bs" "html/spec/index.html" \
+    --md-text-macro="GITBRANCH $git_branch" \
+    --md-text-macro="GITCOMMIT $git_commit_id" \
+    --md-text-macro="GITSHORT $git_commit_id_short"

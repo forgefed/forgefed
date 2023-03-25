@@ -1,0 +1,4572 @@
+<pre class='metadata'>
+Status: LS-BRANCH
+Group: ForgeFed Working Group
+Editor: Alice Doe, MyCoolCompany https://mycoolcompany.com/home, https://alicedoe.me/about
+Editor: Bob Doe, SomeOrg https://some.org, https://home.net/bob
+Favicon: /img/favicon.png
+Logo: /img/logo.svg
+Status Text: Work in progress
+Issue Tracking: Codeberg https://codeberg.org/forgefed/forgefed/issues
+Issue Tracker Template: https://codeberg.org/forgefed/forgefed/issues/{0}
+Indent: 4
+Work Status: exploring
+Repository: https://codeberg.org/forgefed/forgefed forgefed
+Line Numbers: yes
+Markup Shorthands: markdown yes, css no, http no, idl no, markup no
+Title: ForgeFed
+Shortname: forgefed
+URL: https://forgefed.org/spec
+Revision: 1
+Abstract:
+    This document describes the ForgeFed vocabulary. It's intended to be an
+    extension of [[ActivityStreams-Vocabulary]] and provides additional
+    vocabulary for federation of project management and version control system
+    hosting and collaboration platforms.
+
+    This document describes the rules and guidelines for representing version
+    control and project management related objects as linked data, using the
+    ForgeFed vocabulary, ActivityStreams 2, and other related vocabularies.
+
+    This document provides instructions for using ActivityPub activities and
+    properties to represent forge events, and describes the side-effects these
+    activities should have. 
+</pre>
+
+Issue: (fr33) In the abstract I just pasted the 3 abstracts of the separate
+specs. Write something new, probably with inspiration from existing specs such
+as ActivityPub.
+
+This draft is generated from branch <code>[GITBRANCH]</code>, commit
+<a href="https://codeberg.org/ForgeFed/ForgeFed/commit/[GITCOMMIT]">[GITSHORT]</a>.
+
+# Introduction # {#intro}
+
+Note: The spec is still under construction. Want to start implementing? Check
+out the ActivityPub implementation guide, and then the [[#s2s]] section here.
+
+Issue: Below are the 3 intro texts from the 3 specs. We probably want to
+replace them with a human-friendly tutorial-like example, like in the
+ActivityPub spec.
+
+The ForgeFed Vocabulary describes a set of types and properties to be used by
+platforms that support the ForgeFed protocol. This specification describes only
+the new vocabulary called ForgeFed. The ForgeFed behavior specification
+describes how to use this vocabulary, along with standard ActivityPub
+vocabulary, to support the ForgeFed protocol.
+
+**The ForgeFed modeling specification** is a set of rules and guidelines which
+describe version control repository and project management related objects and
+properties, and specify how to represent them as JSON-LD objects (and linked
+data in general) using the ForgeFed vocabulary and related vocabularies and
+ontologies. Using these modeling rules consistently across implementations and
+instances allows to have a common language spoken across networks of software
+forges, project management apps and more.
+
+The ForgeFed vocabulary specification defines a dedicated vocabulary of
+forge-related terms, and the **modeling specification** uses these terms, along
+with terms that already exist in ActivityPub or elsewhere and can be reused for
+forge federation.
+
+The ForgeFed behavior specification provides instructions for using Activities,
+and which Activities and properties to use, to represent forge events, and
+describes the side-effects these Activities should have. The objects used as
+inputs and outputs of behavior descriptions there are defined here in the
+**modeling specification**.
+
+**The ForgeFed behavior specification** is a set of instructions for
+representing version control system and project management related transactions
+using ActivityPub activity objects, and it describes the side effects and
+expected results of sending and receiving these activities. The vocabulary for
+these activities includes standard ActivityPub terms, new terms defined by
+ForgeFed, and terms borrowed from other external vocabularies.
+
+The ForgeFed vocabulary specification defines a dedicated vocabulary of
+forge-related terms, and the **behavior specification** uses these terms, along
+with terms that already exist in ActivityPub or elsewhere and can be reused for
+forge federation.
+
+The ForgeFed modeling specification defines rules for representing forge
+related objects as ActivityPub JSON-LD objects, and these objects are used in
+the **behavior specification**, included in activities or mentioned in
+activities or modified due to activity side-effects.
+
+# Objects
+
+## Kinds of Objects
+
+Objects are the core concept around which both ActivityPub and ForgeFed are
+built. Examples of Objects are [=Note=], [=Ticket=], [=Image=],
+[=Create=], [=Push=]. Some objects are resources, which are objects that
+contain or represent information and user made or program made content, and
+some objects are helpers that exist as implementation detail aren't necessarily
+exposed to humans or are useful to humans. But everything is an [=Object=],
+represented as compacted JSON-LD.
+
+ForgeFed is an ActivityPub extension, and communication between ForgeFed
+implementations occurs using activity objects sent to actor inboxes and
+outboxes.
+
+There are 4 kinds of objects in ForgeFed:
+
+: Activities
+::  These are objects that describe actions (actions that happened,
+    or actions that are happening, or a request to perform an action), and
+    their primary use is for S2S interaction between actors, by being sent to
+    an actor's inbox, and C2S interaction between a person or a program and
+    actor they control, by being sent to the actor's outbox. Activities can
+    also appear or be linked inside other objects and activities and be listed
+    in Collections.
+
+: Actors
+::  These are static persistent objects that have an [=inbox=] and can be
+    directly interacted with by POSTing activities to it. Their primary use is
+    to contain or represent information and output of user actions or program
+    actions, and to manage access this information and to modification of it.
+
+: Child objects
+::  These are persistent objects which, like actors, contain or
+    represent information and output of user actions or program actions, but
+    they don't have their own [=inbox=] and aren't directly interacted with. A
+    managed static object always has a parent object, which is an actor, and
+    that actor's inbox is the way to interact with the child object. The parent
+    actor manages access and modification of the child object.
+
+: Global helper objects
+::  These are objects that don't belong to any actor and
+    don't need any interaction through activities. As such, they don't exactly
+    fit into the actor model, but may be involved in implementation details and
+    practical considerations.
+
+Actors, children and globals are referred in ForgeFed as the *static* objects,
+while activities are the *dynamic* objects (the terms *constant* and *variable*
+are used for stating whether an object changes during its lifetime or not).
+
+*Static* objects, in addition to being an actor or child or global, also have a
+resource/helper distinction:
+
+: Resource
+::  Contains or represents information and user made or program made
+    content, usually belongs to the domain model of version control systems and
+    project management.
+
+: Helper
+::  Used for running things behind the scenes, not exposed directly as
+    user content, may be transient or auto generated, usually related to
+    implementation detail and not to concepts of version control and project
+    management.
+
+## Object Publishing and Hosting ## {#publishing}
+
+In ForgeFed, actors host their child objects locally, i.e. the actor and the
+child object are hosted on the same instance. Actors may create remote objects
+by *offering* them to the relevant actor, which then may create the object on
+their side and assign it a URI.
+
+The process begins with an [=Offer=] activity, in which:
+
+-   [=object=] MUST be the object being offered for publishing, and that object
+    MUST NOT have an [=id=]
+-   [=target=] MUST indicate under which list/collection/context the sender would
+    like the object to be published (it may also be the URI of the target actor
+    itself)
+
+Among the recipients listed in the [=Offer=]'s recipient fields, exactly one
+recipient is the actor who's responsible for inspecting and possibly publishing
+the newly object, and possibly sending back an [=Accept=] or a [=Reject=].
+We'll refer to this actor as the *target actor*. Specific object types
+described throughout this specification have a specific meaning for the *target
+actor*, which processing and inspection it is expected to do, and where it is
+expected to list the URI of the object once it publishes it.
+
+The sender is essentially asking that the target actor hosts the object as a
+child object and assigns is a URI, allowing to observe and interact with the
+object. The target actor will be responsible for hosting and controlling the
+object, and the sender will just be mentioned as the author.
+
+When an actor *A* receives the [=Offer=] activity, they can determine whether
+they're the *target actor* as follows: If the [=target=] is *A* or a child
+object of *A*, then *A* is the *target actor*. Otherwise, *A* isn't the target
+actor.
+
+In the following example, Luke wants to open a ticket under Aviva's Game Of
+Life simulation app:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/02Ljp",
+    "type": "Offer",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": {
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "summary": "Test test test",
+        "content": "<p>Just testing</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Just testing"
+        }
+    },
+    "target": "https://dev.example/aviva/game-of-life"
+}
+</xmp>
+</div>
+
+The *target actor* SHOULD send an [=Accept=] or a [=Reject=] activity to the
+Offer's author in response. If the *target actor* sends an Accept, it MUST
+host its own copy, assigning an [=id=] to the newly published object and adding
+it to the expected list specified by the [=Offer=]'s [=target=].
+
+If the *target actor* sends a [=Reject=], it MUST NOT add the object's [=id=]
+to that list. However if the *target actor* doesn't make any use of the
+object, it MAY choose not to send a Reject, e.g. to protect user privacy. The
+`Accept` or `Reject` may also be delayed, e.g. until review by a human user;
+that is implementation dependent, and implementations should not rely on an
+instant response.
+
+In the [=Accept=] activity:
+
+-   [=object=] MUST be the Offer activity or its [=id=]
+-   [=result=] MUST be specified and be the [=id=] of the new child object now
+    hosted by the *target actor*, which is extracted from the [=Offer=]'s
+    [=object=]
+
+In the following example, Luke's ticket is opened automatically and Aviva's
+Game Of Life repository, which is an actor, automatically sends Luke an Accept
+activity:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/outbox/096al",
+    "type": "Accept",
+    "actor": "https://dev.example/aviva/game-of-life",
+    "to": [
+        "https://forge.example/luke",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/02Ljp",
+    "result": "https://dev.example/aviva/game-of-life/issues/113"
+}
+</xmp>
+</div>
+
+# Server to Server Interactions # {#s2s}
+
+Issue: This section describes the whole flow of actor interactions, that allows
+the federated implementation of the various features of forges and related
+software. It provides a complete picture of interaction flows, which the actor
+API section can't, because it focuses on a single actor type at a time.
+
+## Reporting Pushed Commits
+
+The ForgeFed [=Push=] activity can be used for representing an action
+of pushing commits into a [=Repository=]. Two actors are
+involved in the process, the *pusher* (usually a person) and the *repository*,
+and they may be hosted on different instances. We therefore refer to 2 kinds of
+pushes:
+
+1.  *Local Push*: The pusher and the repository are hosted on the same instance
+    (that's the only case in centralized non-federated forges)
+2.  *Federated Push*: The pusher and the repository are hosted on different
+    instances (that's unique to federated forges)
+
+At this time, the representation of *Federated Push* isn't provided yet. Below
+we discuss *Local Push*.
+
+Upon a successful push, a ForgeFed implementation that publishes a Push
+activity MUST provide the [=type=], [=actor=], [=context=] and [=target=]
+properties as described in [[#Push]]. If the
+Push activity's recipient fields list collections that belong to the
+repository, such as its [=followers=] and [=team=], the repository
+MUST verify the authenticity and correctness of the Push activity's fields
+before it performs inbox forwarding (i.e. delivery to the members of those
+collections), and MUST NOT perform inbox delivery if the correctness check
+doesn't pass.
+
+In a *Local Push*, if the Push activity is generated on the server, that
+obviates the need to perform correctness checking. Implementations MAY forbid
+clients from publishing Push activities (via the ActivityPub C2S API or any
+other mechanism), in order to guarantee the authenticity of Push activities.
+
+See example in [[#Push]].
+
+## Opening an issue
+
+The first step for opening a ticket is to determine to which actor to send the
+ticket. We'll refer to this actor as the *ticket tracker*. Given an object
+*obj* against which you'd like to open a ticket (e.g. some application's source
+code repository), look at the [=ticketsTrackedBy=]
+property of *obj*.
+
+-   If `ticketsTrackedBy` isn't specified, then *obj* does't declare a way to
+    open tickets via ForgeFed.
+-   If `ticketsTrackedBy` is specified and is set to the [=id=] of *obj*
+    itself, that means *obj* manages its own tickets, i.e. it is the *ticket
+    tracker* to which you'll send the ticket.
+-   If `ticketsTrackedBy` is specified and is set to some other object, look at
+    the [=tracksTicketsFor=] property of that other object.  If the [=id=] of
+    *obj* is listed there under `tracksTicketsFor`, then that other object is
+    the *ticket tracker* to which you'll send the ticket.  Implementations
+    SHOULD verify this bidirectional reference between the object and the
+    tracker, and SHOULD NOT send a ticket if the bidirectional reference isn't
+    found.
+
+Now that we've determined the *ticket tracker*, i.e. the actor to whom we'll
+send the [=Ticket=], the ticket may be opened using an [=Offer=]
+activity in which:
+
+-   [=object=] is the ticket to be opened, it's a [=Ticket=] object with fields
+    as described in [[#Ticket]]. It MUST specify at least [=attributedTo=],
+    [=summary=] and [=content=], and MUST NOT specify [=id=]. If it specifies a
+    [=context=], then it MUST be identical the Offer's [=target=] described
+    below.
+-   [=target=] is the ticket tracker to which the actor is offering the Ticket
+    (e.g. a repository or project etc. under which the ticket will be opened if
+    accepted). It MUST be either an actor or a child object. If it's a child
+    object, the actor to whom the child object belongs MUST be listed as a
+    recipient in the Offer's [=to=] field. If it's an actor, then that actor
+    MUST be listed in the `to` field.
+
+The *target actor* MAY then send back an Accept or Reject. The action that has
+been taken by the *target actor* is indicated to the ticket author as follows:
+
+-   If a [=Reject=] was sent, it means the ticket hasn't been assigned an
+    [=id=] URI by the tracker and isn't being tracked by the tracker
+-   If an [=Accept=] was sent, it means the ticket is now tracked and hosted on
+    the target's side
+
+In the following example, Luke wants to open a ticket under Aviva's Game Of
+Life simulation app:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/02Ljp",
+    "type": "Offer",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": {
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "summary": "Test test test",
+        "content": "<p>Just testing</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Just testing"
+        }
+    },
+    "target": "https://dev.example/aviva/game-of-life"
+}
+</xmp>
+</div>
+
+Luke's ticket is opened automatically and Aviva's Game Of Life repository,
+which is an actor, automatically sends Luke an Accept activity:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/outbox/096al",
+    "type": "Accept",
+    "actor": "https://dev.example/aviva/game-of-life",
+    "to": [
+        "https://forge.example/luke",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/02Ljp",
+    "result": "https://dev.example/aviva/game-of-life/issues/113"
+}
+</xmp>
+</div>
+
+## Opening a merge request
+
+If actor *A* wishes to submit a Merge Request (MR)/Pull Request (PR)/patch
+against a [=Repository=] *R*, it may do so by following these
+steps:
+
+1.  Look at *R*'s [=sendPatchesTo=] property: That is the [=PatchTracker=] to
+    which the MR needs to be submitted; let's call it *P*
+2.  Verify that *P* consents to handling MRs for repository *R* by verifying
+    that *R* is listed in *P*'s [=tracksPatchesFor=] property
+3.  Publish and deliver, at least to *P*, an [=Offer=] activity in which:
+    - [=actor=] is *A*
+    - [=target=] is *P*
+    - [=object=] is a [=Ticket=] in which:
+        * [=id=] isn't specified
+        * [=type=] is [=Ticket=]
+        * [=attributedTo=] is *A*
+        * [=summary=] is a one-line HTML-escaped plain-text title of the MR
+        * [=source=] is the MR's description
+        * [=content=] is an HTML rendering of the MR's description
+        * [=context=], if specified, is *P*
+        *   Among the [=attachment=]s there's exactly one of type [=Offer=], in
+            which:
+            +   [=type=] is [=Offer=]
+            +   [=origin=] is the [=Repository=] or [=Branch=] from which the
+                proposed changes are proposed to be merged into the target
+                repository/branch
+            +   [=target=] is the [=Repository=] or [=Branch=] into which the
+                changes are proposed to be merged
+            +   [=object=] is an [=OrderedCollection=] of [=Patch=] objects in
+                reverse chronological order, all of them with:
+                -   the same [=mediaType=]
+                -   that [=mediaType=] MUST match the Version Control System of
+                    the target [=Repository=]
+                -   [=attributedTo=] MUST be *A*
+            +   At least [=origin=] or [=object=] MUST be provided, both MAY be
+                provided
+
+Actor *P* MAY send back an [=Accept=] or [=Reject=]. The action that has been
+taken by *P* is indicated to actor *A* as follows:
+
+-   If a [=Reject=] was sent, it mean the MR has been rejected, and isn't being
+    tracked by *P*
+-   If an [=Accept=] was sent, it means the MR is now tracked by *P*, and its
+    [=id=] is indicated by the [=Accept=]'s [=result=]
+
+In the following example, Luke wants to open a Merge Request against a Game Of
+Life simulation app:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.example/luke/outbox/uCSW6urN",
+    "type": "Offer",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://dev.example/projects/game-of-life/pr-tracker"
+    ],
+    "cc": [
+        "https://dev.example/projects/game-of-life",
+        "https://dev.example/projects/game-of-life/followers",
+        "https://dev.example/projects/game-of-life/repo",
+        "https://dev.example/projects/game-of-life/repo/followers",
+        "https://dev.example/projects/game-of-life/pr-tracker/followers"
+    ],
+    "object": {
+        "type": "Ticket",
+        "attributedTo": "https://forge.example/luke",
+        "summary": "Fix the animation bug",
+        "content": "<p>Please review, thanks!</p>",
+        "mediaType": "text/html",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Please review, thanks!"
+        },
+        "attachment": {
+            "type": "Offer",
+            "origin": {
+                "type": "Branch",
+                "context": "https://forge.example/luke/game-of-life",
+                "ref": "refs/heads/fix-animation-bug"
+            },
+            "target": {
+                "type": "Branch",
+                "context": "https://dev.example/projects/game-of-life/repo",
+                "ref": "refs/heads/main"
+            },
+            "object": {
+                "type": "OrderedCollection",
+                "totalItems": 1,
+                "items": [
+                    {
+                        "type": "Patch",
+                        "attributedTo": "https://forge.example/luke",
+                        "mediaType": "application/x-git-patch",
+                        "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+                    }
+                ]
+            }
+        }
+    },
+    "target": "https://dev.example/projects/game-of-life/pr-tracker"
+}
+</xmp>
+</div>
+
+Luke's MR is opened automatically and the [=PatchTracker=]
+sends Luke an Accept activity:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/game-of-life/pr-tracker/outbox/qQfFKwJ8",
+    "type": "Accept",
+    "actor": "https://dev.example/projects/game-of-life/pr-tracker",
+    "to": [
+        "https://forge.example/luke"
+    ],
+    "cc": [
+        "https://dev.example/projects/game-of-life",
+        "https://dev.example/projects/game-of-life/followers",
+        "https://dev.example/projects/game-of-life/repo",
+        "https://dev.example/projects/game-of-life/repo/followers",
+        "https://dev.example/projects/game-of-life/pr-tracker/followers"
+    ],
+    "object": "https://forge.example/luke/outbox/uCSW6urN",
+    "result": "https://dev.example/projects/game-of-life/pr-tracker/pulls/1219"
+}
+</xmp>
+</div>
+
+## Commenting
+
+A comment on a ForgeFed resource object (such as tickets, merge requests) MUST
+be published as a [=Create=] activity, in which [=object=] is a [=Note=] with
+fields as described in [[#Comment]].
+
+In the following example, Luke replies to Aviva's comment under a merge request
+he submitted earlier against her Game Of Life simulation app repository:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://forge.example/luke/outbox/rLaYo",
+    "type": "Create",
+    "actor": "https://forge.example/luke",
+    "to": [
+        "https://forge.example/luke/followers",
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/followers",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/merge-requests/19/followers",
+        "https://dev.example/aviva/game-of-life/merge-requests/19/team"
+    ],
+    "object": {
+        "id": "https://forge.example/luke/comments/rD05r",
+        "type": "Note",
+        "attributedTo": "https://forge.example/luke",
+        "to": [
+            "https://forge.example/luke/followers",
+            "https://dev.example/aviva/game-of-life",
+            "https://dev.example/aviva/game-of-life/followers",
+            "https://dev.example/aviva/game-of-life/team",
+            "https://dev.example/aviva/game-of-life/merge-requests/19/followers",
+            "https://dev.example/aviva/game-of-life/merge-requests/19/team"
+        ],
+        "context": "https://dev.example/aviva/game-of-life/merge-requests/19",
+        "inReplyTo": "https://dev.example/aviva/comments/E9AGE",
+        "mediaType": "text/html",
+        "content": "<p>Thank you for the review! I'll submit a correction ASAP</p>",
+        "source": {
+            "mediaType": "text/markdown; variant=Commonmark",
+            "content": "Thank you for the review! I'll submit a correction ASAP"
+        },
+        "published": "2019-11-06T20:49:05.604488Z"
+    }
+}
+</xmp>
+</div>
+
+## Granting access to shared resources
+
+An actor that wishes to give other specific actors access to view or modify it
+(or a child object of it), SHOULD do so according to the following
+instructions.
+
+### Object capabilities
+
+#### Introduction #### {#s2s-grant-simple}
+
+An Object Capability (or in short OCap or OCAP) is a token providing access to
+certain operations on a certain resource. An actor wishing to act on a resource
+provides the token to the resource, alongside the Activity they wish to
+perform. The resource verifies the token, and if and only if it finds the token
+valid, and access to the requested Activity is allowed by the token, *then* the
+resource allows the Activity to be performed.
+
+The token provided by the actor to the resource, i.e. the OCAP, is the ID URI
+of a previously published [=Grant=] activity.
+
+The fundamental steps for accessing shared resources using OCAPs are:
+
+1.  The actor managing the resource (which may be the resource itself) sends a
+    `Grant` activity to the actor to whom it wishes to grant access
+2.  When the actor who received the access wishes to operate on the resource,
+    it sends the activity to the actor managing the resource, along with the ID
+    URI of the `Grant` sent in step 1
+3.  The actor managing the resource verifies the access provided by the `Grant`
+    whose ID URI is provided, and allows the activity to be performed only if
+    the verification passes
+
+Providing the `Grant` ID URI like that when requesting to interact with a
+resource is called an *invocation* of the `Grant`. There is another operation
+possible with a `Grant` though: An actor can *delegate* a `Grant` it has
+received, i.e. pass on the access, giving it to more actors. Delegation is
+covered in a [later section](#s2s-grant-flow); for now let's assume `Grant`s
+are used only for invocation. We therefore get the following simplified
+validation process.
+
+When an actor *R* receives from actor *A* a request to access/modify a resource
+*r*, where the request is expressed as an activity *a* whose
+[=capability=] field specifies some other activity *g*, then *R*
+can validate *a* (i.e. decide whether or not to perform the requested action)
+using the following steps:
+
+1. Resource *r* MUST be a resource that *R* manages (it may be *R* itself)
+2. *g*'s [=type=] MUST be [=Grant=]
+3. *g*'s [=context=] MUST be *r*
+4. *g*'s [=target=] MUST be *A*
+5. Verify that *g* doesn't specify [=delegates=]
+6. *g*'s [=actor=] MUST be *R*
+7. Verify that *R* indeed published *g* and considers it an active grant
+    (i.e. *R* hasn't disabled/revoked it)
+8. *checkLeaf(g):*
+    1. *g*'s [=allows=] MUST be [=invoke=]
+    2. Actor *A* SHOULD be of a [=type=] to which *R* allows to perform
+        activity *a* on resource *r*, i.e. *A* should probably be a [=Person=],
+        or some automated service/bot
+9. Verify that the action being requested by activity *a* to perform on
+    resource *r* is within what *R* permits for role specified by *g*'s
+    [=object=]
+
+At this point, activity *a* is considered authorized, and the requested action
+may be performed.
+
+#### Direct Granting
+
+When an actor *R*, managing some resource *r*, wishes to allow some other actor
+*A* to interact with *r*, under the conditions and permissions specified by
+role *p*, then actor *R* can send to actor *A* a [=Grant=] activity
+with the following properties:
+
+- [=actor=]: Specifies actor *R*
+- [=context=]: Specifies resource *r*
+- [=target=]: Specifies actor *A*
+- [=object=]: Specifies role *p*
+- [=allows=]: Specifies [=invoke=]
+- [=delegates=]: Not used
+
+#### Granting the delegator role #### {#grant-delegator}
+
+A special case of direct granting is *granting permission to delegate*: If role
+*p* is [=delegator=], then the `Grant` [=actor=] is allowing the
+[=target=] to delegate `Grant`s to the [=actor=], i.e. to send `Grant`s meant
+for delegation or `Grants` that are themselves delegations of other `Grant`s
+(either start a chain, or extend a chain that some other actor started). More
+on delegation in the next sections.
+
+When an actor *A* wishes to allow some other actor *R* to delegate `Grant`s to
+actor *A*, then actor *A* can send to actor *R* a [=Grant=] activity
+with the following properties:
+
+- [=actor=]: Specifies actor *A*
+- [=context=]: Specifies actor *A*
+- [=target=]: Specifies actor *R*
+- [=object=]: Specifies [=delegator=]
+- [=allows=]: Specifies [=invoke=]
+- [=delegates=]: Not used
+
+#### Starting a delegation chain
+
+When an actor *R*, managing some resource *r*, wishes to allow or request some
+other actor *A* to delegate some access-to-*r*-under-role-*p* to certain (or
+any) other actors that *A* knows, then actor *R* can send to actor *A* a
+[=Grant=] activity with the following properties:
+
+- [=actor=]: Specifies actor *R*
+- [=context=]: Specifies resource *r*
+- [=target=]: Specifies actor *A*
+- [=object=]: Specifies role *p*
+- [=allows=]: Specifies the conditions under which actor *A* may
+    delegate this `Grant` (i.e. conditions under which actor *R* will consider
+    the delegation valid when verifying the chain), and what the recipients of
+    the delegtaions that *A* will send (which are themselves `Grant` activites)
+    are allowed to do with these `Grants` (invoke? further delegate to certain
+    other actors?)
+- [=delegates=]: Not used
+- [=capability=]: *(optional)* Specifies a
+    [[#grant-delegator|delegator Grant]] previously given by *A* to *R*
+
+The following cases are supported in ForgeFed for starting a delegation chain.
+The term 'component' used below refers to a forge related service actor. This
+may be a service of a [=type=] defined in ForgeFed (such as
+[=Repository=], [=TicketTracker=],
+[=PatchTracker=]), or a service defined in some extension.
+
+1. [=actor=] is a component, [=target=] is a [=Project=]
+    - Scenario: A component delegates access-to-a-resource-it-manages (which is
+        often simply itself) to a project to which the component belongs
+    - [=allows=] value to use: [=gatherAndConvey=]
+    - Conditions for the target project:
+        * It SHOULD delegate the `Grant`, allowing only `gatherAndConvey`, to
+            its own parent projects
+        * It SHOULD delegate the `Grant`, allowing only `distribute`, to teams
+            to which it allows to access it
+        * It SHOULD delegate the `Grant`, allowing only `invoke`, to people and
+            bots to which it allows to access it
+        * It SHOULD NOT make any other delegation of this `Grant`, and SHOULD
+            NOT invoke it
+2. [=actor=] is a [=Project=], [=target=] is a parent [=Project=] of it
+    - Scenario: A project delegates access-to-a-resource-itself to its parent
+        project
+    - [=allows=] value to use: Same as 1
+    - Conditions for the target project: Same as 1
+3. [=actor=] is a component, [=target=] is a [=Team=]
+    - Scenario: A component delegates access-to-a-resource-it-manages to a team
+        that has been approved to access the component
+    - [=allows=] value to use: [=distribute=]
+    - Conditions for the target team:
+        * It SHOULD delegate the `Grant`, allowing `distribute` only, to its
+            subteams
+        * It SHOULD delegate the `Grant`, allowing `invoke` only, to its
+            members
+        * It SHOULD NOT make any other delegation of this `Grant`, and SHOULD
+            NOT invoke it
+4. [=actor=] is a [=Project=], [=target=] is a [=Team=]
+    - Scenario: A project delegates access-to-itself to a team that has been
+        approved to access the project
+    - [=allows=] value to use: Same as 3
+    - Conditions for the target project: Same as 3
+
+#### Extending a delegation chain
+
+When an actor *A* receives a [=Grant=] activity *g* where the
+[=target=] is *A*, and wishes to pass on the granted access to some other actor
+*B* (who isn't the [=actor=] of that `Grant`), then actor *A* can do so by
+sending to actor *B* a new `Grant` activity *h* in which:
+
+- [=actor=] is actor *A*
+- [=context=] (i.e. the resource) is same as *g*'s [=context=]
+- [=target=] is actor *B*
+- [=object=] (i.e. the granted role) is either *g*'s [=object=] or a
+    lower-access role than *g*'s [=object=], i.e. provides a subset of the
+    permissions that *g*'s [=object=] provides (the latter case is called
+    *attenuation*)
+- [=allows=]: Specifies the conditions under which actor *B* may
+    delegate this `Grant` (i.e. conditions under which the delegation will be
+    considered valid when verifying the chain), and what the recipients of
+    the delegtaions that *B* will send (which are themselves `Grant` activites)
+    are allowed to do with these `Grants` (invoke? further delegate to certain
+    other actors?)
+- [=delegates=] is activity *g*
+- [=capability=]: *(optional)* Specifies a
+    [delegator Grant](#grant-delegator) previously given by *B* to *A*
+- [=result=]: a URI that will be used later to verify that *h* is still active
+    and hasn't been revoked
+
+The [=result=] URI MUST be provided whenever extending a delegation chain. It
+MUST be a URI that actor *A* controls, i.e. decides what will be returned by
+HTTP requests to that URI. Requirements:
+
+- From the moment that actor *A* publishes activity *h*, as long as actor *A*
+    considers *h* an active `Grant` and hasn't revoked it, any HTTP HEAD or HTTP
+    GET request the [=result=] URI MUST return an HTTP response status 204 or 200.
+- If later activity *h* is revoked, or actor *A* is deleted, then from the
+    moment that actor *A* considers *h* deactivated, any HTTP HEAD or HTTP GET
+    request to the [=result=] URI MUST NOT return an HTTP response status in the
+    200-299 range. The response status SHOULD be 410 or 404.
+
+In the following cases, *g* is a *request* for actor *A* to extend the
+delegation chain, and actor *A* SHOULD extend the chain by sending `Grant`
+activities, as described for each case.
+
+The term 'component' used below refers to a forge related service actor. This
+may be a service of a [=type=] defined in ForgeFed (such as
+[=Repository=], [=TicketTracker=],
+[=PatchTracker=]), or a service defined in some extension.
+
+1. Actor *A* is a [=Project=], AND *g*'s [=actor=] is either a
+    [=component=] of *A* or a [=subproject=] of
+    *A*, AND *g*'s [=allows=] is a single value
+    [=gatherAndConvey=]
+    - Scenario: Project *A* received some access from a component/subproject of
+        it, and is requested to pass it on its member people, to its member
+        teams, and to its parent projects
+    - Requirements for extending the delegation chain:
+        1. For each parent project *P* of project *A*, project *A* SHOULD
+            publish and deliver to *P* a `Grant` activity in which:
+            - [=actor=] is project *A*
+            - [=context=] (i.e. the resource) is same as *g*'s [=context=]
+            - [=target=] is project *P*
+            - [=object=] (i.e. the granted role) is either *g*'s [=object=] or
+                a lower-access role than *g*'s [=object=]
+            - [=allows=] is a single value [=gatherAndConvey=]
+            - [=delegates=] is activity *g*
+            - [=capability=]: *(optional)* Specifies a
+                [delegator Grant](#grant-delegator) previously given by *P* to *A*
+            - [=result=]: a URI that will be used later to verify that *h* is
+                still active and hasn't been revoked
+
+        2. For each team *T* that project *A* considers a member team with role
+            *p*, project *A* SHOULD publish and deliver to *T* a `Grant`
+            activity in which:
+            - [=actor=] is project *A*
+            - [=context=] (i.e. the resource) is same as *g*'s [=context=]
+            - [=target=] is team *T*
+            - [=object=] (i.e. the granted role) is the lower-access role
+                among *g*'s [=object=] and *p*
+            - [=allows=] is a single value [=distribute=]
+            - [=delegates=] is activity *g*
+            - [=capability=]: *(optional)* Specifies a
+                [delegator Grant](#grant-delegator) previously given by *T* to *A*
+            - [=result=]: a URI that will be used later to verify that *h* is
+                still active and hasn't been revoked
+
+        3. For each [=Person=] or automated service bot *M* (that isn't a team)
+            that project *A* considers a member with role *p*, project *A*
+            SHOULD publish and deliver to *M* a `Grant` activity in which:
+            - [=actor=] is project *A*
+            - [=context=] (i.e. the resource) is same as *g*'s [=context=]
+            - [=target=] is actor *M*
+            - [=object=] (i.e. the granted role) is the lower-access role
+                among *g*'s [=object=] and *p*
+            - [=allows=] is a single value [=invoke=]
+            - [=delegates=] is activity *g*
+            - [=capability=]: *(optional)* Specifies a
+                [delegator Grant](#grant-delegator) previously given by *M* to *A*
+            - [=result=]: a URI that will be used later to verify that *h* is
+                still active and hasn't been revoked
+
+        4. Project *A* MUST NOT make any other delegations of *g*, and SHOULD
+            NOT try to invoke it
+
+2. Actor *A* is a [=Team=], AND *g*'s [=actor=] is either a
+    component/[=Project=] in which *A* is a member or a
+    parent team (see [=subteams=]) of *A*, AND *g*'s [=allows=] is a
+    single value [=distribute=]
+    - Scenario: Team *A* received some access from a component/project that
+        considers *A* a member team, or from a parent team of *A*, and *A* is
+        requested to pass it on its member people and to its subteams
+    - Requirements for extending the delegation chain:
+        1. For each team *T* that team *A* considers a
+            [=subteam=], team *A* SHOULD publish and deliver to *T*
+            a `Grant` activity in which:
+            - [=actor=] is team *A*
+            - [=context=] (i.e. the resource) is same as *g*'s [=context=]
+            - [=target=] is team *T*
+            - [=object=] (i.e. the granted role) is the same as
+                *g*'s [=object=]
+            - [=allows=] is a single value [=distribute=]
+            - [=delegates=] is activity *g*
+            - [=capability=]: *(optional)* Specifies a
+                [delegator Grant](#grant-delegator) previously given by *T* to *A*
+
+        2. For each [=Person=] or automated service bot *M* (that isn't a team)
+            that team *A* considers a member with role *p*, team *A*
+            SHOULD publish and deliver to *M* a `Grant` activity in which:
+            - [=actor=] is team *A*
+            - [=context=] (i.e. the resource) is same as *g*'s [=context=]
+            - [=target=] is actor *M*
+            - [=object=] (i.e. the granted role) is the lower-access role
+                among *g*'s [=object=] and *p*
+            - [=allows=] is a single value [=invoke=]
+            - [=delegates=] is activity *g*
+            - [=capability=]: *(optional)* Specifies a
+                [delegator Grant](#grant-delegator) previously given by *M* to *A*
+
+        3. Team *A* MUST NOT make any other delegations of *g*, and SHOULD NOT
+            try to invoke it
+
+#### Revoking a Grant #### {#s2s-revoke}
+
+At any point after an actor *A* publishes a [[#Grant]] in which it
+grants some actor *B* access to a resource that actor *A* manages, actor *A*
+MAY cancel that `Grant`, deciding it's no longer a valid OCAP to use via the
+[=capability=] property of activies that actor *B* sends.
+
+If actor *A* cancels such a `Grant`, it SHOULD publish and deliver, at least to
+actor *B*, a [=Revoke=] activity notifying about the canceled
+`Grant`. In the `Revoke` activity, actor *A* MUST provide at least one of the
+following sets of properties:
+
+1. Describe the `Grant`s being canceled:
+    - [=object=]: all the `Grant` activities being undone, i.e. the access
+        that they granted is now disabled
+2. Describe the access being canceled:
+    - [=origin=]: The actor whose access to the resource is being revoked, i.e.
+        actor *B*
+    - [=instrument=]: The role or permission that the [=origin=] actor had with
+        respect to accessing the resource, and which is now being taken away
+    - [=context=]: The resource, access to which is being revoked
+    - [=allows=]: Modes of invocation and/or delegation that the
+        canceled access allowed
+
+Actor *A* MAY provide both sets of properties. If it does, then:
+
+- The `Revoke`'s `origin` MUST be identical to the `target` of every `Grant`
+    listed as an `object` in the `Revoke`
+- The `Revoke`'s `instrument` MUST be identical to the `object` of every
+    `Grant` listed as an `object` in the `Revoke`
+- The `Revoke`'s `context` MUST be identical to the `context` of every `Grant`
+    listed as an `object` in the `Revoke`
+- The `Revoke`'s `allows` MUST be identical to the `allows` of every `Grant`
+    listed as an `object` in the `Revoke`
+
+Additional requirements:
+
+- If the canceled access includes `Grant`s that are delegations (i.e. specify
+    the [=delegates=] property), then the `Revoke` activity MUST
+    provide the [=object=] property, and have it list *all* canceled `Grant`s,
+    not just the ones that are delegations
+- Implementations displaying a `Revoke` activity or an interpretation of it in
+    a human interface MUST examine the `Revoke`'s [=object=] property if it is
+    present, check if any of the `Grant`s listed are delegations, and communicate
+    that detail in the human interface
+
+Once actor *A* publishes the `Revoke`, it MUST from now on refuse to execute
+requests from actor *B* to access resources that actor *A* manages, coming as
+activities that specify any of the canceled `Grant`s in the `capability`
+property. If actor *A* receives such an activity from actor *B*, it SHOULD
+publish and send back a [=Reject=] activity, whose [=object=] specifies the
+activity that actor *B* sent.
+
+If the `Grant` that actor *A* is revoking specifies a [=result=], then from now
+on any HTTP HEAD request to the URI specified by [=result=] MUST NOT return an
+HTTP response status in the 200-299 range. The returned status SHOULD be 410
+or 404. See [Extending a delegation chain](#extending-a-delegation-chain) for
+more information.
+
+#### Verifying an invocation #### {#s2s-grant-flow}
+
+A [previous section](#s2s-grant-simple) described *direct* usage of
+[=Grant=]s, where the *resource actor* gives some access to a *target
+actor*, and the *target actor* then uses it to interact with the resource.
+Another way to give authorization is via delegation chains:
+
+- The *resource actor* passes access to a *target actor*, allowing (or
+    requesting) the *target actor* to pass this access (or reduced access) on to
+    more actors
+- If authorized by the delegation, those actors may further pass on the access
+    (possibly reduced)
+- Eventually, an actor that received such a delegation may use it to access the
+    resource
+
+Access is delegated using [=Grant=] activities as well, using the
+[=delegates=] property to point from each `Grant` in the chain to
+the previous one. The "direct" `Grant` discussed earlier is simply a delegation
+chain of length 1.
+
+When an actor *R* receives from actor *A* a request to access/modify a resource
+*r*, where the request is expressed as an activity *a* whose
+[=capability=] field specifies some other activity *g*, then *R*
+can validate *a* (i.e. decide whether or not to perform the requested action)
+using the following steps.
+
+*R* begins by verifying that resource *r* is indeed a resource that *R* manages
+(it may be *R* itself). Otherwise, verification has failed.
+
+*R* proceeds by collecting the delegation chain in a list, by traversing the
+chain backwards from the leaf all the way to the beginning of the chain. The
+traversal starts with the list *L* being empty, and *R* examines activity *g*:
+
+1. *g*'s [=type=] MUST be [=Grant=]
+2. *g*'s [=context=] MUST be *r*
+3. *g*'s [=target=] MUST be *A*
+4. *g* MUST NOT already be listed in *L*
+5. Look at *g*'s [=delegates=]:
+    - If *g* doesn't specify [=delegates=]:
+        1. *g*'s [=actor=] MUST be *R*
+        2. Verify that *R* indeed published *g* and considers it an active
+            grant (i.e. *R* hasn't disabled/revoked it)
+        3. Prepend *g* to the beginning of *L*, resulting with new list *M*
+        4. We're done with the traversal step, the output is *M*
+    - If *g*'s [=delegates=] is some activity *h*:
+        1. *g*'s [=actor=] MUST NOT be *R*
+        2. *g* MUST specify exactly one [=result=] URI
+        3. Verify the [=result=] URI:
+            1. Send an HTTP HEAD request to that URI
+            2. The HTTP response status MUST be 200 or 204
+        4. Prepend *g* to the beginning of *L*, resulting with new list *M*
+        5. Continue traversal by going back to step 1, but with *M* being the
+            list, and with *g*'s [=actor=] instead of *A*, and now examining
+            activity *h*
+
+Issue: "Going back to step 1" refers to the top-level list item; should
+probably tweak the CSS to display nested lists differently.
+
+*R* proceeds by traversing the resulting list *L* from the beginning forward,
+all the way to the leaf, validating and tracking attenuation in each step. *R*
+starts this by examining the first item in *L*, let's call this item *g*:
+
+1. Let *p* be *g*'s [=object=]
+2. Examine *g*'s position in *L*:
+    - If *g* is the last item in *L*:
+        1. Perform *checkLeaf* on *g* (see below)
+        2. Verify that the action being requested by activity *a* to perform on
+            resource *r* is within what *R* permits for role *p*.
+        3. We're done with the traversal!
+    - Otherwise:
+        1. Let *h* be the next item after *g* in *L*
+        2. Let *q* be *h*'s [=object=]
+        3. The permissions that role *q* allows on resource *r* MUST be
+            identical to or a subset of the permissios that role *p* allows on
+            *r*
+        4. Perform *checkItem* on *(g, h)* (see below)
+        5. Continue traversal by going back to step 2, but with *h* instead of
+            *g* and *q* instead of *p*
+
+Issue: "Step 2" refers to the top-level one, need to tweak CSS for lists
+
+The steps *checkLeaf* and *checkItem* mentioned above MAY be extended by
+implementations, by using custom values in the [=allows=] property.
+But here are the standard definitions, using the values defined in ForgeFed:
+
+*checkLeaf (g):*
+
+1. *g*'s [=allows=] MUST be [=invoke=]
+2. *g*'s [=target=] (which is actor *A*, the sender of activity *a*) SHOULD be
+    an actor of a [=type=] to which *R* allows to perform activity *a* on
+    resource *r*, i.e. *A* should probably be a [=Person=], or some automated
+    service/bot
+
+*checkItem (g, h):*
+
+1. *g* MUST specify exactly one value for [=allows=]
+2. That value MUST be either [=gatherAndConvey=] or [=distribute=]
+    - If it's [=gatherAndConvey=]:
+        1. *g*'s [=target=] MUST be a [=Project=]
+    - If it's [=distribute=]:
+        1. *g*'s [=target=] MUST be a [=Team=]
+        2. *h*'s [=allows=] MUST be either [=distribute=]
+            or [=invoke=]
+
+At this point, activity *a* is considered authorized, and the requested action
+may be performed.
+
+#### Identifying resources and their managing actors #### {#manager}
+
+Some shared resources are themselves actors. Some shared resources aren't
+actors, but they are child objects of actors. When some actor *A* wishes to
+access a resource *R* and perform a certain operation, it needs to determine
+which actor to contact in order to request that operation. Actor *A* then looks
+at resource *R*, and the following MUST hold:
+
+- Either the resource *R* isn't an actor (i.e. doesn't have an [=inbox=]) but
+    does specify which actor manages it via the [=managedBy=] property;
+- Or the resource *R* is an actor, i.e. it has an [=inbox=] (it doesn't have to
+    specify [=managedBy=], but if it does, then it MUST refer to itself)
+
+Therefore any object that wishes to be specified as the [=context=] of a
+[=Grant=] MUST either be an actor or be [=managedBy=] an
+actor.
+
+#### Invoking a Grant
+
+Invoking a [=Grant=] means using the `Grant` to authorize a request to
+access or modify some resource. If some actor *A* wishes to access or modify a
+resource *r*, using a `Grant` activity *g* for authorization, preconditions
+for a successful invocation include:
+
+- *g*'s [=target=] is actor *A*
+- *g*'s [=context=] is either the resource *r*, or a resource in which *r* is
+    contained, or the actor that [=managedBy|manages=] *r*
+- *g*'s [=object=] is a [=Role=] that permits the kind of operation
+    that actor *A* is requesting to do on resource *r*
+- *g*'s [=allows=] is [=invoke=]
+
+When actor *A* sends the activity *a* that requests to access or modify
+resource *r*, it can use *g* for authorization by specifying its [=id=] URI in
+the [=capability=] property of activity *a*.
+
+To have a chance to access resource *r*, actor *A* needs to deliver activity
+*a* to the actor that manages *r*. [See above](#manager) instructions for
+determining who that actor is.
+
+### Granting access
+
+#### Initial Grant upon resource creation
+
+When an actor *A* requests to create a new shared resource *R*, and the
+*resource actor* approves and creates it, then the *resource actor* SHOULD send
+a `Grant` to actor *A*, which provides actor *A* with access to resource *R*.
+
+Typically, this `Grant` would provide actor *A* with what the *resource actor*
+considers full/admin access to resource *R*, which would typically include the
+ability to gives access to resource *R* to more actors (using an [=Invite=]
+activity, see below).
+
+If such a `Grant` is sent by the *resource actor* upon the creation of resource
+*R*, then the `Grant`'s [=fulfills=] property MUST be provided and
+specify the ID URI of the activity (published by actor *A*) that requested to
+create resource *R* (typically this would be an [=Offer=] activity, see
+[Object Publishing and Hosting](#publishing)).
+
+#### Offering access using Invite activities
+
+When an actor *A* wishes to offer actor *B* access to resource *R* (where the
+*resource actor* who manages *R* is neither *A* nor *B*), then actor *A* SHOULD
+use an [=Invite=] activity, and the following steps:
+
+1. Actor *A* publishes and delivers an [=Invite=], at least to actor
+    *B* and to the *resource actor* of *R*, with a relevant
+    [=capability=] (see [[#Invite]] for details on the properties to use)
+2. If actor *B* wishes to have the offered access, it publishes and delivers
+    (at least to the *resource actor* of *R*) an [=Accept=] activity whose
+    [=object=] specifies the `Invite` sent by actor *A*
+3. The *resource actor* of *R* receives the `Invite` and the `Accept` and:
+    1. Verifies the `Invite` is authorized, as described above in
+        [Verifying an invocation](#s2s-grant-flow)
+    2. Verifies that the `Accept`'s [=object=] specifies the `Invite` and the
+        `Accept`'s [=actor=] is the `Invite`'s [=object=]
+    3. Publishes and delivers a [=Grant=] activity (see
+        [[#Grant]] for more details on the properties) where:
+        - [=object=] is the `Invite`'s [=instrument=]
+        - [=context=] is the `Invite`'s [=target=], which is resource *R*
+        - [=target=] is the `Invite`'s [=object=], which is actor *B*
+        - [=fulfills=] is the `Invite`
+        - [=allows=] is [=invoke=]
+        - [=delegates=] isn't specified
+
+Actor *B* can now use the URI of that new `Grant` as the
+[=capability=] when it sends activities that access or
+manipulate resource *R*.
+
+#### Requesting access using Join activities
+
+When an actor *A* wishes to request access to resource *R* (where the *resource
+actor* who manages *R* isn't *A*), then actor *A* SHOULD use a
+[=Join=] activity, and the following steps. There are two options detailed
+below, depending on whether actor *A* has been previously given a
+[=Grant=] authorizing it to gain access to resource *R* without
+needing someone else to approve. For example, perhaps actor *A* already has
+some access to a resource collection to which *R* belongs, and that access
+allows *A* to freely `Join` *R* without needing to wait for human approval.
+
+**Option 1: Actor *A* already has a `Grant` allowing it to gain access to *R*
+without external approval:**
+
+1. Actor *A* publishes and delivers a [=Join=], at least to the
+    *resource actor* of *R*, with the relevant [=capability=] it
+    has (see [[#Join]] for details on the properties
+    to use)
+2. The *resource actor* of *R* receives the `Join` and:
+    1. Verifies the `Join` is authorized, as described above in
+        [Verifying an invocation](#s2s-grant-flow)
+    2. Publishes and delivers a [=Grant=] activity (see
+        [[#Grant]] for more details on the
+        properties) where:
+        - [=object=] is the `Join`'s [=instrument=]
+        - [=context=] is the `Join`'s [=object=], which is resource *R*
+        - [=target=] is the `Join`'s [=actor=], which is actor *A*
+        - [=fulfills=] is the `Join`
+
+Actor *A* can now use the URI of that new `Grant` as the
+[=capability=] when it sends activities that access or
+manipulate resource *R*.
+
+**Option 2: Actor *A* doesn't have (or chooses not to use) a `Grant` allowing
+it to gain access to *R* without external approval:**
+
+1. Actor *A* publishes and delivers a [=Join=], at least to the
+    *resource actor* of *R* (see [[#Join]] for
+    details on the properties to use)
+2. If some actor *B*, that has previously received a `Grant` from the *resource
+    actor* of *R* authorizing it to approve joins, sees the `Join` sent by actor
+    *A* and decides to approve it, then actor *B* publishes and delivers (at
+    least to the *resource actor* of *R*) an [=Accept=] activity where:
+      - [=object=] specifies the `Join` sent by actor *A*
+      - [=capability=] is the `Grant` mentioned above,
+        authorizing to approve or deny Joins
+3. The *resource actor* of *R* receives the `Join` and the `Accept` and:
+    1. Verifies the `Accept` is authorized, as described above in
+        [Verifying an invocation](#s2s-grant-flow)
+    2. Verifies that the `Accept`'s [=object=] specifies the `Join`
+    3. Publishes and delivers a [=Grant=] activity (see
+        [[#Grant]] for more details on the properties) where:
+        - [=object=] is the `Join`'s [=instrument=]
+        - [=context=] is the `Join`'s [=object=], which is resource *R*
+        - [=target=] is the `Join`'s [=actor=], which is actor *A*
+        - [=fulfills=] is the `Join`
+
+Actor *A* can now use the URI of that new `Grant` as the
+[=capability=] when it sends activities that access or
+manipulate resource *R*.
+
+In step 2, actor *B* may choose to deny the request of actor *A*, by sending a
+[=Reject=] activity (at least to the *resource actor* of *R*) where:
+
+- [=object=] specifies the `Join` that actor *A* sent
+- [=capability=] is the `Grant` mentioned in step 2, authorizing
+    actor *B* to approve or deny Joins
+
+If the *resource actor* of *R* receives the `Reject`:
+
+1. It MUST verify the `Reject` is authorized, as described above in
+    [Verifying an invocation](#s2s-grant-flow)
+2. it MUST verify that the `Reject`'s [=object=] specifies the `Join`
+2. Consider this `Join` request canceled: If actor *B*, or some other actor
+    *C*, tries again to `Accept` the `Join`, then:
+      1. The *resource actor* MUST NOT send a `Grant` to actor *A*, even if the
+            `Accept` is authorized
+      2. The *resource actor* MAY publish and deliver a `Reject` activity, at
+            least to the actor that sent the `Accept`, where [=object=] specifies
+            the `Accept`
+4. It SHOULD publish and deliver a `Reject` activity, at least to actor *A*,
+    where [=object=] specifies the `Join` that actor *A* sent
+
+So, once a `Join` is rejected (using an authorized `Reject`), it cannot be
+accepted. But actor *A* MAY send a new `Join`, which could then possibly get
+accepted.
+
+### Revoking access
+
+#### Taking away access using Remove activities
+
+When an actor *A* wishes to cancel the membership of another actor *B* (who
+isn't *A*) in a shared resource *R*, invalidating any active
+[[#Grant]]s that the *resource actor* of *R* has granted to actor
+*B*, then actor *A* SHOULD use a [=Remove=] activity, and the following steps:
+
+1. Actor *A* publishes and delivers a [=Remove=], at least to actor
+    *B* and to the *resource actor* of *R*, with a relevant
+    [=capability=] (see [[#Remove]]
+    for details on the properties to use)
+2. The *resource actor* of *R* receives the `Remove` and:
+    1. Verifies the `Remove` is authorized, as described above in
+        [Verifying an invocation](#s2s-grant-flow)
+    2. Verifies that actor *B* indeed has active `Grant`s for accessing
+        resource *R*
+    3. Marks those Grants as disabled in its internal state
+    4. Publishes and delivers a [[#Revoke]] activity, as described
+        above in [Revoking a Grant](#s2s-revoke), where
+        [=fulfills=] specifies the `Remove`
+
+Actor *B* SHOULD no longer use the URI of any `Grant` that has been disabled as
+the [=capability=] when it sends activities that access or
+manipulate resource *R*.
+
+#### Waiving access using Leave activities
+
+When an actor *A* wishes to cancel their membership in a shared resource *R*
+(where the *resource actor* who manages *R* isn't *A*), invalidating any active
+[[#Grant]]s that the *resource actor* of *R* has granted to actor
+*A*, then actor *A* SHOULD use a [=Leave=] activity, and the following steps:
+
+1. Actor *A* publishes and delivers a [=Leave=], at least to the
+    *resource actor* of *R* (see [[#Leave]] for
+    details on the properties to use)
+2. The *resource actor* of *R* receives the `Leave` and:
+    1. Verifies that actor *A* indeed has active `Grant`s for accessing
+        resource *R*
+    2. Marks those Grants as disabled in its internal state
+    3. Publishes and delivers a [[#Revoke]] activity, as described
+        above in [Revoking a Grant](#s2s-revoke), where
+        [=fulfills=] specifies the `Leave`
+
+Actor *A* SHOULD no longer use the URI of any `Grant` that has been disabled as
+the [=capability=] when it sends activities that access or
+manipulate resource *R*.
+
+#### Requesting to disable specific Grants using Undo
+
+When an actor *A* wishes to deactivate a specific [[#Grant]] activity
+(or multiple `Grant`s), providing access to view or manipulate some resource
+*R* (where the *resource actor* of *R* isn't *A*), then actor *A* SHOULD use an
+[=Undo=] activity, and the following steps. The actor *B* to whom
+access-to-resource-*R* was given by the `Grant` may be actor *A* itself, or
+some other actor, as long as actor *A* is authorized by the *resource actor* of
+*R* to deactivate that `Grant`.
+
+NOTE: Upon a successful `Undo`, if actor *B* doesn't have any active `Grants`
+left, that allow access to resource *R*, then the *resource actor* of *R* MAY
+remove actor *B*'s membership in *R*, or it MAY consider actor *B* a member
+without access.
+
+1. Actor *A* publishes and delivers an [=Undo=], at least to the
+    *resource actor* of *R* (see [[#undo-grant]] for
+    details on the properties to use)
+2. The *resource actor* of *R* receives the `Undo` and:
+    1. Verifies the `Undo` is authorized, as described above in
+        [Verifying an invocation](#s2s-grant-flow)
+    2. Verifies that actor *B* indeed has all the active `Grant`s for accessing
+        resource *R*, that are listed as [=object=]s of the `Undo` (if more than
+        one `Grant` is listed, the [=target=] of all the `Grant`s MUST be
+        identical)
+    3. Marks all of those Grants as disabled in its internal state
+    4. Publishes and delivers a [[#Revoke]] activity, at least to
+        actors *A* and *B*, as described above in
+        [Revoking a Grant](#s2s-revoke), where:
+          - [=object=] MUST specify all the deactivated `Grant`s
+          - [=fulfills=] MUST specify the `Undo`
+
+Actor *B* SHOULD no longer use the URI of any `Grant` that has been disabled as
+the [=capability=] when it sends activities that access or
+manipulate resource *R*.
+
+### Example
+
+Aviva creates a new [=Repository=] for her 3D Tree Growth
+Simulation software:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/oU6QGAqr-create-treesim",
+    "type": "Create",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/users/aviva/followers"
+    ],
+    "object": {
+        "id": "https://forge.community/repos/treesim",
+        "type": "Repository",
+        "name": "Tree Growth 3D Simulation",
+        "summary": "A graphical simulation of trees growing"
+    }
+}
+</xmp>
+</div>
+
+The newly created *treesim* `Repository` automatically sends back a `Grant` to
+Aviva, allowing her full access to the repo:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva",
+    "type": "Grant",
+    "actor": "https://forge.community/repos/treesim",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/aviva/followers"
+    ],
+    "object": "https://roles.example/admin",
+    "context": "https://forge.community/repos/treesim",
+    "target": "https://forge.community/aviva",
+    "fulfills": "https://forge.community/users/aviva/outbox/oU6QGAqr-create-treesim",
+    "allows": "invoke"
+}
+</xmp>
+</div>
+
+Aviva can now use this `Grant`, e.g. to update the repo's description text:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/RmTygyuj",
+    "type": "Update",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/users/aviva/followers",
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers"
+    ],
+    "object": {
+        "id": "https://forge.community/repos/treesim",
+        "type": "Repository",
+        "name": "Tree Growth 3D Simulation",
+        "summary": "Tree growth 3D simulator for my nature exploration game"
+    },
+    "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
+}
+</xmp>
+</div>
+
+Aviva wants to keep track of events related to the *treesim* repo:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://forge.community/users/aviva/outbox/gqtpAhm2",
+    "type": "Follow",
+    "actor": "https://forge.community/users/aviva",
+    "to": "https://forge.community/repos/treesim",
+    "object": "https://forge.community/repos/treesim",
+}
+</xmp>
+</div>
+
+Aviva can invite Luke to have access to the *treesim* repo:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke",
+    "type": "Invite",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/aviva/followers",
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke",
+        "https://software.site/people/luke/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "target": "https://forge.community/repos/treesim",
+    "object": "https://software.site/people/luke",
+    "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
+}
+</xmp>
+</div>
+
+And it appears that Luke accepts the invitation:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/people/luke/activities/mEYYmt8u",
+    "type": "Accept",
+    "actor": "https://software.site/people/luke",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/aviva/followers",
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke/followers"
+    ],
+    "object": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke"
+}
+</xmp>
+</div>
+
+Seeing the `Invite` and the `Accept`, the *treesim* repo sends Luke a `Grant`
+giving him the access that Aviva offered, and which he accepted:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/repos/treesim/outbox/D5uod3pz-grant-maintainer-to-luke",
+    "type": "Grant",
+    "actor": "https://forge.community/repos/treesim",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/aviva/followers",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke",
+        "https://software.site/people/luke/followers"
+    ],
+    "object": "https://roles.example/maintainer",
+    "context": "https://forge.community/repos/treesim",
+    "target": "https://software.site/people/luke",
+    "fulfills": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke",
+    "allows": "invoke"
+}
+</xmp>
+</div>
+
+Luke can now use this `Grant`, e.g. to delete some old obsolete branch of the
+*treesim* repo:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/people/luke/activities/vShj2aIe",
+    "type": "Delete",
+    "actor": "https://software.site/people/luke",
+    "to": [
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://software.site/people/luke/followers"
+    ],
+    "object": "https://forge.community/repos/treesim/branches/fixes-for-release-0.1.3",
+    "origin": "https://forge.community/repos/treesim",
+    "capability": "https://forge.community/repos/treesim/outbox/D5uod3pz-grant-maintainer-to-luke"
+}
+</xmp>
+</div>
+
+Celine requests to have developer access to the *treesim* repo:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
+    "type": "Join",
+    "actor": ""https://dev.online/@celine",
+    "to": [
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://dev.online/@celine/followers"
+    ],
+    "object": ""https://forge.community/repos/treesim",
+    "instrument": "https://roles.example/developer"
+}
+</xmp>
+</div>
+
+Aviva sees the `Join` request, talks with Celine and decides to approve her
+request:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/users/aviva/outbox/PzRtDydu",
+    "type": "Accept",
+    "actor": "https://forge.community/users/aviva",
+    "to": [
+        "https://forge.community/repos/treesim",
+        "https://forge.community/repos/treesim/followers",
+        "https://dev.online/@celine",
+        "https://dev.online/@celine/followers"
+    ],
+    "object": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
+    "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
+}
+</xmp>
+</div>
+
+Seeing the `Join` and the `Accept`, the *treesim* repo sends Celine a `Grant`
+giving her the access that she requested, and which Aviva approved:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://forge.community/repos/treesim/outbox/D5uod3pz-grant-developer-to-celine",
+    "type": "Grant",
+    "actor": "https://forge.community/repos/treesim",
+    "to": [
+        "https://forge.community/aviva",
+        "https://forge.community/repos/treesim/followers",
+        "https://dev.online/@celine",
+        "https://dev.online/@celine/followers"
+    ],
+    "object": "https://roles.example/developer",
+    "context": "https://forge.community/repos/treesim",
+    "target": "https://dev.online/@celine",
+    "fulfills": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
+    "allows": "invoke"
+}
+</xmp>
+</div>
+
+Celine can now use this `Grant` to access the *treesim* repo.
+
+# Actor Interface
+
+Issue: This section will provide, for each actor type, a summary of the various
+(1) "methods" i.e. activities it can receive as requests for action; (2)
+"events", i.e. activities it sends out; (3) perhaps representation of resources
+that are specific to the actor type. Right now there's a grey zone between
+methods and events, because some activities are methods for the target actor
+but events for any other recipient, and some events are actually sent by other
+actors, which cc the target actor's followers and the target actor delivers via
+inbox-forwarding and not by `Announce`ing (or custom `Forward`ing) those
+activities.
+
+## Person ## {#person-iface}
+
+## Team ## {#team-iface}
+
+## Project ## {#project-iface}
+
+## Repository ## {#repo-iface}
+
+## TicketTracker ## {#tt-iface}
+
+## PatchTracker ## {#pt-iface}
+
+# Client to Server Interactions
+
+Issue: This section is about how a human or bot can interact with the system by
+POSTing activities into the outbox of a Person (or Application/Service?) actor,
+and managing notifications.  It's less urgent than Server-to-Server. fr33 is
+using C2S in Vervis, and will be gradually working on this part.
+
+ForgeFed uses Activities for client to server interactions, as described by
+ActivityPub. A client will send objects (eg. a Ticket) wrapped in a Activity
+(eg. Create) to an actor's outbox, and in turn the server will take care of
+delivery.
+
+## Follow Activity
+
+The Follow activity is used to subscribe to the activities of a Repository.
+The client MUST send a Follow activity to the Person's outbox. The server
+in turn delivers the message to the destination inbox.
+
+## Push Activity
+
+The Push activity is used to notify followers when somebody has pushed changes
+to a Repository.
+The client MUST send a Push activity to the Repository's outbox. The server
+in turn delivers the message to the Repository followers.
+
+# Actor and Resource Representation
+
+Issue: This section is about representation of objects. It's possible that
+actor representation will move into a separate section, as well as objects
+specific to one actor type. And then this section will describe only
+objects/resources used by multiple actor types, such as comments (person, issue
+tracker, PR tracker) and tickets (used for both issues and PRs).
+
+## Comment ## {#Comment}
+
+To represent a comment, e.g. a comment on a ticket or a merge request, use the
+ActivityPub [=Note=] type.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Note=]
+[=attributedTo=]:
+    The author of the comment
+[=context=]:
+    The topic of the discussion, e.g. a ticket or a merge request. It MUST be
+    provided.
+[=inReplyTo=]:
+    The entity on which this comment replies. MUST be provided. If the comment
+    is made directly on the discussion topic, then [=inReplyTo=] MUST be
+    identical to [=context=]. Otherwise, set [=inReplyTo=] to the comment to
+    which this comment replies. In that case both comments MUST have an
+    identical [=context=].
+[=content=], [=mediaType=], [=source=]:
+    The comment text, in rendered form and in source form
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://forge.example/luke/comments/rD05r",
+    "type": "Note",
+    "attributedTo": "https://forge.example/luke",
+    "context": "https://dev.example/aviva/game-of-life/merge-requests/19",
+    "inReplyTo": "https://dev.example/aviva/comments/E9AGE",
+    "mediaType": "text/html",
+    "content": "<p>Thank you for the review! I'll submit a correction ASAP</p>",
+    "source": {
+        "mediaType": "text/markdown; variant=Commonmark",
+        "content": "Thank you for the review! I'll submit a correction ASAP"
+    },
+    "published": "2019-11-06T20:49:05.604488Z"
+}
+</xmp>
+</div>
+
+## Team Membership
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Relationship=]
+[=subject=]:
+    A [=Team=]
+[=relationship=]:
+    [=hasMember=]
+[=object=]:
+    A [=Person=] who is a member of the `Team`
+[=tag=]:
+    The role that the member has in the team
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/teams/mobilizon-dev-team/members/ThmsicTj",
+    "type": "Relationship",
+    "subject": "https://dev.example/teams/mobilizon-dev-team",
+    "relationship": "hasMember",
+    "object": "https://dev.example/people/celine",
+    "tag": "https://roles.example/developer"
+}
+</xmp>
+</div>
+
+## Team
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Team=]
+[=name=]:
+    The user-given name of the team, e.g. "Gitea Development Team"
+[=published=]:
+    The time the team was created on the server
+[=summary=]:
+    A one-line user provided description of the project, as HTML, e.g.
+    `"We are creating a code hosting platform"`
+[=members=]:
+    [=Collection=] of the members of this team
+[=subteams=]:
+    Subteams of this team, i.e. teams whose members (and subteams) inherit the
+    access that this team has been granted (to projects, repositories, etc.)
+[=context=]:
+    Parent [=Team=]s of this team, i.e. teams from which this team inherits
+    access to projects, components and resources, e.g.  repositories, ticket
+    trackers (and passes them to its [=members=] and inherits them to its own
+    [=subteams=])
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/teams/mobilizon-dev-team",
+    "type": "Team",
+    "name": "Mobilizon Development Team",
+    "summary": "We're creating a federated tool for organizing events!",
+    "members": {
+        "type": "Collection",
+        "totalItems": 3,
+        "items": [
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/alice",
+              "tag": "https://roles.example/admin"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/bob",
+              "tag": "https://roles.example/maintainer"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/celine",
+              "tag": "https://roles.example/developer"
+            }
+        ]
+    },
+    "subteams": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/teams/mobilizon-backend-team",
+            "https://dev.example/teams/mobilizon-frontend-team"
+        ]
+    },
+    "context": "https://dev.example/teams/framasoft-developers",
+
+    "publicKey": {
+        "id": "https://dev.example/teams/mobilizon-dev-team#main-key",
+        "owner": "https://dev.example/teams/mobilizon-dev-team",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/teams/mobilizon-dev-team/inbox",
+    "outbox": "https://dev.example/teams/mobilizon-dev-team/outbox",
+    "followers": "https://dev.example/teams/mobilizon-dev-team/followers"
+}
+</xmp>
+</div>
+
+## Project ## {#Project}
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Project=]
+[=name=]:
+    The user-given name of the project, e.g. "My cool project"
+[=published=]:
+    The time the project was created on the server
+[=summary=]:
+    A one-line user provided description of the project, as HTML, e.g.
+    "`<p>A command-line tool that does cool things</p>`"
+[=ticketsTrackedBy=]:
+    The default ticket tracker to use when submitting a ticket to this project
+    (this tracker MUST be listed under the project's [=components=])
+[=subprojects=]:
+    A [=Collection=] of the subprojects of this project
+[=context=]:
+    The parent [=Project=](s) to which this project belongs
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "components": {
+        "type": "Collection",
+        "totalItems": 7,
+        "items": [
+            "https://dev.example/repos/opengl-vegetation",
+            "https://dev.example/repos/opengl-vegetation/patch-tracker",
+            "https://dev.example/repos/treesim",
+            "https://dev.example/repos/treesim/patch-tracker",
+            "https://dev.example/repos/wanderer",
+            "https://dev.example/repos/wanderer/patch-tracker",
+            "https://dev.example/issue-trackers/wanderer"
+        ]
+    },
+    "subprojects": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/projects/nature-3d-models",
+            "https://dev.example/projects/wanderer-fundraising"
+        ]
+    },
+    "ticketsTrackedBy": "https://dev.example/issue-trackers/wanderer",
+
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
+}
+</xmp>
+</div>
+
+## Commit
+
+To represent a named set of changes committed into a repository's history, use
+the ForgeFed [=Commit=] type. Such a committed change set is called
+e.g. a *commit* in Git, and a *patch* in Darcs.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Commit=]
+[=context=]:
+    The [=Repository=] that this commit belongs to
+[=attributedTo=]:
+    The commit author; if their actor URI is unknown, it MAY be their email
+    address as a `mailto` URI
+[=created=]:
+    A value of type [=dateTime=] (i.e. an ISO 8601 datetime value) specifying
+    the time at which the commit was written by its author
+[=committedBy=]:
+    The entity that committed the commit's changes into their local copy of the
+    repo, before the commit was pushed; if their actor URI is unknown, it MAY
+    be their email address as a `mailto` URI
+[=committed=]:
+    The time the commit was committed by its committer
+[=hash=]:
+    The hash identifying the commit, e.g. the commit SHA1 hash in Git; the
+    patch info SHA1 hash in Darcs
+[=summary=]:
+    The commit's one-line title as HTML-escaped plain text; if the commit title
+    and description are a single commit message string, then the title is the
+    1st line of the commit message
+[=description=]:
+    A JSON object with a [=mediaType=] field and a [=content=] field, where
+    `mediaType` SHOULD be "text/plain" and `content` is the commit's
+    possibly-multi-line description; if the commit title and description are a
+    single commit message string, then the description is everything after the
+    1st line of the commit message (possibly with leading whitespace stripped)
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "type": "Commit",
+    "context": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://example.dev/bob",
+    "created": "2019-07-11T12:34:56Z",
+    "committedBy": "https://example.dev/alice",
+    "committed": "2019-07-26T23:45:01Z",
+    "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "summary": "Add an installation script, fixes issue #89",
+    "description": {
+        "mediaType": "text/plain",
+        "content": "It's about time people can install it on their computers!"
+    }
+}
+</xmp>
+</div>
+
+## Branch
+
+To represent a repository branch, use the ForgeFed [=Branch=] type.
+It can be a real built-in version control system branch (such as a Git branch)
+or a copy of the repo used as a branch (e.g. in Darcs, which doesn't implement
+branches, and the way to have branches is to keep multiple versions of the
+repo).
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Branch=]
+[=context=]:
+    The [=Repository=] that this branch belongs to
+[=name=]:
+    The user given name of the branch, e.g. "main"
+[=ref=]:
+    The unique identifier of the branch within the repo, e.g. "refs/heads/main"
+[=team=]:
+    If the branch has its own access/authority/visibility settings, this can be
+    a [=Collection=] of the actors who have push/edit access to the branch
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/branches/master",
+    "type": "Branch",
+    "context": "https://example.dev/luke/myrepo",
+    "name": "master",
+    "ref": "refs/heads/master"
+}
+</xmp>
+</div>
+
+## Repository ## {#Repository}
+
+To represent a version control repository, use the ForgeFed
+[=Repository=] type.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Repository=]
+[=name=]:
+    The user given name of the repository, e.g. "My cool repo"
+[=cloneUri=]:
+    The endpoint from which the content of the repository can be obtained via
+    the native protocol (Git, Hg, etc.)
+[=attributedTo=]:
+    The actor(s) in charge of the repository, e.g. a person or an organization;
+    if their actor URI is unknown, it MAY be their email address as a `mailto`
+    URI
+[=published=]:
+    The time the repository was created on the server
+[=summary=]:
+    A one-line user provided description of the repository, as HTML, e.g.
+    "`<p>A command-line tool that does cool things</p>`"
+[=team=]:
+    [=Collection=] of actors who have management/push access to the repository,
+    or the subset of them who is available and wants to be
+    contacted/notified/responsible on repo access related activities/requests
+[=forks=]:
+    [=OrderedCollection=] of repositories that are forks of this repository
+[=ticketsTrackedBy=]:
+    The ticket tracker that tracks tickets for this repository, this can be the
+    repository itself if it manages its own tickets
+[=sendPatchesTo=]:
+    The actor that tracks patches for this repository, this can be the
+    repository itself if it manages its own patches and merge requests. For
+    example it may be some external tracker or service, or the user or team to
+    whom the repository belongs.
+[=context=]:
+    The [=Project=](s) to which this repository belongs
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v1",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "cloneUri": "https://dev.example/aviva/treesim.git",
+    "type": "Repository",
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "team": "https://dev.example/aviva/treesim/team",
+    "ticketsTrackedBy": "https://dev.example/aviva/treesim",
+    "sendPatchesTo": "https://dev.example/aviva/treesim",
+    "name": "Tree Growth 3D Simulation",
+    "attributedTo": "https://example.dev/bob",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+</xmp>
+</div>
+
+## Push ## {#Push}
+
+To represent an event of [=Commit=]s being pushed to a
+[=Repository=], use a ForgeFed [=Push=] activity.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Push=]
+[=actor=]:
+    The entity (person, bot, etc.) that pushed the commits
+[=context=]:
+    The [=Repository=] to which the push was made
+[=target=]:
+    The specific repo history tip onto which the commits were added, this is
+    either a [=Branch=] (for VCSs that have branches) or a [=Repository=] (for
+    VCSs that don't have branches, only a single history line). If it's a
+    branch, it MUST be a branch belonging to the repository specified by
+    [=context=]. And if it's a repository, it MUST be identical to the one
+    specified by [=context=].
+[=hashBefore=]:
+    Repo/branch/tip hash before adding the new commits
+[=hashAfter=]:
+    Repo/branch/tip hash after adding the new commits
+[=object=]:
+    An [=OrderedCollection=] of the [=Commit=]s being pushed, in **reverse
+    chronological order**. The [=items=] (or [=orderedItems=]) property of the
+    collection MUST contain either the whole list of commits being pushed, or a
+    prefix i.e. continuous subset from the beginning of the list (therefore the
+    **latest** commits). [=earlyItems=] MAY be used for listing a suffix i.e.
+    continuous subset from the end (therefore the **earliest** commits).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox/E26bE",
+    "type": "Push",
+    "actor": "https://dev.example/aviva",
+    "to": [
+        "https://dev.example/aviva/followers",
+        "https://dev.example/aviva/game-of-life",
+        "https://dev.example/aviva/game-of-life/team",
+        "https://dev.example/aviva/game-of-life/followers"
+    ],
+    "context": "https://dev.example/aviva/game-of-life",
+    "target": "https://dev.example/aviva/game-of-life/branches/master",
+    "hashBefore": "017cbb00bc20d1cae85f46d638684898d095f0ae",
+    "hashAfter": "be9f48a341c4bb5cd79ae7ab85fbf0c05d2837bb",
+    "object": {
+        "totalItems": 2,
+        "type": "OrderedCollection",
+        "orderedItems": [
+            {
+                "id": "https://dev.example/aviva/game-of-life/commits/be9f48a341c4bb5cd79ae7ab85fbf0c05d2837bb",
+                "type": "Commit",
+                "attributedTo": "https://dev.example/aviva",
+                "context": "https://dev.example/aviva/game-of-life",
+                "hash": "be9f48a341c4bb5cd79ae7ab85fbf0c05d2837bb",
+                "created": "2019-12-02T16:07:32Z",
+                "summary": "Add widget to alter simulation speed"
+            },
+            {
+                "id": "https://dev.example/aviva/game-of-life/commits/fa37fe100a8b1e69933889c5bf3caf95cd3ae1e6",
+                "type": "Commit",
+                "attributedTo": "https://dev.example/aviva",
+                "context": "https://dev.example/aviva/game-of-life",
+                "hash": "fa37fe100a8b1e69933889c5bf3caf95cd3ae1e6",
+                "created": "2019-12-02T15:51:52Z",
+                "summary": "Set window title correctly, fixes issue #7"
+            }
+        ]
+    }
+}
+</xmp>
+</div>
+
+## Ticket ## {#Ticket}
+
+To represent a work item in a project, use the ForgeFed [=Ticket=]
+type.
+
+TODO decide on ticket categories/subtypes and update below
+
+TODO decide on property for titles, update below
+
+TODO properly document `history` or remove it from example
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Ticket=]
+[=context=]:
+    The [=TicketTracker=] or [=PatchTracker=] to which this ticket belongs
+[=attributedTo=]:
+    The actor (person, bot, etc.) who submitted the ticket
+[=summary=]:
+    The ticket's one-line title, as HTML-escaped plain text
+[=content=], [=mediaType=]:
+    The ticket's (possibly multi-line) detailed description text, in rendered
+    form
+[=source=]:
+    Source form of the ticket's description
+[=published=]:
+    The time the ticket submission was accepted (which may not be the same as
+    the time the ticket was submitted)
+[=followers=]:
+    Collection of the followers of the ticket, actors who want to be notified
+    on activity related to the ticket
+[=team=]:
+    Collection of project team members who have responsibility for work on this
+    ticket and want to be notified on activities related to it
+[=replies=]:
+    Collection of direct comments made on the ticket (but not comments made *on
+    other* comments on the ticket)
+[=dependants=]:
+    Collection of [=Ticket=]s which depend on this ticket
+[=dependencies=]:
+    Collection of [=Ticket=]s on which this ticket depends
+[=isResolved=]:
+    Whether the work on this ticket is done
+[=resolvedBy=]:
+    If the work on this ticket is done, who marked the ticket as resolved, or
+    which activity did so
+[=resolved=]:
+    When the ticket has been marked as resolved
+</pre>
+
+There's an important distinction between these two kinds of tickets:
+
+- Task:
+    A work item which tracks some task to be done, in which the task and its
+    results are described in text, but the work itself is done elsewhere.  This
+    is often called "issue" in software project hosting platforms. Tasks are
+    general-purpose work items that aren't specific to software development or
+    software projects.
+- Merge request:
+    A work item that includes a proposal or request to apply some specific
+    changes to a specific [=Repository=]. The work requested by the work item
+    is to review and (decide whether to) merge the proposed patches to the
+    repository. This kind of work item is often called "Pull Request" or "Merge
+    Request" on software project hosting platforms.
+
+### Task / Issue
+
+A task is represented as a [[#Ticket]] as described above, with the
+following additional requirements:
+
+- [=context=] is the [=TicketTracker=] to which this task belongs
+- There is no [=attachment=] of type [=Offer=] (but there may be attachment of other types)
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/issues/107",
+    "type": "Ticket",
+    "context": "https://dev.example/aviva/game-of-life",
+    "attributedTo": "https://forge.example/luke",
+    "summary": "Window title is empty",
+    "content": "<p>When I start the simulation, window title disappears suddenly</p>",
+    "mediaType": "text/html",
+    "source": {
+        "mediaType": "text/markdown; variant=Commonmark",
+        "content": "When I start the simulation, window title disappears suddenly",
+    },
+    "published": "2019-11-04T07:00:04.465807Z",
+    "followers": "https://dev.example/aviva/game-of-life/issues/107/followers",
+    "team": "https://dev.example/aviva/game-of-life/issues/107/team",
+    "replies": "https://dev.example/aviva/game-of-life/issues/107/discussion",
+    "history": "https://dev.example/aviva/game-of-life/issues/107/activity",
+    "dependants": "https://dev.example/aviva/game-of-life/issues/107/rdeps",
+    "dependencies": "https://dev.example/aviva/game-of-life/issues/107/deps",
+    "isResolved": true,
+    "resolvedBy": "https://code.example/martin",
+    "resolved": "2020-02-07T06:45:03.281314Z"
+}
+</xmp>
+</div>
+
+### Merge Request / Pull Request
+
+A merge request is represented as a [[#Ticket]] as described above, with
+the following additional requirements:
+
+- [=context=] is the [=PatchTracker=] to which this merge request belongs
+- There is no [=attachment=] of type [=Offer=] (but there may be attachment of other types)
+- There is exactly one [=attachment=] of type [=Offer=], as described below
+- There MAY be more [=attachment=]s, but they MUST NOT be of type [=Offer=]
+
+In that special [=attachment=] of type [=Offer=]:
+
+- [=type=] is [=Offer=]
+- [=origin=] is the [=Repository=] or [=Branch=] from which the proposed changes are proposed to be merged into the target repository/branch
+- [=target=] is the [=Repository=] or [=Branch=] into which the changes are proposed to be merged
+- [=object=] is an [=OrderedCollection=] of [=Patch=]es in reverse
+    chronological order, in which, in addition to standard [=OrderedCollection=]
+    properties:
+        - [=context=] is (the [=id=] of) the [[#Ticket]]
+        - [=previousVersions=] is a list of previous versions
+            of the merge request's proposed changes, i.e. previous versions of this
+            [=OrderedCollection=]; each of those uses
+            [=currentVersion=] to point back to this latest
+            version
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/pulls/825",
+    "type": "Ticket",
+    "context": "https://dev.example/aviva/game-of-life",
+    "attributedTo": "https://forge.example/luke",
+    "summary": "Fix the empty window title bug",
+    "content": "<p>This fixes the bug making the title disappear</p>",
+    "mediaType": "text/html",
+    "source": {
+        "mediaType": "text/markdown; variant=Commonmark",
+        "content": "This fixes the bug making the title disappear",
+    },
+    "published": "2022-09-15T14:52:00.125987Z",
+    "followers": "https://dev.example/aviva/game-of-life/pulls/825/followers",
+    "replies": "https://dev.example/aviva/game-of-life/pulls/825/discussion",
+    "isResolved": false,
+    "attachment": {
+        "type": "Offer",
+        "origin": {
+            "type": "Branch",
+            "context": "https://forge.example/luke/game-of-life",
+            "ref": "refs/heads/fix-title-bug"
+        },
+        "target": {
+            "type": "Branch",
+            "context": "https://dev.example/aviva/game-of-life",
+            "ref": "refs/heads/main"
+        },
+        "object": {
+            "id": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+            "type": "OrderedCollection",
+            "totalItems": 1,
+            "items": [
+                {
+                    "type": "Patch",
+                    "attributedTo": "https://forge.example/luke",
+                    "context": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+                    "mediaType": "application/x-git-patch",
+                    "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+                }
+            ],
+            "context": "https://dev.example/aviva/game-of-life/pulls/825"
+        }
+    }
+}
+</xmp>
+</div>
+
+## Patch
+
+<pre class=simpledef>
+[=type=]:
+    [=Patch=]
+[=attributedTo=]:
+    The [=Person=] who has written the patch
+[=context=]:
+    An [=OrderedCollection=] representing a sequence of patches, being
+    submitted together as a proposed change to a certain [=Repository=], and
+    this patch is an item in that collection
+[=content=]:
+    A description of the changes that this patch proposes, encoded in the
+    format specified by [=mediaType=]
+[=mediaType=]:
+    A native patch format used by the Version Control System of the
+    [=Repository=] to which the patch is proposed, and in which the [=content=]
+    of this patch is encoded
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/pulls/825/versions/1/patches/1",
+    "type": "Patch",
+    "attributedTo": "https://forge.example/luke",
+    "context": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+    "mediaType": "application/x-git-patch",
+    "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+}
+</xmp>
+</div>
+
+# Access Control
+
+## Giving Access
+
+### Invite ### {#Invite}
+
+To offer some actor access to a shared resource (such as a repository or a
+ticket tracker), use an ActivityPub [=Invite=] activity.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Invite=]
+[=actor=]:
+    The entity (person, bot, etc.) that is offering access
+[=instrument=]:
+    A [=Role=] specifying which operations on the resource are being allowed
+[=target=]:
+    The resource, access to which is being given (for example, a repository)
+[=object=]:
+    The actor who is being gives access to the resource
+[=capability=]:
+    A previously published `Grant`, giving the `actor` permission to invite
+    more actors to access the resource
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox/B47d3",
+    "type": "Invite",
+    "actor": "https://dev.example/aviva",
+    "to": [
+        "https://dev.example/aviva/followers",
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "target": "https://coding.community/repos/game-of-life",
+    "object": "https://software.site/bob",
+    "capability": "https://coding.community/repos/game-of-life/outbox/2c53A"
+}
+</xmp>
+</div>
+
+### Join ### {#Join}
+
+To request access to a shared resource, use an ActivityPub [=Join=] activity.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Join=]
+[=actor=]:
+    The entity (person, bot, etc.) that is requesting access
+[=instrument=]:
+    A [=Role=] specifying which operations on the resource are being requested
+[=object=]:
+    The resource, access to which is being given (for example, a repository)
+[=capability=]:
+    *(optional)* A previously published `Grant`, giving the `actor` permission
+    to gain access to the resource without the approval of another actor. If
+    `capability` isn't provided, the resource won't grant access before someone
+    with adequate access approves the Join request.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/bob/outbox/c97E3",
+    "type": "Join",
+    "actor": "https://software.site/bob",
+    "to": [
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "object": "https://coding.community/repos/game-of-life",
+    "capability": "https://coding.community/repos/game-of-life/outbox/d38Fa"
+}
+</xmp>
+</div>
+
+### Grant ### {#Grant}
+
+To give some actor access to a shared resource, use a ForgeFed
+[=Grant=] activity.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Grant=]
+[=actor=]:
+    The entity (person, bot, etc.) that is giving access
+[=object=]:
+    A [=Role=] specifying which operations on the resource are being allowed
+[=context=]:
+    The resource, access to which is being given (for example, a repository)
+[=target=]:
+    The actor who is being gives access to the resource
+[=fulfills=]:
+    The activity that triggered the sending of the `Grant`, such as a related
+    `Invite` (another example: if Alice [=Create=]s a new repository, the
+    repository may automatically send back a [=Grant=] giving Alice admin
+    access, and this Grant's `fulfills` refers to the [=Create=] that Alice
+    sent)
+[=result=]:
+    A URI that can be used later for verifying that the given access is still
+    approved, thus allowing the actor granting the access to revoke it
+[=allows=]:
+    Modes of invocation and/or delegation that this `Grant` is meant to be used
+    for
+[=delegates=]:
+    If this `Grant` is a delegation, i.e. it is passing on some access that it
+    has received, `delegates` specifies the parent `Grant` that it has received
+    and now passing on
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://coding.community/repos/game-of-life/outbox/9fA8c",
+    "type": "Grant",
+    "actor": "https://coding.community/repos/game-of-life",
+    "to": [
+        "https://dev.example/aviva",
+        "https://dev.example/aviva/followers",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "object": "https://roles.example/maintainer",
+    "context": "https://coding.community/repos/game-of-life",
+    "target": "https://software.site/bob",
+    "fulfills": "https://dev.example/aviva/outbox/B47d3",
+    "allows": "invoke"
+}
+</xmp>
+</div>
+
+## Canceling Access
+
+### Remove ### {#Remove}
+
+To disable an actor's membership in a shared resource, invalidating their
+access to it, use an ActivityPub [=Remove=] activity.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Remove=]
+[=actor=]:
+    The actor (person, bot, etc.) that is disabling access disabled
+[=object=]:
+    The actor whose access to the resource is being taken away
+[=origin=]:
+    The resource, access to which is being taken away (for example, a
+    repository)
+[=capability=]:
+    A previously published `Grant`, giving the `actor` permission to disable
+    the [=object=] actor's access to the resource
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox/F941b",
+    "type": "Remove",
+    "actor": "https://dev.example/aviva",
+    "to": [
+        "https://dev.example/aviva/followers",
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "origin": "https://coding.community/repos/game-of-life",
+    "object": "https://software.site/bob",
+    "capability": "https://coding.community/repos/game-of-life/outbox/2c53A"
+}
+</xmp>
+</div>
+
+### Leave ### {#Leave}
+
+To withdraw your consent for membership in a shared resource, invalidating
+your access to it, use an ActivityPub [=Leave=] activity.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Leave=]
+[=actor=]:
+    The actor (person, bot, etc.) that is requesting to disable their own
+    access
+[=object=]:
+    The resource, access to which is being disabled (for example, a repository)
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://software.site/bob/outbox/d08F4",
+    "type": "Leave",
+    "actor": "https://software.site/bob",
+    "to": [
+        "https://coding.community/repos/game-of-life",
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob/followers"
+    ],
+    "object": "https://coding.community/repos/game-of-life"
+}
+</xmp>
+</div>
+
+### Revoke ### {#Revoke}
+
+Another activity that can be used for disabling access is [=Revoke=].
+While [[#Remove]] and [[#Leave]] are meant for undoing the effects
+of [[#Invite]] and [[#Join]], `Revoke` is provided as an opposite of
+[[#Grant]]. See the Behavior specification for more information about the
+usage of these different activity types in revocation of access to shared
+resources.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Revoke=]
+[=actor=]:
+    The actor (person, bot, etc.) that is revoking access
+[=instrument=]:
+    The [=Role=] that the [=origin=] actor had with respect to accessing the
+    resource, and which is now being taken away
+[=context=]:
+    The resource, access to which is being revoked
+[=origin=]:
+    The actor whose access to the resource is being revoked
+[=fulfills=]:
+    An activity that triggered the sending of the `Grant`, such as a related
+    `Remove` or `Leave`
+[=object=]:
+    specific [[#Grant]] activities being undone, i.e. the access that they
+    granted is now disabled and it cannot be used anymore as the [=capability=]
+    of activities
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://coding.community/repos/game-of-life/outbox/1C0e2",
+    "type": "Revoke",
+    "actor": "https://coding.community/repos/game-of-life",
+    "to": [
+        "https://coding.community/repos/game-of-life/followers",
+        "https://software.site/bob",
+        "https://software.site/bob/followers"
+    ],
+    "instrument": "https://roles.example/maintainer",
+    "context": "https://coding.community/repos/game-of-life",
+    "origin": "https://software.site/bob",
+    "object": "https://coding.community/repos/game-of-life/outbox/9fA8c"
+}
+</xmp>
+</div>
+
+### Undo a Grant ### {#undo-grant}
+
+The Behavior spec describes flows in which the [[#Revoke]] activity is
+used by resources (more accurately, by the actors managing them) to announce
+that they're disabling [[#Grant]]s that they previously sent. To allow for
+a clear distinction, another activity is provided here, for *other* actors to
+*request* the revocation of specific [[#Grant]]s: The ActivityPub [=Undo=]
+activity.
+
+It's likely that `Grant`s would exist behind-the-scenes in applications, and
+human actors would then use activities such as `Remove` and `Leave` for
+disabling access. But the ability to disable specific `Grant`s may be required
+for ensuring and maintaining system security, therefore `Undo` is provided here
+as well.
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Undo=]
+[=actor=]:
+    The actor (person, bot, etc.) that is revoking access
+[=object=]:
+    specific [[#Grant]] activities being undone, i.e. the access that they
+    granted is now disabled and it cannot be used anymore as the [=capability=]
+    of activities
+[=capability=]:
+    A previously published `Grant`, giving the `actor` permission to disable
+    the [=object=] actor's access to the resource
+</pre>
+
+# Vocabulary # {#vocab}
+
+## Types
+
+The base URI of all ForgeFed terms is `https://forgefed.org/ns#`.
+The ForgeFed vocabulary has a JSON-LD context whose URI is
+`https://forgefed.org/ns`. Implementers MUST either include the
+ActivityPub and ForgeFed contexts in their object definitions, or other
+contexts that would result with the ActivityPub and ForgeFed terms being
+assigned they correct full URIs. Implementers MAY include additional contexts
+and terms as appropriate.
+
+A typical `@context` of a ForgeFed object may look like this:
+
+<div class=example>
+<xmp highlight=json-ld>
+"@context": [
+    "https://www.w3.org/ns/activitystreams",
+    "https://forgefed.org/ns"
+]
+</xmp>
+</div>
+
+### Activities
+
+#### Related to access control
+
+<pre class=simpledef>
+Name: <dfn dfn export>Grant</dfn>
+URI: https://forgefed.org/ns#Grant
+Extends: [=Activity=]
+Description:
+    Indicates that [=target=] is being given (by the [=actor=]) access to a
+    resource specified by [=context=] under the role/permission specified by
+    [=object=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/aviva/outbox/reBGo",
+    "type": "Grant",
+    "actor": "https://example.dev/aviva",
+    "to": [
+        "https://example.dev/aviva/followers",
+        "https://example.dev/aviva/myproject",
+        "https://example.dev/aviva/myproject/followers",
+        "https://example.dev/bob",
+        "https://example.dev/bob/followers"
+    ],
+    "object": "https://example.dev/roles/developer",
+    "context": "https://example.dev/aviva/myproject",
+    "target": "https://example.dev/bob"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Revoke</dfn>
+URI: https://forgefed.org/ns#Revoke
+Extends: [=Activity=]
+Description:
+    Indicates that the [=actor=] is canceling [=target=]'s access to a resource
+    specified by [=context=] under the role specified by [=instrument=], making
+    the [=Grant=] activities specified by [=object=] unusable anymore in other
+    activities' [=capability=] field.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/myproject/outbox/nlTxb",
+    "type": "Revoke",
+    "actor": "https://example.dev/myproject",
+    "to": [
+        "https://example.dev/myproject/followers",
+        "https://example.dev/users/aviva"
+    ],
+    "object": "https://example.dev/myproject/outbox/reBGo",
+    "instrument": "https://example.dev/roles/developer",
+    "context": "https://example.dev/myproject",
+    "target": "https://example.dev/users/aviva"
+}
+</xmp>
+</div>
+
+#### Related to repositories
+
+<pre class=simpledef>
+Name: <dfn dfn export>Push</dfn>
+URI: https://forgefed.org/ns#Push
+Extends: [=Activity=]
+Description:
+    Indicates that new content has been pushed to the [=Repository=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/aviva/outbox/reBGo",
+    "type": "Push",
+    "actor": "https://example.dev/aviva",
+    "to": [
+        "https://example.dev/aviva/followers",
+        "https://example.dev/aviva/myproject",
+        "https://example.dev/aviva/myproject/team",
+        "https://example.dev/aviva/myproject/followers"
+    ],
+    "summary": "<p>Aviva pushed a commit to myproject</p>",
+    "object": {
+        "type": "OrderedCollection",
+        "totalItems": 1,
+        "items": [
+            {
+                "id": "https://example.dev/aviva/myproject/commits/d96596230322716bd6f87a232a648ca9822a1c20",
+                "type": "Commit",
+                "attributedTo": "https://example.dev/aviva",
+                "context": "https://example.dev/aviva/myproject",
+                "hash": "d96596230322716bd6f87a232a648ca9822a1c20",
+                "created": "2019-11-03T13:43:59Z",
+                "summary": "Provide hints in sign-up form fields",
+            }
+        ]
+    },
+    "target": "https://example.dev/aviva/myproject/branches/master",
+    "context": "https://example.dev/aviva/myproject"
+}
+</xmp>
+</div>
+
+### Actors
+
+#### Software development components
+
+<pre class=simpledef>
+Name: <dfn dfn export>Repository</dfn>
+URI: https://forgefed.org/ns#Repository
+Extends: [=Object=]
+Description:
+    Represents a version control system repository.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v1",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": "Repository",
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "team": "https://dev.example/aviva/treesim/team",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>TicketTracker</dfn>
+URI: https://forgefed.org/ns#TicketTracker
+Extends: [=Object=]
+Description:
+    Represents a [[wikipedia-ticket-tracker|ticket tracker]], i.e. a project
+    managing a list of work items.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": ["Repository", "TicketTracker"],
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>PatchTracker</dfn>
+URI: https://forgefed.org/ns#PatchTracker
+Extends: [=Object=]
+Description:
+    Represents a tracker of [[wikipedia-pr|merge requests]], i.e. a project
+    managing a list of patches or branches submitted as proposed changes to a
+    given [=Repository=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": ["Repository", "TicketTracker", "PatchTracker"],
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
+}
+</xmp>
+</div>
+
+#### Organizational structure tools
+
+<pre class=simpledef>
+Name: <dfn dfn export>Project</dfn>
+URI: https://forgefed.org/ns#Project
+Extends: [=Object=]
+Description:
+    Represents a project, a planned endeavor that involves usage of tools
+    related to the software development lifecycle. It may be a software
+    project, but may also be totally unrelated to software development. For
+    example, it may be a book that is being written using Markdown files kept
+    in a Git repository. A [=Project=] object is a way to collect forge related
+    components together under one title.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "components": {
+        "type": "Collection",
+        "totalItems": 7,
+        "items": [
+            "https://dev.example/repos/opengl-vegetation",
+            "https://dev.example/repos/opengl-vegetation/patch-tracker",
+            "https://dev.example/repos/treesim",
+            "https://dev.example/repos/treesim/patch-tracker",
+            "https://dev.example/repos/wanderer",
+            "https://dev.example/repos/wanderer/patch-tracker",
+            "https://dev.example/issue-trackers/wanderer"
+        ]
+    },
+
+    "publicKey": {
+        "id": "https://dev.example/projects/wanderer#main-key",
+        "owner": "https://dev.example/projects/wanderer",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Team</dfn>
+URI: https://forgefed.org/ns#Team
+Extends: [=Object=]
+Description:
+    Represents a group of people working together, collaborating on shared
+    resources. Each member [=Person=] in the team has a defined role, affecting
+    the level of access they have to the team's shared resources and to
+    managing the team itself.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/teams/mobilizon-dev-team",
+    "type": "Team",
+    "name": "Mobilizon Development Team",
+    "summary": "We're creating a federated tool for organizing events!",
+    "members": {
+        "type": "Collection",
+        "totalItems": 3,
+        "items": [
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/alice",
+              "tag": "https://roles.example/admin"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/bob",
+              "tag": "https://roles.example/maintainer"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/teams/mobilizon-dev-team",
+              "relationship": "hasMember",
+              "object": "https://dev.example/people/celine",
+              "tag": "https://roles.example/developer"
+            }
+        ]
+    },
+    "subteams": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/teams/mobilizon-backend-team",
+            "https://dev.example/teams/mobilizon-frontend-team"
+        ]
+    },
+    "context": "https://dev.example/teams/framasoft-developers",
+
+    "publicKey": {
+        "id": "https://dev.example/teams/mobilizon-dev-team#main-key",
+        "owner": "https://dev.example/teams/mobilizon-dev-team",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/teams/mobilizon-dev-team/inbox",
+    "outbox": "https://dev.example/teams/mobilizon-dev-team/outbox",
+    "followers": "https://dev.example/teams/mobilizon-dev-team/followers"
+}
+</xmp>
+</div>
+
+### Objects
+
+<pre class=simpledef>
+Name: <dfn dfn export>CapabilityUsage</dfn>
+URI: https://forgefed.org/ns#CapabilityUsage
+Extends: [=Object=]
+Values:
+    This specification defines 3: [=gatherAndConvey=], [=distribute=] and
+    [=invoke]
+Description:
+    Represents a mode of using a [=Grant=] as an Object Capability (OCAP).
+    There are two conceptual operations for `Grant`s: Invocation (acting on the
+    resource under the specified role) and Delegation (passing on the access to
+    more actors, possibly with reduced privileges). A value of this type refers
+    to one or both of these operations, and possibly to more specific
+    conditions and restrictions on applying them.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Role</dfn>
+URI: https://forgefed.org/ns#Role
+Extends: [=Object=]
+Values: This specification current provides 1: [=delegator=]
+Description:
+    Represents a role that an actor has within a [=Team=], or a role defining
+    the level of access an actor has to a resource.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Branch</dfn>
+URI: https://forgefed.org/ns#Branch
+Extends: [=Object=]
+Description:
+    Represents a named variable reference to a version of the [=Repository=],
+    typically used for committing changes in parallel to other development, and
+    usually eventually merging the changes into the main history line.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/branches/master",
+    "type": "Branch",
+    "name": "master",
+    "context": "https://example.dev/luke/myrepo",
+    "ref": "refs/heads/master"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Commit</dfn>
+URI: https://forgefed.org/ns#Commit
+Extends: [=Object=]
+Description:
+    Represents a named set of changes in the history of a [=Repository=].  This
+    is called "commit" in Git, Mercurial and Monotone; "patch" in Darcs;
+    sometimes called "change set". Note that `Commit` is a set of changes that
+    already exists in a repo's history, while a [=Patch=] is a separate
+    proposed change set, that *could* be applied and pushed to a repo,
+    resulting with a `Commit`.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "type": "Commit",
+    "context": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://example.dev/bob",
+    "committedBy": "https://example.dev/alice",
+    "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "summary": "Add an installation script, fixes issue #89",
+    "description": {
+        "mediaType": "text/plain",
+        "content": "It's about time people can install on their computers!"
+    },
+    "created": "2019-07-11T12:34:56Z",
+    "committed": "2019-07-26T23:45:01Z"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Patch</dfn>
+URI: https://forgefed.org/ns#Patch
+Extends: [=Object=]
+Description:
+    Represents a named set of changes that are being proposed for applying to a
+    specific [=Repository=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/game-of-life/pulls/825/versions/1/patches/1",
+    "type": "Patch",
+    "attributedTo": "https://forge.example/luke",
+    "context": "https://dev.example/aviva/game-of-life/pulls/825/versions/1",
+    "mediaType": "application/x-git-patch",
+    "content": "From c9ae5f4ff4a330b6e1196ceb7db1665bd4c1..."
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>TicketDependency</dfn>
+URI: https://forgefed.org/ns#TicketDependency
+Extends: [=Relationship=]
+Description:
+    Represents a relationship between 2 [=Ticket=]s, in which the resolution of
+    one ticket requires the other ticket to be resolved too. It MUST specify
+    the [=subject=], [=object=] and [=relationship=] properties, and the
+    `relationship` property MUST be [=dependsOn=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "type": ["Relationship", "TicketDependency"],
+    "id": "https://example.dev/ticket-deps/2342593",
+    "attributedTo": "https://example.dev/alice",
+    "summary": "Alice's ticket depends on Bob's ticket",
+    "published": "2019-07-11T12:34:56Z",
+    "subject": "https://example.dev/alice/myproj/issues/42",
+    "relationship": "dependsOn",
+    "object": "https://dev.community/bob/coolproj/issues/85"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Ticket</dfn>
+URI: https://forgefed.org/ns#Ticket
+Extends: [=Object=]
+Description:
+    Represents an item that requires work or attention. Tickets exist in the
+    context of a project (which may or may not be a version-control
+    repository), and are used to track ideas, proposals, tasks, bugs and more.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "type": "Ticket",
+    "id": "https://example.dev/alice/myrepo/issues/42",
+    "context": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://dev.community/bob",
+    "summary": "Nothing works!",
+    "content": "<p>Please fix. <i>Everything</i> is broken!</p>",
+    "mediaType": "text/html",
+    "source": {
+        "content": "Please fix. *Everything* is broken!",
+        "mediaType": "text/markdown; variant=CommonMark"
+    },
+    "assignedTo": "https://example.dev/alice",
+    "isResolved": false
+}
+</xmp>
+</div>
+
+## Properties
+
+### General-purpose
+
+<pre class=simpledef>
+Name: <dfn dfn export>earlyItems</dfn>
+URI: https://forgefed.org/ns#earlyItems
+Domain: [=OrderedCollection=]
+Range: Ordered list of [ [=Object=] | [=Link=] ]
+Functional: No
+Inverse of: None
+Description:
+    In an ordered collection (or an ordered collection page) in which [=items=]
+    (or [=orderedItems=]) contains a continuous subset of the collection's
+    items from one end, `earlyItems` identifiers a continuous subset from the
+    other end. For example, if `items` lists the chronologically latest items,
+    `earlyItems` would list the chrologically earliest items. The ordering rule
+    for items in `earlyItems` MUST be the same as in `items`. For examle, if
+    `items` lists items in reverse chronogical order, then so does
+    `earlyItems`.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=14>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/outbox",
+    "type": "OrderedCollection",
+    "totalItems": 712,
+    "orderedItems": [
+       "https://dev.example/aviva/outbox/712",
+       "https://dev.example/aviva/outbox/711",
+       "https://dev.example/aviva/outbox/710"
+    ],
+    "earlyItems": [
+       "https://dev.example/aviva/outbox/3",
+       "https://dev.example/aviva/outbox/2",
+       "https://dev.example/aviva/outbox/1"
+    ]
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>previousVersions</dfn>
+URI: https://forgefed.org/ns#previousVersions
+Domain: [=Object=]
+Range: `rdf:List` of objects of the same `@type` as the subject
+Functional: Yes
+Inverse of: None, but see [=currentVersion=]
+Description:
+    Specifies the previous versions of the subject, as an ordered list in
+    reverse chronological order.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=10>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/notes/107",
+    "type": "Note",
+    "attributedTo": "https://dev.example/aviva",
+    "content": "I agree!!!!! (edit: fixed a typo)",
+    "previousVersions": [
+       "https://dev.example/aviva/notes/107_old_version",
+       "https://dev.example/aviva/notes/107_very_old_version",
+       "https://dev.example/aviva/notes/107_ancient_version"
+    ]
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>currentVersion</dfn>
+URI: https://forgefed.org/ns#currentVersion
+Domain: [=Object=]
+Range: [=Object=], of the same `@type` as the subject
+Functional: Yes
+Inverse of: None, but see [=previousVersions=]
+Description:
+    Specifies the latest. current, up-to-date version of the subject.  Once the
+    subject specifies the `currentVersion` property, it SHOULD NOT get any
+    changes to any other properties. The exception is `currentVersion` itself,
+    which MUST be updated whenever needed, to always point to the latest
+    version.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=10>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/notes/107_old_version",
+    "type": "Note",
+    "attributedTo": "https://dev.example/aviva",
+    "content": "I agree!!111",
+    "currentVersion": "https://dev.example/aviva/notes/107"
+}
+</xmp>
+</div>
+
+### Projects
+
+<pre class=simpledef>
+Name: <dfn dfn export>components</dfn>
+URI: https://forgefed.org/ns#components
+Domain: [=Project=]
+Range: [=Collection=]
+Functional: Yes
+Inverse of:
+    None, but see the usage of [=context=] in the Modeling specification, e.g.
+    in [[#Repository]]
+Description:
+    Identifies a [=Collection=] listing actors whose services and resources are
+    considered to be components of this project.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "components": {
+        "type": "Collection",
+        "totalItems": 7,
+        "items": [
+            "https://dev.example/repos/opengl-vegetation",
+            "https://dev.example/repos/opengl-vegetation/patch-tracker",
+            "https://dev.example/repos/treesim",
+            "https://dev.example/repos/treesim/patch-tracker",
+            "https://dev.example/repos/wanderer",
+            "https://dev.example/repos/wanderer/patch-tracker",
+            "https://dev.example/issue-trackers/wanderer"
+        ]
+    },
+
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>subprojects</dfn>
+URI: https://forgefed.org/ns#subprojects
+Domain: [=Project=]
+Range: [=Collection=] of [=Project=]s
+Functional: Yes
+Inverse of:
+    None, but see the usage of [=context=] in [[#Project]]
+Description:
+    Identifies a [=Collection=] listing the subprojects of this [=Project=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/projects/wanderer",
+    "type": "Project",
+
+    "name": "Wanderer",
+    "summary": "3D nature exploration game",
+    "subprojects": {
+        "type": "Collection",
+        "totalItems": 2,
+        "items": [
+            "https://dev.example/projects/nature-3d-models",
+            "https://dev.example/projects/wanderer-fundraising"
+        ]
+    },
+
+    "inbox": "https://dev.example/projects/wanderer/inbox",
+    "outbox": "https://dev.example/projects/wanderer/outbox",
+    "followers": "https://dev.example/projects/wanderer/followers"
+}
+</xmp>
+</div>
+
+### Team membership and nesting
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasMember</dfn>
+URI: https://forgefed.org/ns#hasMember
+Domain: [=Team=]
+Range: [=Person=]
+Functional: No
+Inverse of: None
+Description:
+    Identifier a [=Person=] who is a member of this [=Team=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>members</dfn>
+URI: https://forgefed.org/ns#members
+Domain: [=Team=]
+Range:
+    [=Collection=] of [=Relationship=]s whose [=relationship=] is [=hasMember=]
+    and whose [=subject=] is this `Team`.
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies a collection of the members of this [=Team=], represented as
+    [=hasMember=] [=Relationship=]s.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>subteams</dfn>
+URI: https://forgefed.org/ns#subteams
+Domain: [=Team=]
+Range: [=Collection=] of [=Team=]s.
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies a collection of the subteams of this [=Team=], i.e. teams whose
+    members inherit the access that this team's members have to projects and to
+    project components (such as [=Repository=]s).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+### Ticket assignment and resolution
+
+<pre class=simpledef>
+Name: <dfn dfn export>assignedTo</dfn>
+URI: https://forgefed.org/ns#assignedTo
+Domain: [=Ticket=]
+Range: [=Person=]
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies the [=Person=] assigned to work on this [=Ticket=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>isResolved</dfn>
+URI: https://forgefed.org/ns#isResolved
+Domain: [=Ticket=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies whether the [=Ticket=] is closed, i.e. the work on it is done and
+    it doesn't need to attract attention anymore.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>resolvedBy</dfn>
+URI: https://forgefed.org/ns#resolvedBy
+Domain: [=Ticket=]
+Range: [=Object=] than is an actor, or [=Activity=]
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies the Actor who has resolved the [=Ticket=], or the activity that
+    has resolved the Ticket.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>resolved</dfn>
+URI: https://forgefed.org/ns#resolved
+Domain: [=Ticket=]
+Range: `xsd:dateTime`
+Functional: Yes
+Inverse of: None
+Description:
+    For a resolved [=Ticket=], specifies the time the Ticket has been resolved.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+### Ticket dependencies
+
+<pre class=simpledef>
+Name: <dfn dfn export>dependsOn</dfn>
+URI: https://forgefed.org/ns#dependsOn
+Domain: [=Ticket=]
+Range: [=Ticket=]
+Functional: No
+Inverse of: [=dependedBy=]
+Description:
+    Identifies one or more tickets on which this [=Ticket=] depends, i.e. it
+    can't be resolved without those tickets being resolved too.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>dependedBy</dfn>
+URI: https://forgefed.org/ns#dependedBy
+Domain: [=Ticket=]
+Range: [=Ticket=]
+Functional: No
+Inverse of: [=dependsOn=]
+Description:
+    Identifies one or more tickets which depend on this [=Ticket=], i.e. they
+    can't be resolved without this tickets being resolved too.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>dependencies</dfn>
+URI: https://forgefed.org/ns#dependencies
+Domain: [=Ticket=]
+Range: [=Collection=] of items of type [=TicketDependency=]
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies a [=Collection=] of [=TicketDependency=] which specify tickets
+    that this [=Ticket=] depends on, i.e. this ticket is the [=subject=] of the
+    [=dependsOn=] relationship.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>dependants</dfn>
+URI: https://forgefed.org/ns#dependants
+Domain: [=Ticket=]
+Range: [=Collection=] of items of type [=TicketDependency=]
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies a [=Collection=] of [=TicketDependency=] which specify tickets
+    that depends on this [=Ticket=], i.e. this ticket is the [=object=] of the
+    [=dependsOn=] relationship. Often called "reverse dependencies".
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+### Repository cloning
+
+<pre class=simpledef>
+Name: <dfn dfn export>cloneUri</dfn>
+URI: https://forgefed.org/ns#cloneUri
+Domain: [=Repository=]
+Range: [=Object=]
+Functional: No
+Inverse of: None
+Description:
+    An endpoint that can be used with a VCS protocol such as Git or Mercurial
+    to access a given repository.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+### Repository pushing
+
+<pre class=simpledef>
+Name: <dfn dfn export>hashBefore</dfn>
+URI: https://forgefed.org/ns#hashBefore
+Domain: [=Push=]
+Range: `xsd:string` of hexadecimal digit ASCII characters
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies the hash of the commit that the pushed branch/repo was pointing
+    to *right before* the push happpened.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hashAfter</dfn>
+URI: https://forgefed.org/ns#hashAfter
+Domain: [=Push=]
+Range: `xsd:string` of hexadecimal digit ASCII characters
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies the hash of the commit that the pushed branch/repo was pointing
+    to *right after* the push happpened.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+### Commits and branches
+
+<pre class=simpledef>
+Name: <dfn dfn export lt="prop-repository">repository</dfn> (DEPRECATED)
+URI: https://forgefed.org/ns#repository
+Domain: [=Commit=]
+Range: [=Repository=]
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies the repository to which a commit belongs. DEPRECATED: Use the
+    standard ActivityPub `context` property instead.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>description</dfn>
+URI: https://forgefed.org/ns#description
+Domain: [=Commit=]
+Range:
+    [=Object=], specifying [=content=] and [=mediaType=]. The `mediaType`
+    SHOULD be `"text/plain"`.
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies the description text of a [=Commit=], which is an optional
+    possibly multi-line text provided in addition to the one-line commit title.
+    The range of the `description` property works the same way the range of the
+    ActivityPub [=source=] property works.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=14>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/myrepo/commits/109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "type": "Commit",
+    "context": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://example.dev/bob",
+    "hash": "109ec9a09c7df7fec775d2ba0b9d466e5643ec8c",
+    "created": "2019-07-11T12:34:56Z",
+    "summary": "Add an installation script, fixes issue #89",
+
+    "description": {
+        "mediaType": "text/plain",
+        "content": "It's about time people can install on their computers!"
+    },
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>committedBy</dfn>
+URI: https://forgefed.org/ns#committedBy
+Domain: [=Commit=]
+Range: [=Object=]
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies the actor (usually a person, but could be something else, e.g. a
+    bot) that added a set of changes to the version-control [=Repository=].
+    Sometimes the author of the changes and the committer of those changes
+    aren't the same actor, in which case the `committedBy` property can be used
+    to specify who added the changes to the repository. For example, when
+    applying a patch to a repository, e.g. a Git repository, the author would
+    be the person who made the patch, and the committer would be the person who
+    applied the patch to their copy of the repository.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hash</dfn>
+URI: https://forgefed.org/ns#hash
+Domain: [=Commit=]
+Range: `xsd:string` of hexadecimal digit ASCII characters
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies the hash associated with a [=Commit=], which is a unique
+    identifier of the commit within the [=Repository=], usually generated as a
+    cryptographic hash function of some (or all) of the commit's data or
+    metadata.  For example, in Git it would be the SHA1 hash of the commit; in
+    Darcs it would be the SHA1 hash of the patch info.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>committed</dfn>
+URI: https://forgefed.org/ns#committed
+Domain: [=Commit=]
+Range: `xsd:dateTime`
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies the time that a set of changes was committed into the
+    [=Repository=] and became a [=Commit=] in it. This can be different from
+    the time the set of changes was produced, e.g. if one person creates a
+    patch and sends to another, and the other person then applies the patch to
+    their copy of the repository. We call the former event "created" and the
+    latter event "committed", and this latter event is specified by the
+    `committed` property.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>filesAdded</dfn>
+URI: https://forgefed.org/ns#filesAdded
+Domain: [=Commit=]
+Range: `xsd:string`
+Functional: No
+Inverse of: None
+Description:
+    Specifies a filename, as a relative path, relative to the top of the tree
+    of files in the [=Repository=], of a file that got added in this
+    [=Commit=], and didn't exist in the previous version of the tree.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>filesModified</dfn>
+URI: https://forgefed.org/ns#filesModified
+Domain: [=Commit=]
+Range: `xsd:string`
+Functional: No
+Inverse of: None
+Description:
+    Specifies a filename, as a relative path, relative to the top of the tree
+    of files in the [=Repository=], of a file that existed in the previous
+    version of the tree, and its contents got modified in this [=Commit=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>filesRemoved</dfn>
+URI: https://forgefed.org/ns#filesRemoved
+Domain: [=Commit=]
+Range: `xsd:string`
+Functional: No
+Inverse of: None
+Description:
+    Specifies a filename, as a relative path, relative to the top of the tree
+    of files in the [=Repository=], of a file that existed in the previous
+    version of the tree, and got removed from the tree in this [=Commit=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>ref</dfn>
+URI: https://forgefed.org/ns#ref
+Domain: [=Branch=]
+Range: `xsd:string`
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies an identifier for a [=Branch=], that is used in the
+    [=Repository=] to uniquely refer to it. For example, in Git,
+    "refs/heads/master" would be the `ref` of the master branch.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/branches/master",
+    "type": "Branch",
+    "name": "master",
+    "context": "https://example.dev/luke/myrepo",
+
+    "ref": "refs/heads/master"
+}
+</xmp>
+</div>
+
+### Activity addressing
+
+<pre class=simpledef>
+Name: <dfn dfn export lt="prop-team">team</dfn>
+URI: https://forgefed.org/ns#team
+Domain: [=Object=]
+Range: [=Collection=] of actors
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies a [=Collection=] of actors who are working on the object, or
+    responsible for it, or managing or administrating it, or having edit access
+    to it. For example, for a [=Repository=], it could be the people who have
+    push/edit access, the "collaborators" of the repository.
+</pre>
+
+<div class=example>
+A repository *https://dev.example/aviva/treesim*:
+
+<xmp highlight=json-ld line-highlight=20>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v1",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": "Repository",
+    "publicKey": {
+        "id": "https://dev.example/aviva/treesim#main-key",
+        "owner": "https://dev.example/aviva/treesim",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhki....."
+    },
+    "inbox": "https://dev.example/aviva/treesim/inbox",
+    "outbox": "https://dev.example/aviva/treesim/outbox",
+    "followers": "https://dev.example/aviva/treesim/followers",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>",
+
+    "team": "https://dev.example/aviva/treesim/team"
+}
+</xmp>
+
+The repository's team *https://dev.example/aviva/treesim/team*:
+
+<xmp highlight=json-ld line-highlight=4>
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://dev.example/aviva/treesim/team",
+    "type": "Collection",
+    "totalItems": 3,
+    "items": [
+        "https://dev.example/aviva",
+        "https://dev.example/luke",
+        "https://code.community/users/lorax"
+    ]
+}
+</xmp>
+
+</div>
+
+### Tracker linking
+
+<pre class=simpledef>
+Name: <dfn dfn export>ticketsTrackedBy</dfn>
+URI: https://forgefed.org/ns#ticketsTrackedBy
+Domain: [=Object=]
+Range: [=Object=] that is an actor
+Functional: Yes
+Inverse of: [=tracksTicketsFor=]
+Description:
+    Identifies the actor which tracks tickets related to the given object. This
+    is the actor to whom you send tickets you'd like to open against the
+    object.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=10>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/aviva/treesim",
+    "type": "Repository",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>",
+    "ticketsTrackedBy": "https://bugs.example/projects/treesim"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>tracksTicketsFor</dfn>
+URI: https://forgefed.org/ns#tracksTicketsFor
+Domain: [=Object=] that is an actor
+Range: [=Object=]
+Functional: No
+Inverse of: [=ticketsTrackedBy=]
+Description:
+    Identifies objects for which which this ticket tracker tracks tickets. When
+    you'd like to open a ticket against those objects, you can send them to
+    this tracker.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://bugs.example/treesim",
+    "type": "Project",
+    "tracksTicketsFor": [
+        "https://dev.example/aviva/liblsystem",
+        "https://dev.example/aviva/3d-tree-models",
+        "https://dev.example/aviva/treesim"
+    ]
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>sendPatchesTo</dfn>
+URI: https://forgefed.org/ns#sendPatchesTo
+Domain: [=Repository=]
+Range: [=PatchTracker=]
+Functional: Yes
+Inverse of: [=tracksPatchesFor=]
+Description:
+    Identifies the [=PatchTracker=] which tracks patches and merge requests
+    related to the given repository. This is the actor to whom you send patches
+    and merge requests you'd like to open against the repository.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=10>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://dev.example/repos/treesim",
+    "type": "Repository",
+    "name": "Tree Growth 3D Simulation",
+    "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>",
+    "sendPatchesTo": "https://bugs.example/pr-trackers/treesim"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>tracksPatchesFor</dfn>
+URI: https://forgefed.org/ns#tracksPatchesFor
+Domain: [=PatchTracker=]
+Range: [=Repository=]
+Functional: No
+Inverse of: [=sendPatchesTo=]
+Description:
+    Identifies a repository for which which this patch and merge request
+    tracker tracks patches and merge requests. When you'd like to open patches
+    or merge requests against that repository, you can send them to this
+    tracker.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://project.example/treesim",
+    "type": "PatchTracker",
+    "tracksPatchesFor": [
+        "https://dev.example/aviva/liblsystem",
+        "https://dev.example/aviva/3d-tree-models",
+        "https://dev.example/aviva/treesim"
+    ]
+}
+</xmp>
+</div>
+
+### Repository forking
+
+<pre class=simpledef>
+Name: <dfn dfn export>forkedFrom</dfn>
+URI: https://forgefed.org/ns#forkedFrom
+Domain: [=Repository=]
+Range: [=Repository=]
+Functional: Yes
+Inverse of: [=forks=]
+Description:
+    Identifies the [=Repository=] which this [=Repository=] was created as a
+    fork of, i.e. by cloning it.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/myfork/",
+    "type": "Repository",
+    "forkedFrom": {
+        "type": "Repository",
+        "id": "https://example.dev/luke/myrepo/"
+    }
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>forks</dfn>
+URI: https://forgefed.org/ns#forks
+Domain: [=Repository=]
+Range: [=OrderedCollection=] of items of type [=Repository=]
+Functional: Yes
+Inverse of: [=forkedFrom=]
+Description:
+    Identifies an [=OrderedCollection=] of [=Repository=]s which were created
+    as forks of this [=Repository=], i.e. by cloning it. The order of the
+    collection items is by reverse chronological order of the forking events.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/",
+    "type": "Repository",
+    "forks": {
+        "type": "OrderedCollection",
+        "totalItems": 1,
+        "orderedItems": [
+            {
+                "id": "https://example.dev/alice/myfork/",
+                "type": "Repository",
+            }
+        ]
+    },
+}
+</xmp>
+</div>
+
+### Access control
+
+<pre class=simpledef>
+Name: <dfn dfn export>fulfills</dfn>
+URI: https://forgefed.org/ns#fulfills
+Domain: [=Activity=]
+Range: [=Activity=]
+Functional: No
+Inverse of: None
+Description:
+    For an activity *A* that `fulfills` some other activity *B*, specifies that
+    *A* has been published as part of fulfilling the action requested by *B*.
+    For example, if Alice creates a new repository using `Create`, she may want
+    to instantly automatically start following this new repository using
+    `Follow` (to be notified when her friends push commits there).  This
+    `Follow` `fulfills` the `Create`; it's an activity automatically sent as
+    part of creating a new repository.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>allows</dfn>
+URI: https://forgefed.org/ns#allows
+Domain: [=Grant=]
+Range: [=CapabilityUsage=]
+Functional: No
+Inverse of: None
+Description:
+    Specifies which modes of using this [=Grant=] are being allowd by it. The
+    two conceptual operations that `Grant`s support are invocation (acting on
+    the resource under the specified role) and delegation (passing on the
+    access to more actors, possibly with reduced privileges). This property
+    specifies which of these operations are supported, and under which
+    conditions. See [=CapabilityUsage=] for specific values to use.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>capability</dfn>
+URI: https://forgefed.org/ns#capability
+Domain: [=Activity=]
+Range: [=Grant=]
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies a previously published [=Grant=] activity providing relevant
+    access permissions. For example, if Alice wants to resolve a [=Ticket=]
+    under some project, she will send an activity with `capability` referring
+    to the `Grant` activity that gave her collaborator access to that project,
+    which happens to include permission to resolve tickets.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>managedBy</dfn>
+URI: https://forgefed.org/ns#managedBy
+Domain: [=Object=]
+Range: [=Object=] that is an actor
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies the actor that controls the given resource, and to whom
+    activities asking to modify the resource may be submitted.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "type": "Ticket",
+    "id": "https://example.dev/alice/myrepo/issues/42",
+    "context": "https://example.dev/alice/myrepo",
+    "managedBy": "https://example.dev/alice/myrepo",
+    "attributedTo": "https://dev.community/bob",
+    "summary": "Nothing works!",
+    "content": "<p>Please fix. <i>Everything</i> is broken!</p>",
+    "mediaType": "text/html",
+    "source": {
+        "content": "Please fix. *Everything* is broken!",
+        "mediaType": "text/markdown; variant=CommonMark"
+    },
+    "isResolved": false
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>delegates</dfn>
+URI: https://forgefed.org/ns#delegates
+Domain: [=Grant=]
+Range: [=Grant=]
+Functional: Yes
+Inverse of: None
+Description:
+    Actors can use [=Grant=] activities to allow other actors to access their
+    resources. They can also allow those other actors to pass on (delegate)
+    this access to even more actors. For a `Grant` that delegates access
+    provided by an earlier `Grant`, the former uses `delegates` to specify the
+    latter. That earlier `Grant` is also called the "parent capability" of this
+    `Grant`.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+### Repository mirroring
+
+<pre class=simpledef>
+Name: <dfn dfn export>mirrors</dfn>
+URI: https://forgefed.org/ns#mirrors
+Domain: [=Repository=]
+Range: [=Repository=]
+Functional: Yes
+Inverse of: [=mirroredBy=]
+Description:
+    Identifies the [=Repository=] which this [=Repository=] copies content from
+    (i.e. what this repository is a "pull mirror" of).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/mymirror/",
+    "type": "Repository",
+    "mirrors": {
+        "type": "Repository",
+        "id": "https://example.dev/luke/myrepo/"
+    }
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>mirroredBy</dfn>
+URI: https://forgefed.org/ns#mirroredBy
+Domain: [=Repository=]
+Range: [=Repository=]
+Functional: No
+Inverse of: [=mirrors=]
+Description:
+    Identifies a [=Repository=] which copies content from this repository (i.e.
+    "pull mirror" of this repository).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/",
+    "type": "Repository",
+    "mirroredBy": {
+        "type": "Repository",
+        "id": "https://example.dev/alice/mymirror/"
+    }
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>mirrorsTo</dfn>
+URI: https://forgefed.org/ns#mirrorsTo
+Domain: [=Repository=]
+Range: [=Repository=]
+Functional: No
+Inverse of: [=mirroredFrom=]
+Description:
+    Identifies a [=Repository=] which this repository copies content to (i.e.
+    "push mirror" of this repository)
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice/myrepo/",
+    "type": "Repository",
+    "mirrorsTo": {
+        "type": "Repository",
+        "id": "https://example.dev/alice-backup/myrepo/"
+    }
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>mirroredFrom</dfn>
+URI: https://forgefed.org/ns#mirroredFrom
+Domain: [=Repository=]
+Range: [=Repository=]
+Functional: Yes
+Inverse of: [=mirrorsTo=]
+Description:
+    Identifies the [=Repository=] which copies its content to this
+    [=Repository=] (ie. what this repository is a "push mirror" of).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/alice-backup/myrepo/",
+    "type": "Repository",
+    "mirroredFrom": {
+        "type": "Repository",
+        "id": "https://example.dev/alice/myrepo/"
+    }
+}
+</xmp>
+</div>
+
+## Values
+
+### Capability uses
+
+<pre class=simpledef>
+Name: <dfn dfn export>gatherAndConvey</dfn>
+URI: https://forgefed.org/ns#gatherAndConvey
+Type: [=CapabilityUsage=]
+Conditions:
+    <ul>
+        <li>
+            The `Grant`'s [=target=] MUST be a [=Project=]
+        </li>
+        <li>
+            It may delegate the `Grant`, allowing only `gatherAndConvey`, to
+            parent projects
+        </li>
+        <li>
+            It may delegate the `Grant`, allowing only `distribute`, to teams
+            to which it allows to access it
+        </li>
+        <li>
+            It may delegate the `Grant`, allowing `invoke` only, to people to
+            which it allows to access it
+        </li>
+    </ul>
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>distribute</dfn>
+URI: https://forgefed.org/ns#distribute
+Type: [=CapabilityUsage=]
+Conditions:
+    <ul>
+        <li>
+            The `Grant`'s [=target=] MUST be a [=Team=]
+        </li>
+        <li>
+            It may delegate the `Grant`, allowing `distribute` only, to its
+            subteams
+        </li>
+        <li>
+            It may delegate the `Grant`, allowing `invoke` only, to its members
+        </li>
+    </ul>
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>invoke</dfn>
+URI: https://forgefed.org/ns#invoke
+Type: [=CapabilityUsage=]
+Conditions:
+    <ul>
+        <li>
+            The `Grant`'s [=target=] may invoke it, i.e. use it as the
+            [=capability=] in another activity, that requests to access or
+            modify the resource specified by the `Grant`'s [=context=]
+        </li>
+    </ul>
+</pre>
+
+### Roles
+
+<pre class=simpledef>
+Name: <dfn dfn export>delegator</dfn>
+URI: https://forgefed.org/ns#delegator
+Type: [=Role=]
+Description:
+    Authorizes the [=Grant=] recipient (i.e. [=target=]) to send access
+    delegations to the [=Grant=] sender (i.e. [=actor=])
+</pre>
+
+<pre class=biblio>
+{
+    "wikipedia-ticket-tracker": {
+        "href": "https://en.wikipedia.org/wiki/Issue_tracking_system",
+        "title": "Wikipedia: Issue tracking system"
+    },
+    "wikipedia-pr": {
+        "href": "https://en.wikipedia.org/wiki/Distributed_version_control#Pull_requests",
+        "title": "Wikipedia: Pull requests"
+    }
+}
+</pre>
+
+<pre class=anchors>
+urlPrefix: https://www.w3.org/TR/xmlschema11-2/#; type: dfn; spec: xmlschema11-2
+    text: dateTime
+urlPrefix: http://purl.org/dc/terms/; type: dfn; spec: dcterms
+    text: created
+urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; spec: activitystreams-vocabulary
+    text: Accept
+    text: Create
+    text: Invite
+    text: Join
+    text: Leave
+    text: Offer
+    text: Reject
+    text: Remove
+    text: Undo
+urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; spec: activitystreams-vocabulary
+    text: Activity
+    text: Collection
+    text: Image
+    text: Link
+    text: Note
+    text: Object
+    text: OrderedCollection
+    text: Person
+urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; spec: activitystreams-vocabulary
+    text: actor
+    text: attachment
+    text: attributedTo
+    text: content
+    text: context
+    text: id
+    text: inbox
+    text: inReplyTo
+    text: instrument
+    text: items
+    text: mediaType
+    text: name
+    text: object
+    text: orderedItems
+    text: origin
+    text: published
+    text: relationship
+    text: replies
+    text: result
+    text: source
+    text: subject
+    text: summary
+    text: tag
+    text: target
+    text: to
+    text: type
+urlPrefix: https://www.w3.org/TR/activitypub/#; type: dfn; spec: activitypub
+    text: followers
+</pre>
