@@ -4,7 +4,7 @@
 
 git clone https://${BOT_TOKEN}@codeberg.org/ForgeFed/pages.git /tmp/pages
 rm -fr /tmp/pages/*
-cp -rva html/* /tmp/pages
+cp -rva public/* /tmp/pages
 cd /tmp/pages
 cat > .domains <<EOF
 forgefed.org

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>$title$</title>
+    <title>ForgeFed</title>
     <link rel="stylesheet" type="text/css" href="/theme.css" />
     <link rel="icon" href="/img/logo.svg" />
     <script>
@@ -24,6 +24,8 @@
         <a class="nav__link"
            href="/spec">📓 specification</a>
         <a class="nav__link"
+           href="/blog">📜 blog</a>
+        <a class="nav__link"
            href="https://codeberg.org/ForgeFed/ForgeFed/issues">🐞 issues</a>
         <a class="nav__link"
            href="https://socialhub.activitypub.rocks/c/software/forgefed/60">🗒️ forum</a>
@@ -32,28 +34,7 @@
       </nav>
     </header>
     <main class="main">
-      $if(toc)$
-        <h1 class="main-title">
-            $title$ - draft - $date$ $gitbranch$
-            <a href="https://codeberg.org/ForgeFed/ForgeFed/commit/$gitcommitid$">
-                $gitcommitidshort$
-            </a>
-            $if(gitdirty)$
-                [dirty]
-            $endif$
-        </h1>
-      $else$
-        <h1 class="main-title">$title$</h1>
-      $endif$
-
-      $if(toc)$
-        <nav class="toc">
-            <header class="toc-title">Table of Contents</header>
-            $toc$
-        </nav>
-      $endif$
-
-      $body$
+      {% block content %} {% endblock %}
     </main>
     <footer class="footer">
       <p xmlns:dct="http://purl.org/dc/terms/">

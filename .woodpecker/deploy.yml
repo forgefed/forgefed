@@ -2,9 +2,10 @@ pipeline:
   deploy-dry:
     image: debian:bullseye
     commands:
-      - apt-get -qq update >/dev/null && apt-get -qq install -y git pandoc python3-pip >/dev/null
+      - apt-get -qq update >/dev/null && apt-get -qq install -y wget git python3-pip >/dev/null
       - pip3 install bikeshed
       - python3 -m bikeshed update
+      - wget -q -O - "https://github.com/getzola/zola/releases/download/v0.17.2/zola-v0.17.2-x86_64-unknown-linux-gnu.tar.gz" | tar xzf - -C /usr/local/bin
       - bash build.sh
       - git diff
     when:
@@ -13,9 +14,10 @@ pipeline:
   deploy:
     image: debian:bullseye
     commands:
-      - apt-get -qq update >/dev/null && apt-get -qq install -y git pandoc python3-pip >/dev/null
+      - apt-get -qq update >/dev/null && apt-get -qq install -y wget git python3-pip >/dev/null
       - pip3 install bikeshed
       - python3 -m bikeshed update
+      - wget -q -O - "https://github.com/getzola/zola/releases/download/v0.17.2/zola-v0.17.2-x86_64-unknown-linux-gnu.tar.gz" | tar xzf - -C /usr/local/bin
       - bash build.sh
       - bash deploy.sh
     secrets: ["bot_token"]

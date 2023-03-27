@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class="main-title">{{ page.title }}</h1>
+  <p>
+    {{ page.date }} by {{ page.extra.author }}
+  </p>
+  {{ page.content | safe }}
+{% endblock content %}

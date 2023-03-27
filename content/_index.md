@@ -1,6 +1,6 @@
----
-title: ForgeFed
----
++++
+template = "index.html"
++++
 
 ForgeFed is a **federation protocol for software forges** and code collaboration
 tools for the software development lifecycle and ecosystem. This includes

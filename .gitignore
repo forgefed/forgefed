@@ -1,4 +1,2 @@
 # Website build files
-html/*.html
-html/ns
-!html/template.html
+public/
