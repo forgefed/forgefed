@@ -792,7 +792,8 @@ sending to actor *B* a new `Grant` activity *h* in which:
 - [=capability=]: *(optional)* Specifies a
     [delegator Grant](#grant-delegator) previously given by *B* to *A*
 - [=result=]: a URI that will be used later to verify that *h* is still active
-    and hasn't been revoked
+    and hasn't been revoked. Alternatively, an object with [=id=] and
+    [=duration=] as described below.
 
 The [=result=] URI MUST be provided whenever extending a delegation chain. It
 MUST be a URI that actor *A* controls, i.e. decides what will be returned by
@@ -805,6 +806,16 @@ HTTP requests to that URI. Requirements:
     moment that actor *A* considers *h* deactivated, any HTTP HEAD or HTTP GET
     request to the [=result=] URI MUST NOT return an HTTP response status in the
     200-299 range. The response status SHOULD be 410 or 404.
+
+[=result=] MAY instead specify a JSON object in which:
+
+- [=id=] is the URI as described above
+- *(optional)* [=duration=] specifies a duration that allows the recovation URI
+    check to be skipped, if the duration hasn't yet passed since the last check
+    of the URI. If [=duration=] is specified, it MUST be positive and include
+    only an integral number of seconds that is less than `2^63`, and no other
+    component. In other words, its format is: The string "PT", then the
+    integer, then the string "S".
 
 In the following cases, *g* is a *request* for actor *A* to extend the
 delegation chain, and actor *A* SHOULD extend the chain by sending `Grant`
@@ -835,7 +846,8 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=capability=]: *(optional)* Specifies a
                 [delegator Grant](#grant-delegator) previously given by *P* to *A*
             - [=result=]: a URI that will be used later to verify that *h* is
-                still active and hasn't been revoked
+                still active and hasn't been revoked, or a JSON object as
+                describes above
 
         2. For each team *T* that project *A* considers a member team with role
             *p*, project *A* SHOULD publish and deliver to *T* a `Grant`
@@ -850,7 +862,8 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=capability=]: *(optional)* Specifies a
                 [delegator Grant](#grant-delegator) previously given by *T* to *A*
             - [=result=]: a URI that will be used later to verify that *h* is
-                still active and hasn't been revoked
+                still active and hasn't been revoked, or a JSON object as
+                describes above
 
         3. For each [=Person=] or automated service bot *M* (that isn't a team)
             that project *A* considers a member with role *p*, project *A*
@@ -865,7 +878,8 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=capability=]: *(optional)* Specifies a
                 [delegator Grant](#grant-delegator) previously given by *M* to *A*
             - [=result=]: a URI that will be used later to verify that *h* is
-                still active and hasn't been revoked
+                still active and hasn't been revoked, or a JSON object as
+                describes above
 
         4. Project *A* MUST NOT make any other delegations of *g*, and SHOULD
             NOT try to invoke it
@@ -1014,9 +1028,12 @@ traversal starts with the list *L* being empty, and *R* examines activity *g*:
     - If *g*'s [=delegates=] is some activity *h*:
         1. *g*'s [=actor=] MUST NOT be *R*
         2. *g* MUST specify exactly one [=result=] URI
-        3. Verify the [=result=] URI:
-            1. Send an HTTP HEAD request to that URI
-            2. The HTTP response status MUST be 200 or 204
+        3. Verify the [=result=]:
+            - If it's an object with [=duration=] specified, and this duration
+                of time hasn't yet passed since the last check, proceed without
+                checking the URI
+            - Otherwise, send an HTTP HEAD request to the URI, The HTTP
+                response status MUST be 200 or 204
         4. Prepend *g* to the beginning of *L*, resulting with new list *M*
         5. Continue traversal by going back to step 1, but with *M* being the
             list, and with *g*'s [=actor=] instead of *A*, and now examining
@@ -2521,7 +2538,12 @@ Properties:
     sent)
 [=result=]:
     A URI that can be used later for verifying that the given access is still
-    approved, thus allowing the actor granting the access to revoke it
+    approved, thus allowing the actor granting the access to revoke it.
+    Alternatively, a JSON object where [=id=] is the URI and [=duration=] MAY
+    be specified to allow to skip the revocation check if the duration time
+    hasn't yet passed since the last check. If [=duration=] is specified, it
+    MUST be positive, and specify only an integral number of seconds that is
+    less than `2^63`, and no other component.
 [=allows=]:
     Modes of invocation and/or delegation that this `Grant` is meant to be used
     for
@@ -4581,6 +4603,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: attributedTo
     text: content
     text: context
+    text: duration
     text: endTime
     text: id
     text: inbox
