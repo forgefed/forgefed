@@ -13,7 +13,7 @@ zola build
 cp context.jsonld public/ns
 
 mkdir -p public/spec
-bikeshed spec "spec.bs" "public/spec/index.html" \
+pipx run bikeshed spec "spec.bs" "public/spec/index.html" \
     --md-text-macro="GITBRANCH $git_branch" \
     --md-text-macro="GITCOMMIT $git_commit_id" \
     --md-text-macro="GITSHORT $git_commit_id_short"

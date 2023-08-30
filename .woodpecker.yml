@@ -1,0 +1,22 @@
+steps:
+  deploy-dry:
+    image: alpine:edge
+    commands:
+      - apk add bash git pipx zola
+      - pipx run bikeshed update
+      - bash build.sh
+      - git diff
+    when:
+      event: ["push", "pull_request"]
+
+  deploy:
+    image: alpine:edge
+    commands:
+      - apk add bash git pipx zola
+      - pipx run bikeshed update
+      - bash build.sh
+      - bash deploy.sh
+    secrets: ["bot_token"]
+    when:
+      event: ["push", "tag"]
+      branch: ${CI_REPO_DEFAULT_BRANCH}
