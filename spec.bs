@@ -930,38 +930,16 @@ MAY cancel that `Grant`, deciding it's no longer a valid OCAP to use via the
 
 If actor *A* cancels such a `Grant`, it SHOULD publish and deliver, at least to
 actor *B*, a [=Revoke=] activity notifying about the canceled
-`Grant`. In the `Revoke` activity, actor *A* MUST provide at least one of the
-following sets of properties:
+`Grant`. In the `Revoke` activity, actor *A* MUST specify the Grants being
+revoked, via the [=object=] property, where each Grant is specified in one of
+the following ways:
 
-1. Describe the `Grant`s being canceled:
-    - [=object=]: all the `Grant` activities being undone, i.e. the access
-        that they granted is now disabled
-2. Describe the access being canceled:
-    - [=origin=]: The actor whose access to the resource is being revoked, i.e.
-        actor *B*
-    - [=instrument=]: The role or permission that the [=origin=] actor had with
-        respect to accessing the resource, and which is now being taken away
-    - [=context=]: The resource, access to which is being revoked
-    - [=allows=]: Modes of invocation and/or delegation that the
-        canceled access allowed
-
-Actor *A* MAY provide both sets of properties. If it does, then:
-
-- The `Revoke`'s `origin` MUST be identical to the `target` of every `Grant`
-    listed as an `object` in the `Revoke`
-- The `Revoke`'s `instrument` MUST be identical to the `object` of every
-    `Grant` listed as an `object` in the `Revoke`
-- The `Revoke`'s `context` MUST be identical to the `context` of every `Grant`
-    listed as an `object` in the `Revoke`
-- The `Revoke`'s `allows` MUST be identical to the `allows` of every `Grant`
-    listed as an `object` in the `Revoke`
+1. The Grant is specified by its `id` URI
+2. The whole Grant activity object is provided, and MUST contain an
+    [[fep-8b32|integrity proof]]
 
 Additional requirements:
 
-- If the canceled access includes `Grant`s that are delegations (i.e. specify
-    the [=delegates=] property), then the `Revoke` activity MUST
-    provide the [=object=] property, and have it list *all* canceled `Grant`s,
-    not just the ones that are delegations
 - Implementations displaying a `Revoke` activity or an interpretation of it in
     a human interface MUST examine the `Revoke`'s [=object=] property if it is
     present, check if any of the `Grant`s listed are delegations, and communicate
@@ -4569,6 +4547,10 @@ Description:
     "wikipedia-pr": {
         "href": "https://en.wikipedia.org/wiki/Distributed_version_control#Pull_requests",
         "title": "Wikipedia: Pull requests"
+    },
+    "fep-8b32": {
+        "href": "https://codeberg.org/fediverse/fep/src/branch/main/feps/fep-8b32.md",
+        "title": "FEP-8b32: Object Integrity Proofs"
     }
 }
 </pre>
