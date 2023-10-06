@@ -647,16 +647,17 @@ using the following steps:
 2. *g*'s [=type=] MUST be [=Grant=]
 3. *g*'s [=context=] MUST be *r*
 4. *g*'s [=target=] MUST be *A*
-5. Verify that *g* doesn't specify [=delegates=]
-6. *g*'s [=actor=] MUST be *R*
-7. Verify that *R* indeed published *g* and considers it an active grant
+5. Verify that *g*'s [=startTime=] <= now < *g*'s [=endTime=]
+6. Verify that *g* doesn't specify [=delegates=]
+7. *g*'s [=actor=] MUST be *R*
+8. Verify that *R* indeed published *g* and considers it an active grant
     (i.e. *R* hasn't disabled/revoked it)
-8. *checkLeaf(g):*
+9. *checkLeaf(g):*
     1. *g*'s [=allows=] MUST be [=invoke=]
     2. Actor *A* SHOULD be of a [=type=] to which *R* allows to perform
         activity *a* on resource *r*, i.e. *A* should probably be a [=Person=],
         or some automated service/bot
-9. Verify that the action being requested by activity *a* to perform on
+10. Verify that the action being requested by activity *a* to perform on
     resource *r* is within what *R* permits for role specified by *g*'s
     [=object=]
 
@@ -674,6 +675,8 @@ with the following properties:
 - [=context=]: Specifies resource *r*
 - [=target=]: Specifies actor *A*
 - [=object=]: Specifies role *p*
+- [=startTime=]: (optional) The time at which the Grant becomes valid
+- [=endTime=]: (recommended) The time at which the Grant expires
 - [=allows=]: Specifies [=invoke=]
 - [=delegates=]: Not used
 
@@ -694,6 +697,8 @@ with the following properties:
 - [=context=]: Specifies actor *A*
 - [=target=]: Specifies actor *R*
 - [=object=]: Specifies [=delegator=]
+- [=startTime=]: (optional) The time at which the Grant becomes valid
+- [=endTime=]: (recommended) The time at which the Grant expires
 - [=allows=]: Specifies [=invoke=]
 - [=delegates=]: Not used
 
@@ -708,6 +713,8 @@ any) other actors that *A* knows, then actor *R* can send to actor *A* a
 - [=context=]: Specifies resource *r*
 - [=target=]: Specifies actor *A*
 - [=object=]: Specifies role *p*
+- [=startTime=]: (optional) The time at which the Grant becomes valid
+- [=endTime=]: (recommended) The time at which the Grant expires
 - [=allows=]: Specifies the conditions under which actor *A* may
     delegate this `Grant` (i.e. conditions under which actor *R* will consider
     the delegation valid when verifying the chain), and what the recipients of
@@ -773,6 +780,8 @@ sending to actor *B* a new `Grant` activity *h* in which:
     lower-access role than *g*'s [=object=], i.e. provides a subset of the
     permissions that *g*'s [=object=] provides (the latter case is called
     *attenuation*)
+- [=startTime=]: *(optional)* The time at which this Grant becomes valid
+- [=endTime=]: *(recommended)* The time at which this Grant expires
 - [=allows=]: Specifies the conditions under which actor *B* may
     delegate this `Grant` (i.e. conditions under which the delegation will be
     considered valid when verifying the chain), and what the recipients of
@@ -994,7 +1003,8 @@ traversal starts with the list *L* being empty, and *R* examines activity *g*:
 2. *g*'s [=context=] MUST be *r*
 3. *g*'s [=target=] MUST be *A*
 4. *g* MUST NOT already be listed in *L*
-5. Look at *g*'s [=delegates=]:
+5. Verify that *g*'s [=startTime=] <= now < *g*'s [=endTime=]
+6. Look at *g*'s [=delegates=]:
     - If *g* doesn't specify [=delegates=]:
         1. *g*'s [=actor=] MUST be *R*
         2. Verify that *R* indeed published *g* and considers it an active
@@ -1094,6 +1104,7 @@ for a successful invocation include:
 - *g*'s [=object=] is a [=Role=] that permits the kind of operation
     that actor *A* is requesting to do on resource *r*
 - *g*'s [=allows=] is [=invoke=]
+- *g*'s [=startTime=] <= now < *g*'s [=endTime=]
 
 When actor *A* sends the activity *a* that requests to access or modify
 resource *r*, it can use *g* for authorization by specifying its [=id=] URI in
@@ -1102,6 +1113,22 @@ the [=capability=] property of activity *a*.
 To have a chance to access resource *r*, actor *A* needs to deliver activity
 *a* to the actor that manages *r*. [See above](#manager) instructions for
 determining who that actor is.
+
+#### Time Bounds
+
+A [=Grant=] activity MUST be considered valid for invocation (or as a valid
+link in a delegation chain) if and only if the current time, at the time of
+invocation, is within the time bounds defined by the [=Grant=]:
+
+1. A [=Grant=] MAY specify a [=startTime=]: The time at which the Grant becomes
+    valid. If specified, the [=Grant=] is valid only if the time of invocation
+    is equal or greater than the [=startTime=]
+2. A [=Grant=] SHOULD specify an [=endTime=]: The time at which the Grant
+    expires. If specified, the [=Grant=] is valid only if the time of
+    invocation is less than the [=endTime=]
+
+Suggested default for picking the [=endTime=]: 6 months after publishing the
+[=Grant=].
 
 ### Granting access
 
@@ -1373,7 +1400,8 @@ Aviva, allowing her full access to the repo:
     "context": "https://forge.community/repos/treesim",
     "target": "https://forge.community/aviva",
     "fulfills": "https://forge.community/users/aviva/outbox/oU6QGAqr-create-treesim",
-    "allows": "invoke"
+    "allows": "invoke",
+    "endTime": "2023-12-31T23:00:00-08:00"
 }
 </xmp>
 </div>
@@ -1496,7 +1524,8 @@ giving him the access that Aviva offered, and which he accepted:
     "context": "https://forge.community/repos/treesim",
     "target": "https://software.site/people/luke",
     "fulfills": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke",
-    "allows": "invoke"
+    "allows": "invoke",
+    "endTime": "2023-12-31T23:00:00-08:00"
 }
 </xmp>
 </div>
@@ -1597,7 +1626,8 @@ giving her the access that she requested, and which Aviva approved:
     "context": "https://forge.community/repos/treesim",
     "target": "https://dev.online/@celine",
     "fulfills": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
-    "allows": "invoke"
+    "allows": "invoke",
+    "endTime": "2023-12-31T23:00:00-08:00"
 }
 </xmp>
 </div>
@@ -2499,6 +2529,10 @@ Properties:
     If this `Grant` is a delegation, i.e. it is passing on some access that it
     has received, `delegates` specifies the parent `Grant` that it has received
     and now passing on
+[=startTime=]:
+    *(optional)* The time at which the Grant becomes valid
+[=endTime=]:
+    *(recommended)* The time at which the Grant expires
 </pre>
 
 <div class=example>
@@ -2522,7 +2556,8 @@ Properties:
     "context": "https://coding.community/repos/game-of-life",
     "target": "https://software.site/bob",
     "fulfills": "https://dev.example/aviva/outbox/B47d3",
-    "allows": "invoke"
+    "allows": "invoke",
+    "endTime": "2023-12-31T23:00:00-08:00"
 }
 </xmp>
 </div>
@@ -4546,6 +4581,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: attributedTo
     text: content
     text: context
+    text: endTime
     text: id
     text: inbox
     text: inReplyTo
@@ -4561,6 +4597,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: replies
     text: result
     text: source
+    text: startTime
     text: subject
     text: summary
     text: tag
