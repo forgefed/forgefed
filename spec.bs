@@ -273,40 +273,30 @@ the federated implementation of the various features of forges and related
 software. It provides a complete picture of interaction flows, which the actor
 API section can't, because it focuses on a single actor type at a time.
 
-## Reporting Pushed Commits
+## Reporting Pushed Commits ## {#pushing}
+
+- Role required for pushing: [=write=]
+- Role required for reporting a Push: None (because the [=Repository=] itself
+    is publishing the Push)
 
 The ForgeFed [=Push=] activity can be used for representing an action
 of pushing commits into a [=Repository=]. Two actors are
 involved in the process, the *pusher* (usually a person) and the *repository*,
-and they may be hosted on different instances. We therefore refer to 2 kinds of
-pushes:
+and they may be hosted on different instances.
 
-1.  *Local Push*: The pusher and the repository are hosted on the same instance
-    (that's the only case in centralized non-federated forges)
-2.  *Federated Push*: The pusher and the repository are hosted on different
-    instances (that's unique to federated forges)
-
-At this time, the representation of *Federated Push* isn't provided yet. Below
-we discuss *Local Push*.
+[=Push=] activities MUST be authored and published by the [=Repository=], not
+by the actor that pushed. That actor is specified in the Push's
+[=attributedTo=] property.
 
 Upon a successful push, a ForgeFed implementation that publishes a Push
-activity MUST provide the [=type=], [=actor=], [=context=] and [=target=]
-properties as described in [[#Push]]. If the
-Push activity's recipient fields list collections that belong to the
-repository, such as its [=followers=] and [=team=], the repository
-MUST verify the authenticity and correctness of the Push activity's fields
-before it performs inbox forwarding (i.e. delivery to the members of those
-collections), and MUST NOT perform inbox delivery if the correctness check
-doesn't pass.
-
-In a *Local Push*, if the Push activity is generated on the server, that
-obviates the need to perform correctness checking. Implementations MAY forbid
-clients from publishing Push activities (via the ActivityPub C2S API or any
-other mechanism), in order to guarantee the authenticity of Push activities.
+activity MUST provide the [=type=], [=actor=], [=attributedTo=] and [=target=]
+properties as described in [[#Push]].
 
 See example in [[#Push]].
 
-## Opening an issue
+## Opening an issue ## {#opening-issue}
+
+Minimal required role: [=report=]
 
 The first step for opening a ticket is to determine to which actor to send the
 ticket. We'll refer to this actor as the *ticket tracker*. Given an object
@@ -409,7 +399,9 @@ which is an actor, automatically sends Luke an Accept activity:
 </xmp>
 </div>
 
-## Opening a merge request
+## Opening a merge request ## {#opening-mr}
+
+Minimal required role: [=report=]
 
 If actor *A* wishes to submit a Merge Request (MR)/Pull Request (PR)/patch
 against a [=Repository=] *R*, it may do so by following these
@@ -548,7 +540,9 @@ sends Luke an Accept activity:
 </xmp>
 </div>
 
-## Commenting
+## Commenting ## {#commenting}
+
+Minimal required role: [=report=]
 
 A comment on a ForgeFed resource object (such as tickets, merge requests) MUST
 be published as a [=Create=] activity, in which [=object=] is a [=Note=] with
@@ -598,7 +592,9 @@ he submitted earlier against her Game Of Life simulation app repository:
 </xmp>
 </div>
 
-## Granting access to shared resources
+## Granting access to shared resources ## {#managing-access}
+
+Minimal required role: [=admin=]
 
 An actor that wishes to give other specific actors access to view or modify it
 (or a child object of it), SHOULD do so according to the following
@@ -658,7 +654,7 @@ using the following steps:
         activity *a* on resource *r*, i.e. *A* should probably be a [=Person=],
         or some automated service/bot
 10. Verify that the action being requested by activity *a* to perform on
-    resource *r* is within what *R* permits for role specified by *g*'s
+    resource *r* is within what *R* permits for the [=Role=] specified by *g*'s
     [=object=]
 
 At this point, activity *a* is considered authorized, and the requested action
@@ -668,7 +664,7 @@ may be performed.
 
 When an actor *R*, managing some resource *r*, wishes to allow some other actor
 *A* to interact with *r*, under the conditions and permissions specified by
-role *p*, then actor *R* can send to actor *A* a [=Grant=] activity
+[=Role=] *p*, then actor *R* can send to actor *A* a [=Grant=] activity
 with the following properties:
 
 - [=actor=]: Specifies actor *R*
@@ -680,10 +676,10 @@ with the following properties:
 - [=allows=]: Specifies [=invoke=]
 - [=delegates=]: Not used
 
-#### Granting the delegator role #### {#grant-delegator}
+#### Granting the delegate role #### {#grant-delegate}
 
 A special case of direct granting is *granting permission to delegate*: If role
-*p* is [=delegator=], then the `Grant` [=actor=] is allowing the
+*p* is [=delegate=], then the `Grant` [=actor=] is allowing the
 [=target=] to delegate `Grant`s to the [=actor=], i.e. to send `Grant`s meant
 for delegation or `Grants` that are themselves delegations of other `Grant`s
 (either start a chain, or extend a chain that some other actor started). More
@@ -696,7 +692,7 @@ with the following properties:
 - [=actor=]: Specifies actor *A*
 - [=context=]: Specifies actor *A*
 - [=target=]: Specifies actor *R*
-- [=object=]: Specifies [=delegator=]
+- [=object=]: Specifies [=delegate=]
 - [=startTime=]: (optional) The time at which the Grant becomes valid
 - [=endTime=]: (recommended) The time at which the Grant expires
 - [=allows=]: Specifies [=invoke=]
@@ -723,7 +719,7 @@ any) other actors that *A* knows, then actor *R* can send to actor *A* a
     other actors?)
 - [=delegates=]: Not used
 - [=capability=]: *(optional)* Specifies a
-    [[#grant-delegator|delegator Grant]] previously given by *A* to *R*
+    [[#grant-delegate|delegate Grant]] previously given by *A* to *R*
 
 The following cases are supported in ForgeFed for starting a delegation chain.
 The term 'component' used below refers to a forge related service actor. This
@@ -790,7 +786,7 @@ sending to actor *B* a new `Grant` activity *h* in which:
     other actors?)
 - [=delegates=] is activity *g*
 - [=capability=]: *(optional)* Specifies a
-    [delegator Grant](#grant-delegator) previously given by *B* to *A*
+    [delegate Grant](#grant-delegate) previously given by *B* to *A*
 - [=result=]: a URI that will be used later to verify that *h* is still active
     and hasn't been revoked. Alternatively, an object with [=id=] and
     [=duration=] as described below.
@@ -844,7 +840,7 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=allows=] is a single value [=gatherAndConvey=]
             - [=delegates=] is activity *g*
             - [=capability=]: *(optional)* Specifies a
-                [delegator Grant](#grant-delegator) previously given by *P* to *A*
+                [delegate Grant](#grant-delegate) previously given by *P* to *A*
             - [=result=]: a URI that will be used later to verify that *h* is
                 still active and hasn't been revoked, or a JSON object as
                 describes above
@@ -860,7 +856,7 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=allows=] is a single value [=distribute=]
             - [=delegates=] is activity *g*
             - [=capability=]: *(optional)* Specifies a
-                [delegator Grant](#grant-delegator) previously given by *T* to *A*
+                [delegate Grant](#grant-delegate) previously given by *T* to *A*
             - [=result=]: a URI that will be used later to verify that *h* is
                 still active and hasn't been revoked, or a JSON object as
                 describes above
@@ -876,7 +872,7 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=allows=] is a single value [=invoke=]
             - [=delegates=] is activity *g*
             - [=capability=]: *(optional)* Specifies a
-                [delegator Grant](#grant-delegator) previously given by *M* to *A*
+                [delegate Grant](#grant-delegate) previously given by *M* to *A*
             - [=result=]: a URI that will be used later to verify that *h* is
                 still active and hasn't been revoked, or a JSON object as
                 describes above
@@ -903,7 +899,7 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=allows=] is a single value [=distribute=]
             - [=delegates=] is activity *g*
             - [=capability=]: *(optional)* Specifies a
-                [delegator Grant](#grant-delegator) previously given by *T* to *A*
+                [delegate Grant](#grant-delegate) previously given by *T* to *A*
 
         2. For each [=Person=] or automated service bot *M* (that isn't a team)
             that team *A* considers a member with role *p*, team *A*
@@ -916,7 +912,7 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=allows=] is a single value [=invoke=]
             - [=delegates=] is activity *g*
             - [=capability=]: *(optional)* Specifies a
-                [delegator Grant](#grant-delegator) previously given by *M* to *A*
+                [delegate Grant](#grant-delegate) previously given by *M* to *A*
 
         3. Team *A* MUST NOT make any other delegations of *g*, and SHOULD NOT
             try to invoke it
@@ -1029,7 +1025,7 @@ starts this by examining the first item in *L*, let's call this item *g*:
     - If *g* is the last item in *L*:
         1. Perform *checkLeaf* on *g* (see below)
         2. Verify that the action being requested by activity *a* to perform on
-            resource *r* is within what *R* permits for role *p*.
+            resource *r* is within what *R* permits for [=Role=] *p*.
         3. We're done with the traversal!
     - Otherwise:
         1. Let *h* be the next item after *g* in *L*
@@ -1133,10 +1129,9 @@ When an actor *A* requests to create a new shared resource *R*, and the
 *resource actor* approves and creates it, then the *resource actor* SHOULD send
 a `Grant` to actor *A*, which provides actor *A* with access to resource *R*.
 
-Typically, this `Grant` would provide actor *A* with what the *resource actor*
-considers full/admin access to resource *R*, which would typically include the
-ability to gives access to resource *R* to more actors (using an [=Invite=]
-activity, see below).
+The [=Role=] specified by the [=Grant=]'s [=object=] MUST be [=admin=], which
+means full access to *R*, including the ability to gives access-to-*R* to more
+actors (using an [=Invite=] activity, see below).
 
 If such a `Grant` is sent by the *resource actor* upon the creation of resource
 *R*, then the `Grant`'s [=fulfills=] property MUST be provided and
@@ -1391,7 +1386,7 @@ Aviva, allowing her full access to the repo:
         "https://forge.community/aviva",
         "https://forge.community/aviva/followers"
     ],
-    "object": "https://roles.example/admin",
+    "object": "admin",
     "context": "https://forge.community/repos/treesim",
     "target": "https://forge.community/aviva",
     "fulfills": "https://forge.community/users/aviva/outbox/oU6QGAqr-create-treesim",
@@ -1463,7 +1458,7 @@ Aviva can invite Luke to have access to the *treesim* repo:
         "https://software.site/people/luke",
         "https://software.site/people/luke/followers"
     ],
-    "instrument": "https://roles.example/maintainer",
+    "instrument": "maintain",
     "target": "https://forge.community/repos/treesim",
     "object": "https://software.site/people/luke",
     "capability": "https://forge.community/repos/treesim/outbox/2NwyPWMX-grant-admin-to-aviva"
@@ -1515,7 +1510,7 @@ giving him the access that Aviva offered, and which he accepted:
         "https://software.site/people/luke",
         "https://software.site/people/luke/followers"
     ],
-    "object": "https://roles.example/maintainer",
+    "object": "maintain",
     "context": "https://forge.community/repos/treesim",
     "target": "https://software.site/people/luke",
     "fulfills": "https://forge.community/users/aviva/outbox/qfrEGqnC-invite-luke",
@@ -1561,14 +1556,14 @@ Celine requests to have developer access to the *treesim* repo:
     ],
     "id": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
     "type": "Join",
-    "actor": ""https://dev.online/@celine",
+    "actor": "https://dev.online/@celine",
     "to": [
         "https://forge.community/repos/treesim",
         "https://forge.community/repos/treesim/followers",
         "https://dev.online/@celine/followers"
     ],
-    "object": ""https://forge.community/repos/treesim",
-    "instrument": "https://roles.example/developer"
+    "object": "https://forge.community/repos/treesim",
+    "instrument": "write"
 }
 </xmp>
 </div>
@@ -1617,7 +1612,7 @@ giving her the access that she requested, and which Aviva approved:
         "https://dev.online/@celine",
         "https://dev.online/@celine/followers"
     ],
-    "object": "https://roles.example/developer",
+    "object": "write",
     "context": "https://forge.community/repos/treesim",
     "target": "https://dev.online/@celine",
     "fulfills": "https://dev.online/@celine/sent/v5Qvd6bB-celine-join",
@@ -1760,7 +1755,7 @@ Properties:
     "subject": "https://dev.example/teams/mobilizon-dev-team",
     "relationship": "hasMember",
     "object": "https://dev.example/people/celine",
-    "tag": "https://roles.example/developer"
+    "tag": "develop"
 }
 </xmp>
 </div>
@@ -1811,19 +1806,19 @@ Properties:
               "subject": "https://dev.example/teams/mobilizon-dev-team",
               "relationship": "hasMember",
               "object": "https://dev.example/people/alice",
-              "tag": "https://roles.example/admin"
+              "tag": "admin"
             },
             { "type": "Relationship",
               "subject": "https://dev.example/teams/mobilizon-dev-team",
               "relationship": "hasMember",
               "object": "https://dev.example/people/bob",
-              "tag": "https://roles.example/maintainer"
+              "tag": "maintain"
             },
             { "type": "Relationship",
               "subject": "https://dev.example/teams/mobilizon-dev-team",
               "relationship": "hasMember",
               "object": "https://dev.example/people/celine",
-              "tag": "https://roles.example/developer"
+              "tag": "develop"
             }
         ]
     },
@@ -2100,16 +2095,17 @@ Properties:
 [=type=]:
     [=Push=]
 [=actor=]:
+    The [=Repository=] to which the push was made, and that is publishing this
+    Push activity
+[=attributedTo=]:
     The entity (person, bot, etc.) that pushed the commits
-[=context=]:
-    The [=Repository=] to which the push was made
 [=target=]:
     The specific repo history tip onto which the commits were added, this is
     either a [=Branch=] (for VCSs that have branches) or a [=Repository=] (for
     VCSs that don't have branches, only a single history line). If it's a
     branch, it MUST be a branch belonging to the repository specified by
-    [=context=]. And if it's a repository, it MUST be identical to the one
-    specified by [=context=].
+    [=actor=]. And if it's a repository, it MUST be identical to the one
+    specified by [=actor=].
 [=hashBefore=]:
     Repo/branch/tip hash before adding the new commits
 [=hashAfter=]:
@@ -2438,7 +2434,7 @@ Properties:
         "https://software.site/bob",
         "https://software.site/bob/followers"
     ],
-    "instrument": "https://roles.example/maintainer",
+    "instrument": "maintain",
     "target": "https://coding.community/repos/game-of-life",
     "object": "https://software.site/bob",
     "capability": "https://coding.community/repos/game-of-life/outbox/2c53A"
@@ -2483,7 +2479,7 @@ Properties:
         "https://coding.community/repos/game-of-life/followers",
         "https://software.site/bob/followers"
     ],
-    "instrument": "https://roles.example/maintainer",
+    "instrument": "maintain",
     "object": "https://coding.community/repos/game-of-life",
     "capability": "https://coding.community/repos/game-of-life/outbox/d38Fa"
 }
@@ -2510,7 +2506,7 @@ Properties:
     The actor who is being gives access to the resource
 [=fulfills=]:
     The activity that triggered the sending of the `Grant`, such as a related
-    `Invite` (another example: if Alice [=Create=]s a new repository, the
+    `Invite` (another example&#x3a; if Alice [=Create=]s a new repository, the
     repository may automatically send back a [=Grant=] giving Alice admin
     access, and this Grant's `fulfills` refers to the [=Create=] that Alice
     sent)
@@ -2552,7 +2548,7 @@ Properties:
         "https://software.site/bob",
         "https://software.site/bob/followers"
     ],
-    "object": "https://roles.example/maintainer",
+    "object": "maintain",
     "context": "https://coding.community/repos/game-of-life",
     "target": "https://software.site/bob",
     "fulfills": "https://dev.example/aviva/outbox/B47d3",
@@ -2663,20 +2659,14 @@ Properties:
     [=Revoke=]
 [=actor=]:
     The actor (person, bot, etc.) that is revoking access
-[=instrument=]:
-    The [=Role=] that the [=origin=] actor had with respect to accessing the
-    resource, and which is now being taken away
-[=context=]:
-    The resource, access to which is being revoked
-[=origin=]:
-    The actor whose access to the resource is being revoked
 [=fulfills=]:
-    An activity that triggered the sending of the `Grant`, such as a related
+    An activity that triggered the sending of the `Revoke`, such as a related
     `Remove` or `Leave`
 [=object=]:
     specific [[#Grant]] activities being undone, i.e. the access that they
     granted is now disabled and it cannot be used anymore as the [=capability=]
-    of activities
+    of activities. Each Grant may either be mentioned by its [=id=] URI, or be
+    included as a full object that includes an [[fep-8b32|integrity proof]].
 </pre>
 
 <div class=example>
@@ -2694,9 +2684,6 @@ Properties:
         "https://software.site/bob",
         "https://software.site/bob/followers"
     ],
-    "instrument": "https://roles.example/maintainer",
-    "context": "https://coding.community/repos/game-of-life",
-    "origin": "https://software.site/bob",
     "object": "https://coding.community/repos/game-of-life/outbox/9fA8c"
 }
 </xmp>
@@ -2787,7 +2774,7 @@ Description:
         "https://example.dev/bob",
         "https://example.dev/bob/followers"
     ],
-    "object": "https://example.dev/roles/developer",
+    "object": "write",
     "context": "https://example.dev/aviva/myproject",
     "target": "https://example.dev/bob"
 }
@@ -2844,13 +2831,13 @@ Description:
         "https://www.w3.org/ns/activitystreams",
         "https://forgefed.org/ns"
     ],
-    "id": "https://example.dev/aviva/outbox/reBGo",
+    "id": "https://example.dev/aviva/myproject/outbox/reBGo",
     "type": "Push",
-    "actor": "https://example.dev/aviva",
+    "actor": "https://example.dev/aviva/myproject",
+    "attributedTo": "https://example.dev/aviva",
     "to": [
+        "https://example.dev/aviva",
         "https://example.dev/aviva/followers",
-        "https://example.dev/aviva/myproject",
-        "https://example.dev/aviva/myproject/team",
         "https://example.dev/aviva/myproject/followers"
     ],
     "summary": "<p>Aviva pushed a commit to myproject</p>",
@@ -2869,8 +2856,7 @@ Description:
             }
         ]
     },
-    "target": "https://example.dev/aviva/myproject/branches/master",
-    "context": "https://example.dev/aviva/myproject"
+    "target": "https://example.dev/aviva/myproject/branches/master"
 }
 </xmp>
 </div>
@@ -3070,13 +3056,13 @@ Description:
               "subject": "https://dev.example/teams/mobilizon-dev-team",
               "relationship": "hasMember",
               "object": "https://dev.example/people/bob",
-              "tag": "https://roles.example/maintainer"
+              "tag": "maintain"
             },
             { "type": "Relationship",
               "subject": "https://dev.example/teams/mobilizon-dev-team",
               "relationship": "hasMember",
               "object": "https://dev.example/people/celine",
-              "tag": "https://roles.example/developer"
+              "tag": "develop"
             }
         ]
     },
@@ -3109,15 +3095,15 @@ Name: <dfn dfn export>CapabilityUsage</dfn>
 URI: https://forgefed.org/ns#CapabilityUsage
 Extends: [=Object=]
 Values:
-    This specification defines 3: [=gatherAndConvey=], [=distribute=] and
+    This specification defines 3&#x3a; [=gatherAndConvey=], [=distribute=] and
     [=invoke]
 Description:
     Represents a mode of using a [=Grant=] as an Object Capability (OCAP).
-    There are two conceptual operations for `Grant`s: Invocation (acting on the
-    resource under the specified role) and Delegation (passing on the access to
-    more actors, possibly with reduced privileges). A value of this type refers
-    to one or both of these operations, and possibly to more specific
-    conditions and restrictions on applying them.
+    There are two conceptual operations for `Grant`s&#x3a; Invocation (acting
+    on the resource under the specified role) and Delegation (passing on the
+    access to more actors, possibly with reduced privileges). A value of this
+    type refers to one or both of these operations, and possibly to more
+    specific conditions and restrictions on applying them.
 </pre>
 
 <div class=example>
@@ -3130,7 +3116,9 @@ TODO
 Name: <dfn dfn export>Role</dfn>
 URI: https://forgefed.org/ns#Role
 Extends: [=Object=]
-Values: This specification current provides 1: [=delegator=]
+Values:
+    [=visit=], [=report=], [=triage=], [=write=], [=maintain=], [=admin=],
+    [=delegate=]
 Description:
     Represents a role that an actor has within a [=Team=], or a role defining
     the level of access an actor has to a resource.
@@ -4530,8 +4518,98 @@ Conditions:
 ### Roles
 
 <pre class=simpledef>
-Name: <dfn dfn export>delegator</dfn>
-URI: https://forgefed.org/ns#delegator
+Name: <dfn dfn export>visit</dfn>
+URI: https://forgefed.org/ns#visit
+Type: [=Role=]
+Description:
+    Authorizes the [=Grant=] recipient (i.e. [=target=]) to view the [=Grant=]
+    resource (i.e. [=context=]), which includes retrieving objects via HTTP and
+    pulling/cloning VCS repos
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>report</dfn>
+URI: https://forgefed.org/ns#report
+Type: [=Role=]
+Description:
+    Authorizes the [=Grant=] recipient (i.e. [=target=]) to do on the [=Grant=]
+    resource (i.e. [=context=]) anything that the [=visit=] role authorizes,
+    and also to do basic community participation tasks:
+    [Open an issue](#opening-issue),
+    [submit a PR](#opening-mr),
+    [create comments](#commenting)
+    and discussion threads,
+    edit public wikis,
+    submit PR reviews.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>triage</dfn>
+URI: https://forgefed.org/ns#triage
+Type: [=Role=]
+Description:
+    Authorizes the [=Grant=] recipient (i.e. [=target=]) to do on the [=Grant=]
+    resource (i.e. [=context=]) anything that the [=report=] role authorizes,
+    and also to edit issue/PR propeties (labels, milestones, due dates, etc.),
+    close and reopen issues and PRs, assign and unassign people to issues and
+    PRs, request PR reviews, hide disruptive comments (a moderation action),
+    lock and move discussions.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>write</dfn>
+URI: https://forgefed.org/ns#write
+Type: [=Role=]
+Description:
+    Authorizes the [=Grant=] recipient (i.e. [=target=]) to do on the [=Grant=]
+    resource (i.e. [=context=]) anything that the [=triage=] role authorizes,
+    and also to
+    apply PR suggested changes,
+    edit non-public wikis,
+    create/edit/delete labels,
+    merge a PR,
+    [push to VCS repositories](#pushing),
+    create/edit/run/cancel CI recipes,
+    manage releases,
+    publish packages,
+    create web IDE coding sessions.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>maintain</dfn>
+URI: https://forgefed.org/ns#maintain
+Type: [=Role=]
+Description:
+    Authorizes the [=Grant=] recipient (i.e. [=target=]) to do on the [=Grant=]
+    resource (i.e. [=context=]) anything that the [=write=] role authorizes,
+    and also to edit project and component descriptions and settings unrelated
+    to access, enable/disable components, configure "Pages" publishing of
+    static websites from repos, push to repos' protected branches.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>admin</dfn>
+URI: https://forgefed.org/ns#admin
+Type: [=Role=]
+Description:
+    Authorizes the [=Grant=] recipient (i.e. [=target=]) to do on the [=Grant=]
+    resource (i.e. [=context=]) anything that the [=maintain=] role authorizes,
+    and also to
+    [manage access to projects, components and teams](#managing-access),
+    merge PRs even without reviews,
+    delete issues,
+    change project/component/team visibility,
+    edit project/component/team access-related settings,
+    change a repo's default branch,
+    manage webhooks and deployment,
+    move components and projects between projects,
+    archive projects/components,
+    delete components/projects/teams.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>delegate</dfn>
+URI: https://forgefed.org/ns#delegate
 Type: [=Role=]
 Description:
     Authorizes the [=Grant=] recipient (i.e. [=target=]) to send access
