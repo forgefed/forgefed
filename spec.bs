@@ -698,7 +698,7 @@ with the following properties:
 - [=allows=]: Specifies [=invoke=]
 - [=delegates=]: Not used
 
-#### Starting a delegation chain
+#### Starting a delegation chain #### {#start-grant-chain}
 
 When an actor *R*, managing some resource *r*, wishes to allow or request some
 other actor *A* to delegate some access-to-*r*-under-role-*p* to certain (or
@@ -1136,8 +1136,16 @@ actors (using an [=Invite=] activity, see below).
 If such a `Grant` is sent by the *resource actor* upon the creation of resource
 *R*, then the `Grant`'s [=fulfills=] property MUST be provided and
 specify the ID URI of the activity (published by actor *A*) that requested to
-create resource *R* (typically this would be an [=Offer=] activity, see
+create resource *R* (typically this would be a [=Create=] activity, see
 [Object Publishing and Hosting](#publishing)).
+
+If *R* is a [=Project=] or a [=Team=], additional steps occur:
+
+1. *A*, seeing *R*'s Grant, publishes a [[#grant-delegate|delegate-Grant]]
+    in which the [=target=] is *R* and [=capability=] is *R*'s Grant
+2. From now on, whenever *R* wishes to
+    [[#extending-a-delegation-chain|extend a Grant chain]] to *A*, it uses
+    *A*'s delegate-Grant as the [=capability=]
 
 #### Offering access using Invite activities
 
@@ -1164,6 +1172,13 @@ use an [=Invite=] activity, and the following steps:
         - [=fulfills=] is the `Invite`
         - [=allows=] is [=invoke=]
         - [=delegates=] isn't specified
+4. *B* is now considered a collaborator in *R*!
+5. If *R* is a [=Project=] or a [=Team=], additional steps occur:
+    1. *B*, seeing *R*'s Grant, publishes a [[#grant-delegate|delegate-Grant]]
+        in which the [=target=] is *R* and [=capability=] is *R*'s Grant
+    2. From now on, whenever *R* wishes to
+        [[#extending-a-delegation-chain|extend a Grant chain]] to *B*, it uses
+        *B*'s delegate-Grant as the [=capability=]
 
 Actor *B* can now use the URI of that new `Grant` as the
 [=capability=] when it sends activities that access or
@@ -1197,6 +1212,13 @@ without external approval:**
         - [=context=] is the `Join`'s [=object=], which is resource *R*
         - [=target=] is the `Join`'s [=actor=], which is actor *A*
         - [=fulfills=] is the `Join`
+3. *A* is now considered a collaborator in *R*!
+4. If *R* is a [=Project=] or a [=Team=], additional steps occur:
+    1. *A*, seeing *R*'s Grant, publishes a [[#grant-delegate|delegate-Grant]]
+        in which the [=target=] is *R* and [=capability=] is *R*'s Grant
+    2. From now on, whenever *R* wishes to
+        [[#extending-a-delegation-chain|extend a Grant chain]] to *A*, it uses
+        *A*'s delegate-Grant as the [=capability=]
 
 Actor *A* can now use the URI of that new `Grant` as the
 [=capability=] when it sends activities that access or
@@ -1225,6 +1247,13 @@ it to gain access to *R* without external approval:**
         - [=context=] is the `Join`'s [=object=], which is resource *R*
         - [=target=] is the `Join`'s [=actor=], which is actor *A*
         - [=fulfills=] is the `Join`
+4. *A* is now considered a collaborator in *R*!
+5. If *R* is a [=Project=] or a [=Team=], additional steps occur:
+    1. *A*, seeing *R*'s Grant, publishes a [[#grant-delegate|delegate-Grant]]
+        in which the [=target=] is *R* and [=capability=] is *R*'s Grant
+    2. From now on, whenever *R* wishes to
+        [[#extending-a-delegation-chain|extend a Grant chain]] to *A*, it uses
+        *A*'s delegate-Grant as the [=capability=]
 
 Actor *A* can now use the URI of that new `Grant` as the
 [=capability=] when it sends activities that access or
@@ -1623,6 +1652,149 @@ giving her the access that she requested, and which Aviva approved:
 </div>
 
 Celine can now use this `Grant` to access the *treesim* repo.
+
+## Associating Projects and Components
+
+Minimal required role: [=admin=]
+
+Adding and removing a component to/from a project each have 2 versions: The
+"component side" version allows an actor to initiate the action using admin
+access to the component, while the "project side" version allows to initiate
+the action using admin access to the project.
+
+Whenever authorization is mentioned below, it SHOULD be done using the
+[[#s2s-grant-flow|invocation verification process]].
+
+### Adding a component to a project - component side
+
+Assuming:
+
+- A project *P*
+- A component *C*
+- A person with admin access to *C*, Alice
+- A person with admin access to *P*, Bob
+
+Alice wants to add component *C* to project *P*. The exchange of activities
+SHOULD be as follows:
+
+1. Alice sends an [=Add=] activity in which:
+    - [=object=] is *C*
+    - [=target=] is the URI of *P*'s [=components=] collection
+    - [=instrument=] is the maximal [=Role=] that Alice would like to allow for
+        people (and bots) when authorizing their manipulation of *C* by their
+        access in *P* (normally it would be [=admin=], perhaps sometimes
+        [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
+        *C*
+2. *C*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Bob, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
+        *P*
+4. *P*, seeing the previous 3 activities and authorizing Bob's Accept,
+    publishes a [[#grant-delegate|delegate-Grant]] in which the [=target=] is
+    *C*
+5. *C*, seeing *P*'s Grant, sends a [[#start-grant-chain|start-Grant]] where:
+    - [=actor=] and [=context=] specify *C*
+    - [=target=] specifies *P*
+    - [=object=] specifies the role specified in the Add's [=instrument=]
+    - [=allows=] is [=gatherAndConvey=]
+    - [=capability=] is the URI of the delegate-Grant
+6. *P*, seeing and authorizing *C*'s Grant, now
+    [[#extending-a-delegation-chain|extends the Grant chain]] as relevant, to
+    its members and parent projects
+
+### Removing a component from a project - component side
+
+Assuming:
+
+- A project *P* with a component *C*
+- A person with admin access to *C*, Alice
+
+Alice wants to ask component *C* to remove itself from project *P*. The
+exchange of activities SHOULD be as follows:
+
+1. Alice sends a [=Remove=] activity where:
+    - [=object=] is *C*
+    - [=origin=] is the URI of *P*'s [=components=] collection
+    - [=tag=] is *C*
+    - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
+        *C*
+2. *C*, seeing and authorizing the Remove, publishes a [=Revoke=] where
+    [=object=] specifies the active [[#start-grant-chain|start-Grant]] it had
+    sent to *P* (and *C* now considers that Grant revoked and no longer
+    considers itself as a component of *P*)
+3. *P*, seeing the Remove and the Revoke, publishes a [=Revoke=] where
+    [=object=] specifies the active [[#grant-delegate|delegate-Grant]] it had
+    sent to *C* (and *P* now considers that Grant revoked and no longer
+    considers *C* a component of it)
+
+### Adding a component to a project - project side
+
+Assuming:
+
+- A project *P*
+- A component *C*
+- A person with admin access to *C*, Alice
+- A person with admin access to *P*, Bob
+
+Bob wants to add component *C* to project *P*. The exchange of activities
+SHOULD be as follows:
+
+1. Bob sends an [=Invite=] activity in which:
+    - [=object=] is *C*
+    - [=target=] is the URI of *P*'s [=components=] collection
+    - [=instrument=] is the maximal [=Role=] that Bob would like to allow for
+        people (and bots) when authorizing their manipulation of *C* by their
+        access in *P* (normally it would be [=admin=], perhaps sometimes
+        [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
+        *P*
+2. *P*, seeing and authorizing the Invite, publishes an [=Accept=] where
+    [=object=] is the Invite's URI
+3. Alice, seeing the Invite and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Invite's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
+        *C*
+4. *C*, seeing the previous 3 activities and authorizing Alice's Accept, sends
+    an [=Accept=] where [=object=] is the Invite's URI
+5. *P*, seeing *C*'s Accept, publishes a [[#grant-delegate|delegate-Grant]] in
+    which the [=target=] is *C*
+6. *C*, seeing *P*'s Grant, sends a [[#start-grant-chain|start-Grant]] where:
+    - [=actor=] and [=context=] specify *C*
+    - [=target=] specifies *P*
+    - [=object=] specifies the role specified in the Invite's [=instrument=]
+    - [=allows=] is [=gatherAndConvey=]
+    - [=capability=] is the URI of the delegate-Grant
+7. *P*, seeing and authorizing *C*'s Grant, now
+    [[#extending-a-delegation-chain|extends the Grant chain]] as relevant, to
+    its members and parent projects
+
+### Removing a component from a project - project side
+
+Assuming:
+
+- A project *P* with a component *C*
+- A person with admin access to *P*, Bob
+
+Bob wants to ask project *P* to remove component *C* from it. The exchange of
+activities SHOULD be as follows:
+
+1. Bob sends a [=Remove=] activity where:
+    - [=object=] is *C*
+    - [=origin=] is the URI of *P*'s [=components=] collection
+    - [=tag=] is *P*
+    - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
+        *P*
+3. *P*, seeing and authorizing the Remove, publishes a [=Revoke=] where
+    [=object=] specifies the active [[#grant-delegate|delegate-Grant]] it had
+    sent to *C* (and *P* now considers that Grant revoked and no longer
+    considers *C* a component of it)
+2. *C*, seeing the Remove and the Revoke, publishes a [=Revoke=] where
+    [=object=] specifies the active [[#start-grant-chain|start-Grant]] it had
+    sent to *P* (and *C* now considers that Grant revoked and no longer
+    considers itself as a component of *P*)
 
 # Actor Interface
 
@@ -4640,6 +4812,7 @@ urlPrefix: http://purl.org/dc/terms/; type: dfn; spec: dcterms
     text: created
 urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; spec: activitystreams-vocabulary
     text: Accept
+    text: Add
     text: Create
     text: Invite
     text: Join
