@@ -1121,7 +1121,7 @@ invocation, is within the time bounds defined by the [=Grant=]:
 Suggested default for picking the [=endTime=]: 6 months after publishing the
 [=Grant=].
 
-### Granting access
+### Granting access ### {#granting-access}
 
 #### Initial Grant upon resource creation
 
@@ -1652,6 +1652,38 @@ giving her the access that she requested, and which Aviva approved:
 </div>
 
 Celine can now use this `Grant` to access the *treesim* repo.
+
+## Adding and Removing Team Members
+
+Minimal required role: [=admin=]
+
+This is done using the processes described in the [[#granting-access]] section.
+In particular, once the new member *M* sends the team *T* the
+[[#grant-delegate|delegate-Grant]], *T* SHOULD use it to send *M*
+[[#extending-a-delegation-chain|extension-Grants]] of:
+
+- Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
+    [=distribute=], that *T* has received from any of its parent teams
+- Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
+    [=distribute=], that *T* has received from any of the projects it has
+    direct access to
+- Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
+    [=distribute=], that *T* has received from any of the components it has
+    direct access to
+
+## Adding and Removing Project Members
+
+Minimal required role: [=admin=]
+
+This is done using the processes described in the [[#granting-access]] section.
+In particular, once the new member *M* sends the project *J* the
+[[#grant-delegate|delegate-Grant]], *J* SHOULD use it to send *M*
+[[#extending-a-delegation-chain|extension-Grants]] of:
+
+- Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
+    [=gatherAndConvey=], that *J* has received from any of its child projects
+- Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
+    [=gatherAndConvey=], that *J* has received from any of its components
 
 ## Associating Projects and Components
 
