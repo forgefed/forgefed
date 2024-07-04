@@ -762,7 +762,7 @@ may be a service of a [=type=] defined in ForgeFed (such as
     - [=allows=] value to use: Same as 3
     - Conditions for the target project: Same as 3
 
-#### Extending a delegation chain
+#### Extending a delegation chain #### {#extending-a-delegation-chain}
 
 When an actor *A* receives a [=Grant=] activity *g* where the
 [=target=] is *A*, and wishes to pass on the granted access to some other actor
@@ -1827,6 +1827,414 @@ activities SHOULD be as follows:
     [=object=] specifies the active [[#start-grant-chain|start-Grant]] it had
     sent to *P* (and *C* now considers that Grant revoked and no longer
     considers itself as a component of *P*)
+
+## Adding and Removing Children and Parents to Projects and Teams
+
+Minimal required role: [=admin=]
+
+Like most cooperation between ForgeFed actors, the parent-child link is based
+on mutual consent:
+
+- To form the link, both projects/teams must explicitly agree to it
+- To remove the link, it's enough for one of them to withdraw its consent
+
+Parent-child links are a part of the Grant delegation system, in which the flow
+is:
+
+- Components initiate delegation, to:
+    - The projects they belong to
+    - Teams which have access to them
+- Projects delegate to their:
+    - Direct collaborators
+    - Parent projects
+    - Teams which have access to them
+- Teams delegate to their:
+    - Direct collaborators
+    - Child teams
+
+Once a parent-child link is formed, delegations start happening through the
+link. This is described in more detail below.
+
+Each delegation within this flow therefore has a "source" side, which sends the
+delegation, and a "destination" side, which receives it and possibly delegates
+it further.
+
+In a parent-child link, therefore, there is a "source" side and a "destination"
+side. For projects, the child is the source and the parent is the destination
+(because projects delegate to their parents, once a link is formed). For teams,
+the parent is the source and the child is the destination (because teams
+delegate to their children, once a link is formed).
+
+Since either side of the link can initiate the process, and since delegation
+flow occurs in one direction, there are essentially two versions of the
+process:
+
+- Process initiated by the source side (i.e. a project asking to have a parent,
+    or a team asking to have a child)
+- Process initiated by the destination side (i.e. a project asking to have a
+    child, or a team asking to have a parent)
+
+In the [=Add=] activity that initiates the process, the initiating side is
+determined by the [=target=] property. The actor to whom the collection
+specified by [=target=] belongs, is the initiating side. The other side of the
+link is specified in the [=object=] property.
+
+Whenever authorization is mentioned below, it SHOULD be done using the
+[[#s2s-grant-flow|invocation verification process]].
+
+### Forming a project child-parent link
+
+#### Initiated by the parent
+
+Assuming:
+
+- A project *P*
+- A project *C*
+- A person with admin access to *C*, Celia
+- A person with admin access to *P*, Philip
+
+Philip wants *C* to become a child of *P* (which means *P* will be a parent
+of *C*). The exchange of activities SHOULD be as follows:
+
+1. Philip sends an [=Add=] activity in which:
+    - [=object=] is *C*
+    - [=target=] is the URI of *P*'s [=subprojects=] (i.e. children) collection
+    - [=instrument=] is the maximal [=Role=] that Philip would like to allow
+        for people (and bots) when authorizing their manipulation of *C* by
+        their access in *P* (normally it would be [=admin=], perhaps sometimes
+        [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+2. *P*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Celia, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+4. *C*, seeing the Add and authorizing Celia's Accept, publishes an [=Accept=]
+    where [=object=] is the Add's URI
+5. *P*, seeing *C*'s Accept, publishes a [[#grant-delegate|delegate-Grant]] in
+    which the [=target=] is *C*, and now considers *C* a child and lists *C* in
+    the [=subprojects=] collection
+6. *C*, seeing *P*'s Grant, now considers *P* a parent and lists *P* in the
+    [=context=] (i.e. parents) collection
+
+Now *C* sends delegation Grant activities, see the [[#deleg-step-j]] section
+below.
+
+#### Initiated by the child
+
+Assuming:
+
+- A project *P*
+- A project *C*
+- A person with admin access to *C*, Celia
+- A person with admin access to *P*, Philip
+
+Celia wants *C* to become a child of *P* (which means *P* will be a parent
+of *C*). The exchange of activities SHOULD be as follows:
+
+1. Celia sends an [=Add=] activity in which:
+    - [=object=] is *P*
+    - [=target=] is the URI of *C*'s [=context=] (i.e. parents) collection
+    - [=instrument=] is the maximal [=Role=] that Celia would like to allow
+        for people (and bots) when authorizing their manipulation of *C* by
+        their access in *P* (normally it would be [=admin=], perhaps sometimes
+        [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+2. *C*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Philip, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+4. *P*, seeing the Add, seeing *C*'s Accept, and authorizing Philip's Accept,
+    publishes a [[#grant-delegate|delegate-Grant]] in which the [=target=] is
+    *C*, and now considers *C* a child and lists *C* in the [=subprojects=]
+    collection
+5. *C*, seeing *P*'s Grant, now considers *P* a parent and lists *P* in the
+    [=context=] (i.e. parents) collection
+
+Now *C* sends delegation Grant activities, see the [[#deleg-step-j]] section
+below.
+
+#### Delegation step #### {#deleg-step-j}
+
+*C* now sends Grant activities, which *P* delegates further by sending its own
+Grant activities, as described in [[#extending-a-delegation-chain]], to its
+member humans, member teams, and parent projects.
+
+1. *C* sends a [[#start-grant-chain|start-Grant]] where:
+    - [=actor=] and [=context=] specify *C*
+    - [=target=] specifies *P*
+    - [=object=] specifies the role specified in the Add's [=instrument=]
+    - [=allows=] is [=gatherAndConvey=]
+    - [=capability=] is the URI of the delegate-Grant from step 5 or 4 above
+2. For each delegation Grant *g* that *C* has received from its components and
+    child projects, *C* sends an
+    [[#extending-a-delegation-chain|extension-Grant]] where:
+        - [=actor=] specifies *C*
+        - [=context=] is identical to *g*'s [=context=]
+        - [=target=] specifies *P*
+        - [=object=] specifies the lower role among the one specified by the
+            Add's [=instrument=], and the one specified by *g*'s [=object=]
+        - [=allows=] is [=gatherAndConvey=]
+        - [=capability=] is the URI of the delegate-Grant from step 5 or 4
+            above
+        - [=delegates=] specifies *g*'s URI
+
+When *P* sees these Grants, it delegates them further, as mentioned above.
+
+In addition, as long as the parent-child link remains active, whenever *C*
+receives a delegation Grant from any of its components or children, it SHOULD
+send *P* an extension-Grant as described above, and *P* SHOULD extend it
+further.
+
+### Removing a project child-parent link
+
+#### Initiated by the child
+
+Assuming:
+
+- Projects *P* and *C*, where *P* is a parent of *C*
+- A person with admin access to *C*, Celia
+
+Celia wants *C* to stop being a child of *P* (which means *P* will stop
+being a parent of *C*). The exchange of activities SHOULD be as follows:
+
+1. Celia sends an [=Remove=] activity in which:
+    - [=object=] is *P*
+    - [=origin=] is the URI of *C*'s [=context=] (i.e. parents) collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+2. *C*, seeing and authorizing the Remove, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. *P*, seeing the Remove and the Accept, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *C*, and now
+    considers that Grant revoked, and removes *C* from its [=subprojects=]
+    collection
+4. *C*, seeing *P*'s Revoke, removes *P* from its [=context=] (i.e. parents)
+    collection
+
+Now, for each Grant *g* that *P* has published, as a extension of a Grant it
+had received from *C*:
+
+1. *P* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *P* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
+
+#### Initiated by the parent
+
+Assuming:
+
+- Projects *P* and *C*, where *P* is a parent of *C*
+- A person with admin access to *P*, Philip
+
+Philip wants *C* to stop being a child of *P* (which means *P* will stop
+being a parent of *C*). The exchange of activities SHOULD be as follows:
+
+1. Philip sends an [=Remove=] activity in which:
+    - [=object=] is *C*
+    - [=origin=] is the URI of *P*'s [=subprojects=] (i.e. children) collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+2. *P*, seeing and authorizing the Remove, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *C*, and now
+    considers that Grant revoked, and removes *C* from its [=subprojects=]
+    collection
+3. *C*, seeing *P*'s Revoke, removes *P* from its [=context=] (i.e. parents)
+    collection, and MAY publish an Accept (whose [=object=] is the Remove) to
+    notify its followers
+
+Now, for each Grant *g* that *P* has published, as a extension of a Grant it
+had received from *C*:
+
+1. *P* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *P* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
+
+### Forming a team child-parent link
+
+#### Initiated by the parent
+
+Assuming:
+
+- A team *P*
+- A team *C*
+- A person with admin access to *C*, Celia
+- A person with admin access to *P*, Philip
+
+Philip wants *C* to become a child of *P* (which means *P* will be a parent
+of *C*). The exchange of activities SHOULD be as follows:
+
+1. Philip sends an [=Add=] activity in which:
+    - [=object=] is *C*
+    - [=target=] is the URI of *P*'s [=subteams=] (i.e. children) collection
+    - [=instrument=] is the maximal [=Role=] that Philip would like to allow
+        for people (and bots) when authorizing their manipulation of *C* by
+        their access in *P* (normally it would be [=admin=], perhaps sometimes
+        [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+2. *P*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Celia, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+4. *C*, seeing the Add, seeing *P*'s Accept, and authorizing Celia's Accept,
+    publishes a [[#grant-delegate|delegate-Grant]] in which the [=target=] is
+    *P*, and now considers *P* a parent and lists *P* in the [=context=] (i.e.
+    parents) collection
+5. *P*, seeing *C*'s Grant, now considers *C* a parent and lists *C* in the
+    [=subteams=] collection
+
+Now *P* sends delegation Grant activities, see the [[#deleg-step-t]] section
+below.
+
+#### Initiated by the child
+
+Assuming:
+
+- A team *P*
+- A team *C*
+- A person with admin access to *C*, Celia
+- A person with admin access to *P*, Philip
+
+Celia wants *C* to become a child of *P* (which means *P* will be a parent
+of *C*). The exchange of activities SHOULD be as follows:
+
+1. Celia sends an [=Add=] activity in which:
+    - [=object=] is *P*
+    - [=target=] is the URI of *C*'s [=context=] (i.e. parents) collection
+    - [=instrument=] is the maximal [=Role=] that Celia would like to allow
+        for people (and bots) when authorizing their manipulation of *C* by
+        their access in *P* (normally it would be [=admin=], perhaps sometimes
+        [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+2. *C*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Philip, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+4. *P*, seeing the Add, seeing *C*'s Accept, and authorizing Philip's Accept,
+    publishes an [=Accept=] where [=object=] is the Add's URI
+5. *C*, seeing *P*'s Accept, publishes a [[#grant-delegate|delegate-Grant]] in
+    which the [=target=] is *P*, and now considers *P* a parent and lists *P*
+    in the [=context=] (i.e. parents) collection
+6. *P*, seeing *C*'s Grant, now considers *C* a child and lists *C* in the
+    [=subteams=] collection
+
+Now *P* sends delegation Grant activities, see the [[#deleg-step-t]] section
+below.
+
+#### Delegation step #### {#deleg-step-t}
+
+*P* now sends Grant activities, which *C* delegates further by sending its own
+Grant activities, as described in [[#extending-a-delegation-chain]], to its
+member humans and child teams.
+
+1. *P* sends a [[#start-grant-chain|start-Grant]] where:
+    - [=actor=] and [=context=] specify *P*
+    - [=target=] specifies *C*
+    - [=object=] specifies the role specified in the Add's [=instrument=]
+    - [=allows=] is [=distribute=]
+    - [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
+2. For each delegation Grant *g* that *P* has received from its projects,
+    components or parent teams, *P* sends an
+    [[#extending-a-delegation-chain|extension-Grant]] where:
+    - [=actor=] specifies *P*
+    - [=context=] is identical to *g*'s [=context=]
+    - [=target=] specifies *C*
+    - [=object=] specifies the lower role among the one specified by the
+        Add's [=instrument=], and the one specified by *g*'s [=object=]
+    - [=allows=] is [=distribute=]
+    - [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
+    - [=delegates=] specifies *g*'s URI
+
+When *C* sees these Grants, it delegates them further, as mentioned above.
+
+In addition, as long as the parent-child link remains active, whenever *P*
+receives a delegation Grant from any of its projects, components or parents, it
+SHOULD send *C* an extension-Grant as described above, and *C* SHOULD extend it
+further.
+
+### Removing a team child-parent link
+
+#### Initiated by the child
+
+Assuming:
+
+- Teams *P* and *C*, where *P* is a parent of *C*
+- A person with admin access to *C*, Celia
+
+Celia wants *C* to stop being a child of *P* (which means *P* will stop
+being a parent of *C*). The exchange of activities SHOULD be as follows:
+
+1. Celia sends an [=Remove=] activity in which:
+    - [=object=] is *P*
+    - [=origin=] is the URI of *C*'s [=context=] (i.e. parents) collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+2. *C*, seeing and authorizing the Remove, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *P*, and now
+    considers that Grant revoked, and removes *P* from its [=context=] (i.e.
+    parents) collection
+3. *P*, seeing *C*'s Revoke, removes *C* from its [=subteams=] collection,
+    and MAY publish an Accept (whose [=object=] is the Remove) to notify its
+    followers
+
+Now, for each Grant *g* that *C* has published, as a extension of a Grant it
+had received from *P*:
+
+1. *C* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *C* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
+
+#### Initiated by the parent
+
+Assuming:
+
+- Teams *P* and *C*, where *P* is a parent of *C*
+- A person with admin access to *P*, Philip
+
+Philip wants *C* to stop being a child of *P* (which means *P* will stop
+being a parent of *C*). The exchange of activities SHOULD be as follows:
+
+1. Philip sends an [=Remove=] activity in which:
+    - [=object=] is *C*
+    - [=origin=] is the URI of *P*'s [=subteams=] (i.e. parents) collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+2. *P*, seeing and authorizing the Remove, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. *C*, seeing the Remove and the Accept, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *P*, and now
+    considers that Grant revoked, and removes *P* from its [=context=] (i.e.
+    parents) collection
+4. *P*, seeing *C*'s Revoke, removes *C* from its [=subteams=] collection
+
+Now, for each Grant *g* that *C* has published, as a extension of a Grant it
+had received from *P*:
+
+1. *C* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *C* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
 
 # Actor Interface
 
