@@ -1710,8 +1710,8 @@ Alice wants to add component *C* to project *P*. The exchange of activities
 SHOULD be as follows:
 
 1. Alice sends an [=Add=] activity in which:
-    - [=object=] is *C*
-    - [=target=] is the URI of *P*'s [=components=] collection
+    - [=object=] is *P*
+    - [=target=] is the URI of *C*'s [=context=] collection
     - [=instrument=] is the maximal [=Role=] that Alice would like to allow for
         people (and bots) when authorizing their manipulation of *C* by their
         access in *P* (normally it would be [=admin=], perhaps sometimes
@@ -1748,9 +1748,8 @@ Alice wants to ask component *C* to remove itself from project *P*. The
 exchange of activities SHOULD be as follows:
 
 1. Alice sends a [=Remove=] activity where:
-    - [=object=] is *C*
-    - [=origin=] is the URI of *P*'s [=components=] collection
-    - [=tag=] is *C*
+    - [=object=] is *P*
+    - [=origin=] is the URI of *C*'s [=context=] collection
     - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
         *C*
 2. *C*, seeing and authorizing the Remove, publishes a [=Revoke=] where
@@ -1774,7 +1773,7 @@ Assuming:
 Bob wants to add component *C* to project *P*. The exchange of activities
 SHOULD be as follows:
 
-1. Bob sends an [=Invite=] activity in which:
+1. Bob sends an [=Add=] activity in which:
     - [=object=] is *C*
     - [=target=] is the URI of *P*'s [=components=] collection
     - [=instrument=] is the maximal [=Role=] that Bob would like to allow for
@@ -1783,20 +1782,20 @@ SHOULD be as follows:
         [=maintain=])
     - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
         *P*
-2. *P*, seeing and authorizing the Invite, publishes an [=Accept=] where
-    [=object=] is the Invite's URI
-3. Alice, seeing the Invite and the Accept, sends an [=Accept=] where:
-    - [=object=] is the Invite's URI
+2. *P*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Alice, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
     - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
         *C*
 4. *C*, seeing the previous 3 activities and authorizing Alice's Accept, sends
-    an [=Accept=] where [=object=] is the Invite's URI
+    an [=Accept=] where [=object=] is the Add's URI
 5. *P*, seeing *C*'s Accept, publishes a [[#grant-delegate|delegate-Grant]] in
     which the [=target=] is *C*
 6. *C*, seeing *P*'s Grant, sends a [[#start-grant-chain|start-Grant]] where:
     - [=actor=] and [=context=] specify *C*
     - [=target=] specifies *P*
-    - [=object=] specifies the role specified in the Invite's [=instrument=]
+    - [=object=] specifies the role specified in the Add's [=instrument=]
     - [=allows=] is [=gatherAndConvey=]
     - [=capability=] is the URI of the delegate-Grant
 7. *P*, seeing and authorizing *C*'s Grant, now
@@ -1816,7 +1815,6 @@ activities SHOULD be as follows:
 1. Bob sends a [=Remove=] activity where:
     - [=object=] is *C*
     - [=origin=] is the URI of *P*'s [=components=] collection
-    - [=tag=] is *P*
     - [=capability=] is the URI of a [=Grant=] that authorizes admin access to
         *P*
 3. *P*, seeing and authorizing the Remove, publishes a [=Revoke=] where
