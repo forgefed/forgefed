@@ -660,7 +660,7 @@ using the following steps:
 At this point, activity *a* is considered authorized, and the requested action
 may be performed.
 
-#### Direct Granting
+#### Direct Granting #### {#direct-granting}
 
 When an actor *R*, managing some resource *r*, wishes to allow some other actor
 *A* to interact with *r*, under the conditions and permissions specified by
@@ -2017,7 +2017,7 @@ being a parent of *C*). The exchange of activities SHOULD be as follows:
 4. *C*, seeing *P*'s Revoke, removes *P* from its [=context=] (i.e. parents)
     collection
 
-Now, for each Grant *g* that *P* has published, as a extension of a Grant it
+Now, for each Grant *g* that *P* has published, as an extension of a Grant it
 had received from *C*:
 
 1. *P* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
@@ -2050,7 +2050,7 @@ being a parent of *C*). The exchange of activities SHOULD be as follows:
     collection, and MAY publish an Accept (whose [=object=] is the Remove) to
     notify its followers
 
-Now, for each Grant *g* that *P* has published, as a extension of a Grant it
+Now, for each Grant *g* that *P* has published, as an extension of a Grant it
 had received from *C*:
 
 1. *P* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
@@ -2193,7 +2193,7 @@ being a parent of *C*). The exchange of activities SHOULD be as follows:
     and MAY publish an Accept (whose [=object=] is the Remove) to notify its
     followers
 
-Now, for each Grant *g* that *C* has published, as a extension of a Grant it
+Now, for each Grant *g* that *C* has published, as an extension of a Grant it
 had received from *P*:
 
 1. *C* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
@@ -2226,12 +2226,239 @@ being a parent of *C*). The exchange of activities SHOULD be as follows:
     parents) collection
 4. *P*, seeing *C*'s Revoke, removes *C* from its [=subteams=] collection
 
-Now, for each Grant *g* that *C* has published, as a extension of a Grant it
+Now, for each Grant *g* that *C* has published, as an extension of a Grant it
 had received from *P*:
 
 1. *C* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
     specifies *g*'s URI
 2. *C* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
+
+## Enabling and Disabling Team Access to a Resource
+
+Minimal required role: [=admin=]
+
+As described in previous sections, resource actors (Teams, Projects and
+components) can have direct collaborators (usually Persons and utility bots),
+through the [[#granting-access|direct granting]] process. [=Team=] actors,
+however, have a special kind of being collaborators: Rather than receiving a
+Grant they can invoke themselves, they receive Grants that they delegate to
+their members, and recursively delegate to their child teams.
+
+This kind of collaboration link is described in this section.
+
+Like most cooperation between ForgeFed actors, the link is based on mutual
+consent:
+
+- To form the link, both the team and the resource must explicitly agree to it
+- To remove the link, it's enough for one of them to withdraw its consent
+
+These links are a part of the Grant delegation system, in which the flow is:
+
+- Components initiate delegation, to:
+    - The projects they belong to
+    - **Teams which have access to them**
+- Projects delegate to their:
+    - Direct collaborators
+    - Parent projects
+    - **Teams which have access to them**
+- **Teams delegate to their:**
+    - **Direct collaborators**
+    - **Child teams**
+
+Once a link is formed, delegations start happening through the link. This is
+described in more detail below.
+
+Since either side of the link can initiate the process, and since delegation
+flow occurs in one direction, there are essentially two versions of the
+process:
+
+- Process initiated by the resource side (i.e. a resource asking to give access
+    a team)
+- Process initiated by the team side (i.e. a team asking to have access to a
+    resource)
+
+In the [=Add=] activity that initiates the process, the initiating side is
+determined by the [=target=] property. The actor to whom the collection
+specified by [=target=] belongs, is the initiating side. The other side of the
+link, receiving the Add, is specified in the [=object=] property.
+
+Whenever authorization is mentioned below, it SHOULD be done using the
+[[#s2s-grant-flow|invocation verification process]].
+
+### Forming a team-resource link
+
+#### Initiated by the resource
+
+Assuming:
+
+- A team *T*
+- A resource actor *R*
+- A person with admin access to *T*, Tessa
+- A person with admin access to *R*, Robin
+
+Robin wants *T* to gain access to *R*. The exchange of activities SHOULD be as
+follows:
+
+1. Robin sends an [=Add=] activity in which:
+    - [=object=] is *T*
+    - [=target=] is the URI of *R*'s [=teams=] collection
+    - [=instrument=] is the maximal [=Role=] that Robin would like to allow
+        for people (and bots) when authorizing their manipulation of *R* by
+        their access in *T* (normally it would be [=admin=], perhaps sometimes
+        [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes Robin's admin
+        access to *R*
+2. *R*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Tessa, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *T*
+4. *T*, seeing the Add, seeing *R*'s Accept, and authorizing Tessa's Accept,
+    publishes a [[#grant-delegate|delegate-Grant]] in which the [=target=] is
+    *R*, and now considers *R* an accessible resource and lists *R* in the
+    [=teamResources=] collection
+5. *R*, seeing *T*'s Grant, now considers *R* a collaborator and lists *R* in
+    the [=teams=] collection
+
+Now *R* sends delegation Grant activities, see the [[#deleg-step-tr]] section
+below.
+
+#### Initiated by the team
+
+Assuming:
+
+- A team *T*
+- A resource actor *R*
+- A person with admin access to *T*, Tessa
+- A person with admin access to *R*, Robin
+
+Tessa wants *T* to gain access to *R*. The exchange of activities SHOULD be as
+follows:
+
+1. Tessa sends an [=Add=] activity in which:
+    - [=object=] is *R*
+    - [=target=] is the URI of *T*'s [=teamResources=] collection
+    - [=instrument=] is the maximal [=Role=] that Tessa would like to have and
+        allow for people (and bots) when authorizing their manipulation of *R*
+        by their access in *T* (normally it would be [=admin=], perhaps
+        sometimes [=maintain=])
+    - [=capability=] is the URI of a [=Grant=] that authorizes Tessa's admin
+        access to *T*
+2. *T*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Robin, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Robin's admin
+        access to *R*
+4. *R*, seeing the Add, seeing *T*'s Accept, and authorizing Robin's Accept,
+    publishes an [=Accept=] where [=object=] is the Add's URI
+5. *T*, seeing *R*'s Accept, publishes a [[#grant-delegate|delegate-Grant]] in
+    which the [=target=] is *R*, and now considers *R* an accessible resource
+    and lists *R* in the [=teamResources=] collection
+6. *R*, seeing *T*'s Grant, now considers *T* a collaborator and lists *T* in
+    the [=teams=] collection
+
+Now *R* sends delegation Grant activities, see the [[#deleg-step-tr]] section
+below.
+
+#### Delegation step #### {#deleg-step-tr}
+
+*R* now sends Grant activities, which *T* delegates further by sending its own
+Grant activities, as described in [[#extending-a-delegation-chain]], to its
+member humans and child teams.
+
+1. *R* sends a [[#start-grant-chain|start-Grant]] where:
+    - [=actor=] and [=context=] specify *R*
+    - [=target=] specifies *T*
+    - [=object=] specifies the role specified in the Add's [=instrument=]
+    - [=allows=] is [=distribute=]
+    - [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
+2. If *R* is a Project, then for each delegation Grant *g* that *R* has
+    received from its components or children, *R* sends an
+    [[#extending-a-delegation-chain|extension-Grant]] where:
+    - [=actor=] specifies *R*
+    - [=context=] is identical to *g*'s [=context=]
+    - [=target=] specifies *T*
+    - [=object=] specifies the lower role among the one specified by the
+        Add's [=instrument=], and the one specified by *g*'s [=object=]
+    - [=allows=] is [=distribute=]
+    - [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
+    - [=delegates=] specifies *g*'s URI
+
+When *T* sees these Grants, it delegates them further, as mentioned above.
+
+In addition, as long as the team-resource link remains active, whenever *R*
+receives a delegation Grant from any of its components or children, it SHOULD
+send *T* an extension-Grant as described above, and *T* SHOULD extend it
+further.
+
+### Removing a team-resource link
+
+#### Initiated by the resource
+
+Assuming:
+
+- A team *T*, that has access to a resource actor *R*
+- A person with admin access to *R*, Robin
+
+Robin wants *T* to stop being a collaborator in *R*. The exchange of activities
+SHOULD be as follows:
+
+1. Robin sends a [=Remove=] activity in which:
+    - [=object=] is *T*
+    - [=origin=] is the URI of *T*'s [=teams=] collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Robin's admin
+        access to *R*
+2. *R*, seeing and authorizing the Remove, publishes an [=Accept=] where
+    [=object=] is the Add's URI, and *R* removes *T* from its [=teams=]
+    collection
+3. *T*, seeing the Remove and the Accept, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *R*, and now
+    considers that Grant revoked, and removes *R* from its [=teamResources=]
+    collection
+
+Now, for each Grant *g* that *T* has published, as an extension of a Grant it
+had received from *R*:
+
+1. *T* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *T* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
+
+#### Initiated by the team
+
+Assuming:
+
+- A team *T*, that has access to a resource actor *R*
+- A person with admin access to *T*, Tessa
+
+Tessa wants *T* to stop being a collaborator in *R*. The exchange of activities
+SHOULD be as follows:
+
+1. Tessa sends a [=Remove=] activity in which:
+    - [=object=] is *R*
+    - [=origin=] is the URI of *T*'s [=teamResources=] collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Tessa's admin
+        access to *T*
+2. *T*, seeing and authorizing the Remove, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *R*, and now
+    considers that Grant revoked, and removes *R* from its [=teamResources=]
+    collection
+3. *R*, seeing *T*'s Revoke, removes *T* from its [=teams=] collection, and MAY
+    publish an Accept (whose [=object=] is the Remove) to notify its followers
+
+Now, for each Grant *g* that *T* has published, as an extension of a Grant it
+had received from *R*:
+
+1. *T* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *T* considers *g* invalidated
 3. The recipient of the [=Revoke=], if it further published extensions of *g*,
     now similarly publishes Revoke activities and considers those extension
     Grants invalid
@@ -4143,6 +4370,67 @@ Description:
     Identifies a collection of the subteams of this [=Team=], i.e. teams whose
     members inherit the access that this team's members have to projects and to
     project components (such as [=Repository=]s).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasRecursiveCollaborator</dfn>
+URI: https://forgefed.org/ns#hasRecursiveCollaborator
+Domain: Resource actor that isn't [=Team=]
+Range: [=Team=]
+Functional: No
+Inverse of: None
+Description:
+    Identifier a [=Team=] that's been granted access to this resource.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>teams</dfn>
+URI: https://forgefed.org/ns#teams
+Domain: An actor of type that isn't [=Team=]
+Range:
+    [=Collection=] of [=Relationship=] objects, in each of which [=subject=] is
+    a resource actor's URI, [=relationship=] is [=hasRecursiveCollaborator=],
+    [=object=] is a Team's URI and [=instrument=] is the role given to that
+    team in that resource.
+Functional: Yes
+Inverse of: None (but see [=teamResources=])
+Description:
+    Identifies a collection of the resources this [=Team=] has access to, and
+    that it is delegating to its members and subteams.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>teamResources</dfn>
+URI: https://forgefed.org/ns#teamResources
+Domain: [=Team=]
+Range:
+    [=Collection=] of [=Relationship=] objects, in each of which [=subject=] is
+    a resource actor's URI, [=relationship=] is [=hasRecursiveCollaborator=],
+    [=object=] is a Team's URI and [=instrument=] is the role given to that
+    team in that resource.
+Functional: Yes
+Inverse of: None (but see [=teams=])
+Description:
+    Identifies a collection of the [=Team=]s that have access to this resource,
+    and are delegating it to their members and subteams.
 </pre>
 
 <div class=example>
