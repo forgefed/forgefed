@@ -1,8 +1,6 @@
 <pre class='metadata'>
 Status: LS-BRANCH
-Group: ForgeFed Working Group
-Editor: Alice Doe, MyCoolCompany https://mycoolcompany.com/home, https://alicedoe.me/about
-Editor: Bob Doe, SomeOrg https://some.org, https://home.net/bob
+Editor: Pere Lev, pere@pere.life
 Favicon: /img/favicon.png
 Logo: /img/logo.svg
 Status Text: Work in progress
@@ -18,23 +16,17 @@ Shortname: forgefed
 URL: https://forgefed.org/spec
 Revision: 1
 Abstract:
-    This document describes the ForgeFed vocabulary. It's intended to be an
-    extension of [[ActivityStreams-Vocabulary]] and provides additional
-    vocabulary for federation of project management and version control system
-    hosting and collaboration platforms.
+    ForgeFed is a federation protocol for software project hosting and
+    collaboration platforms and components of such platforms. It's an extension
+    of the ActivityPub protocol.
 
-    This document describes the rules and guidelines for representing version
-    control and project management related objects as linked data, using the
-    ForgeFed vocabulary, ActivityStreams 2, and other related vocabularies.
-
-    This document provides instructions for using ActivityPub activities and
-    properties to represent forge events, and describes the side-effects these
-    activities should have. 
+    This document describes the ForgeFed vocabulary; the rules for
+    representing version control and project management related objects as
+    linked data; rules for using ActivityPub activities and
+    properties to represent forge events; a description the side-effects these
+    activities should have; a specification of the activity sequences that
+    implement common actions on forge servers.
 </pre>
-
-Issue: (fr33) In the abstract I just pasted the 3 abstracts of the separate
-specs. Write something new, probably with inspiration from existing specs such
-as ActivityPub.
 
 This draft is generated from branch <code>[GITBRANCH]</code>, commit
 <a href="https://codeberg.org/ForgeFed/ForgeFed/commit/[GITCOMMIT]">[GITSHORT]</a>.
@@ -3933,7 +3925,7 @@ URI: https://forgefed.org/ns#CapabilityUsage
 Extends: [=Object=]
 Values:
     This specification defines 3&#x3a; [=gatherAndConvey=], [=distribute=] and
-    [=invoke]
+    [=invoke=]
 Description:
     Represents a mode of using a [=Grant=] as an Object Capability (OCAP).
     There are two conceptual operations for `Grant`s&#x3a; Invocation (acting
