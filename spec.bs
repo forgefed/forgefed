@@ -2496,6 +2496,76 @@ activities SHOULD be as follows:
     which the [=target=] is Philip and [=object=] is [=admin=], thus giving
     Philip full access to manage *A*
 
+## Editing an Object ## {#editing}
+
+Minimal required role: It varies
+
+The problem with the [=Update=] activity is that it contains a full description
+of the updated object. This means it's not a successful candidate for
+describing clear atomic change requests. Since there is no standard solution on
+the Fediverse at the time of writing, ForgeFed for now introduces its own
+solution:
+
+A new actvity type, [=Edit=].
+
+It is intentionally not named Patch, as that name is already in use in ForgeFed
+under a different meaning. See [=Patch=].
+
+NOTE: Each resource type specifies the fields that it allows actors to edit via
+the [=Edit=] activity. For example, for a [=Note=] this would be the [=source=]
+and [=content=].
+
+Assuming:
+
+- A resource actor *R*,
+- A resource *r* managed by *R*
+- A person with edit access to *r*, Celia
+
+Celia wants to edit certain properties of *r*, which are meant to be edited
+using the [=Edit=] activity. The exchange of activities SHOULD be as follows:
+
+1. Celia sends an [=Edit=] activity in which:
+    - [=object=] is an object in which:
+        - [=id=] is the URI of *r*
+        - The other fields are the ones Celia wants to set to new values
+    - [=context=] is the URI of *R*
+    - (optionally) [=capability=] is the URI of a [=Grant=] that authorizes
+        Celia's edit access to *r*
+2. *R*, seeing the Edit and authorizing Celia's access and changes, publishes
+    an [=Accept=] where [=object=] is the Edit's URI, and updates the
+    representation of *r* that it serves from now on
+
+Here is a specification of object types and the properties they allow to change
+via [=Edit=].
+
+### Edit a comment's text
+
+<pre class=simpledef>
+Type: [=Note=]
+Properties: [=source=], [=content=]
+Role: None required
+Other requirements: An actor can edit only a Note they've authored
+</pre>
+
+### Edit a Ticket's title and description ### {#editing-ticket}
+
+<pre class=simpledef>
+Type: [=Ticket=]
+Properties: [=summary=], [=source=], [=content=]
+Role: For the author not required, otherwise [=triage=]
+Other requirements: None
+</pre>
+
+### Edit a Factory's list of available actor types
+
+<pre class=simpledef>
+Type: [=Factory=]
+Properties: [=availableActorTypes=]
+Role: [=admin=]
+Other requirements:
+    Each specified type MUST be a type this Factory is programmed to support
+</pre>
+
 # Actor Interface
 
 Issue: This section will provide, for each actor type, a summary of the various
@@ -3669,6 +3739,43 @@ A typical `@context` of a ForgeFed object may look like this:
 </div>
 
 ### Activities
+
+#### General
+
+<pre class=simpledef>
+Name: <dfn dfn export>Edit</dfn>
+URI: https://forgefed.org/ns#Edit
+Extends: [=Activity=]
+Description:
+    Indicates that [=actor=] is editing or asking to edit the object specified
+    by [=object=]. In that object, [=id=] MUST be specified, and every other
+    field is a field being set to a new value.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "http://dev.example/people/JABld/outbox/AZ01d",
+    "actor": "http://dev.example/people/JABld",
+    "type": "Edit",
+    "object": {
+        "id": "http://dev.example/people/JABld/messages/PAQlD",
+        "source": "Hello world",
+        "content": "<p>Hello world</p>"
+    },
+    "to": [
+        "http://dev.example/decks/ld6zd",
+        "http://dev.example/people/JABld/followers",
+        "http://dev.example/decks/ld6zd/followers",
+        "http://dev.example/decks/ld6zd/tickets/kd9ed/followers"
+    ]
+}
+</xmp>
+</div>
 
 #### Related to access control
 
@@ -5723,6 +5830,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: Reject
     text: Remove
     text: Undo
+    text: Update
 urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; spec: activitystreams-vocabulary
     text: Activity
     text: Collection
