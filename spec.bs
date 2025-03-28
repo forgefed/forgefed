@@ -286,7 +286,9 @@ properties as described in [[#Push]].
 
 See example in [[#Push]].
 
-## Opening an issue ## {#opening-issue}
+## Issues
+
+### Open ### {#opening-issue}
 
 Minimal required role: [=report=]
 
@@ -390,6 +392,49 @@ which is an actor, automatically sends Luke an Accept activity:
 }
 </xmp>
 </div>
+
+### Update title and description ### {#updating-issue-text}
+
+See [[#editing]] and [[#editing-ticket]].
+
+### Close ### {#closing-issue}
+
+Minimal required role: [=triage=]
+
+Given:
+
+- A [=TicketTracker=] actor, *T*
+- An actor with [=triage=] access to *T*, Alice
+- A [=Ticket=] *t*, that is tracked by *T*
+
+If *t* is open, i.e. its [=isResolved=] isn't specified or is set to False, *t*
+may be closed via the following steps:
+
+1. Alice sends *T* a [=Resolve=] activity where:
+    - [=object=] is the URI of *t*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* sets *t*'s [=isResolved=] to True, and MAY set [=resolvedBy=] to Alice
+    or to the [=Resolve=], and MAY set [=resolved=] to the current time
+3. *T* publishes an [=Accept=] whose [=object=] points to the [=Resolve=]
+
+### Reopen ### {#reopening-issue}
+
+Minimal required role: [=triage=]
+
+Given:
+
+- A [=TicketTracker=] actor, *T*
+- An actor with [=triage=] access to *T*, Alice
+- A [=Ticket=] *t*, that is tracked by *T*
+
+If *t* is closed, i.e. its [=isResolved=] is True, *t* may be reopened via the
+following steps:
+
+1. Alice sends *T* a [=Undo=] activity whose:
+    - [=object=] is a [=Resolve=] activity whose [=object=] is the URI of *t*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* sets *t*'s [=isResolved=] to False
+3. *T* publishes an [=Accept=] whose [=object=] points to the [=Undo=]
 
 ## Merge Requests
 
@@ -831,6 +876,17 @@ steps:
     Note that if no [=object=] collection is specified, *P* isn't required to
     generate patches. However, if it's specified, *P* MUST either update it or
     remove it.
+
+### Close ### {#closing-mr}
+
+A Merge Request may be closed without being merged/applied. It is the same
+process as for issues, see [[#closing-issue]].
+
+### Reopen ### {#reopening-mr}
+
+A Merge Request that was *closed without being merged/applied* can be reopened.
+Aside from that constraint, it is the same process as for issues. See
+[[#reopening-issue]].
 
 ## Commenting ## {#commenting}
 
@@ -4225,6 +4281,49 @@ Description:
         "https://fig.fr33domlover.site/looms/9nOkn/followers",
         "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/followers"
     ]
+}
+</xmp>
+</div>
+
+#### Related to ticket tracking
+
+<pre class=simpledef>
+Name: <dfn dfn export>Resolve</dfn>
+URI: https://forgefed.org/ns#Resolve
+Extends: [=Activity=]
+Description:
+    Indicates that a [=Ticket=] is being closed.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://grape.fr33domlover.site/people/WZpnG/outbox/GQvnR",
+    "type": "Resolve",
+    "actor": "https://grape.fr33domlover.site/people/WZpnG",
+    "object": "https://fig.fr33domlover.site/decks/W058b/tickets/3bPVn",
+
+    "capability": "https://grape.fr33domlover.site/groups/OZLdZ/outbox/ZLdDZ",
+
+    "to": [
+        "https://grape.fr33domlover.site/people/WZpnG/followers",
+        "https://fig.fr33domlover.site/decks/W058b",
+        "https://fig.fr33domlover.site/decks/W058b/followers",
+        "https://fig.fr33domlover.site/decks/W058b/tickets/3bPVn/followers"
+    ],
+
+    "proof": {
+        "created": "2024-07-09T07:02:45.038760903Z",
+        "cryptosuite": "jcs-eddsa-2022",
+        "proofPurpose": "assertionMethod",
+        "proofValue": "z4yiaWtjPeUjBvoXpHffjguVd8uHsSfYr4zxxFJbZwPVLtRNCk3uMKtnC3nRZ8vRM3h36B6VLrFagVerxcymhj2NP",
+        "type": "DataIntegrityProof",
+        "verificationMethod": "https://grape.fr33domlover.site/akey1"
+    }
 }
 </xmp>
 </div>
