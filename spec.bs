@@ -567,6 +567,271 @@ Given:
 5. *R*, upon processing the push, publishes a [=Push=] activity, see
     [[#pushing]].
 
+### Update title and description ### {#updating-mr-text}
+
+See [[#editing]] and [[#editing-ticket]].
+
+### Update patches (via web) ### {#updating-mr-patches}
+
+Minimal required role:
+
+- For the MR author: [=report=]
+- Other actors: [=write=]
+
+Given:
+
+- A [=Repository=] actor, *R*
+- A [=PatchTracker=] actor, *P*, that is tracking patches for *R*
+- An actor with [=write=] access to *P*, Alice
+- A [=Ticket=] *t*, that is a Merge Request tracked by *P*
+- *t*'s [=attachment=] is an [=Offer=] whose [=object=] is specified and is an
+    [=OrderedCollection=], in reverse chronological/logical order, of one or
+    more [=Patch=] objects
+
+*t* may receive an updated version of its patch set via the following steps:
+
+1. Alice sends *P* an [=Add=] activity, where:
+    - [=object=] is an [=OrderedCollection=], in reverse chronological/logical
+        order, or one or more [=Patch=] objects, whose [=mediaType=] matches
+        the VCS of *R* (e.g. Git patches for a Git repo)
+    - [=target=] is the URI of *t*
+    - [=capability=] is the URI of a [=Grant=] that authorizes this action
+2. *P* updates the [=OrderedCollection=] of [=Patch=] objects under *t*:
+    - The current collection is placed at the top of the [=previousVersions=]
+        list
+    - The new collection takes the place of the current one, and receives an
+        [=id=] field, i.e. a URI
+    - The [=currentVersion=] fields in all [=previousVersions=] items are
+        updated to specify that newly assigned [=id=]
+3. *P* publishes an [=Accept=] where:
+    - [=object=] is the URI of the [=Add=]
+    - [=result=] is the newly assigned URI of the new patch collection
+
+For example, here's what *t* might look like:
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=23>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob",
+    "type": "Ticket",
+    "context": "https://fig.fr33domlover.site/looms/9nOkn",
+    "attributedTo": "https://walnut.fr33domlover.site/people/gK2eJ",
+    "isResolved": false,
+    "published": "2022-09-28T16:03:54.327751Z",
+
+    "summary": "Fix the bug",
+    "source": {
+        "content": "One line of code was enough!",
+        "mediaType": "text/markdown; variant=Commonmark"
+    },
+    "mediaType": "text/html",
+    "content": "<p>One line of code was enough!</p>",
+
+    "attachment": {
+        "type": "Offer",
+        "object": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob",
+        "origin": {
+            "@context": [
+                "https://www.w3.org/ns/activitystreams",
+                "https://forgefed.org/ns"
+            ],
+            "context": "https://grape.fr33domlover.site/repos/9GnzG",
+            "name": "main",
+            "ref": "refs/heads/main",
+            "type": "Branch"
+        },
+        "target": {
+            "@context": [
+                "https://www.w3.org/ns/activitystreams",
+                "https://forgefed.org/ns"
+            ],
+            "context": "https://fig.fr33domlover.site/repos/9nOkn",
+            "name": "main",
+            "ref": "refs/heads/main",
+            "type": "Branch"
+        }
+    },
+
+    "followers": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/followers",
+    "replies": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/discussion"
+}
+</xmp>
+</div>
+
+And the collection object pointed by [=attachment=]'s [=object=] is:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob",
+    "type": "OrderedCollection",
+    "context": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob",
+    "orderedItems": [
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob/patches/4nZwD"
+    ],
+    "previousVersions": [
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/J7f4T",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/m6F29"
+    ],
+    "totalItems": 1
+}
+</xmp>
+</div>
+
+Note that [=context=] points back to *t* and the item under [=orderedItems=]
+points to a [=Patch=] object, i.e. it's a MR with a single patch. And there are
+already 2 older versions.
+
+After processing the [=Add=], *t* now looks like this - the only change here is
+in line 23 which points to the new collection now:
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=23>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob",
+    "type": "Ticket",
+    "context": "https://fig.fr33domlover.site/looms/9nOkn",
+    "attributedTo": "https://walnut.fr33domlover.site/people/gK2eJ",
+    "isResolved": false,
+    "published": "2022-09-28T16:03:54.327751Z",
+
+    "summary": "Fix the bug",
+    "source": {
+        "content": "One line of code was enough!",
+        "mediaType": "text/markdown; variant=Commonmark"
+    },
+    "mediaType": "text/html",
+    "content": "<p>One line of code was enough!</p>",
+
+    "attachment": {
+        "type": "Offer",
+        "object": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/5Km3d",
+        "origin": {
+            "@context": [
+                "https://www.w3.org/ns/activitystreams",
+                "https://forgefed.org/ns"
+            ],
+            "context": "https://grape.fr33domlover.site/repos/9GnzG",
+            "name": "main",
+            "ref": "refs/heads/main",
+            "type": "Branch"
+        },
+        "target": {
+            "@context": [
+                "https://www.w3.org/ns/activitystreams",
+                "https://forgefed.org/ns"
+            ],
+            "context": "https://fig.fr33domlover.site/repos/9nOkn",
+            "name": "main",
+            "ref": "refs/heads/main",
+            "type": "Branch"
+        }
+    },
+
+    "followers": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/followers",
+    "replies": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/discussion"
+}
+</xmp>
+</div>
+
+That new collection looks like this:
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/5Km3d",
+    "type": "OrderedCollection",
+    "context": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob",
+    "orderedItems": [
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob/patches/6F94J",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob/patches/0P5bE",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob/patches/hDJ8r",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob/patches/I8Y6c"
+    ],
+    "previousVersions": [
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/J7f4T",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/m6F29"
+    ],
+    "totalItems": 4
+}
+</xmp>
+</div>
+
+Note that the new version happens to have 4 patches/commits, and that
+[=previousVersions=] now also lists the last version, that we just replaced.
+
+And here's the collection we replaced, which now has [=currentVersion=]
+pointing to the new collection (and it doesn't specify [=previousVersions=]
+anymore, since that information can be found under the latest collection).
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=12>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob",
+    "type": "OrderedCollection",
+    "context": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob",
+    "orderedItems": [
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob/patches/4nZwD"
+    ],
+    "totalItems": 1,
+    "currentVersion": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/5Km3d"
+}
+</xmp>
+</div>
+
+### Update patches (via push) ### {#pushing-mr-patches}
+
+Minimal required role:
+
+- For the repo push access: [=write=]
+
+Given:
+
+- A [=Repository=] actor, *R*
+- A [=PatchTracker=] actor, *P*, that is tracking patches for *R*
+- An actor with [=write=] access to *R*, Luke
+- A [=Ticket=] *t*, that is a Merge Request tracked by *P*
+- *t*'s [=attachment=] is an [=Offer=] whose [=origin=] is specified and is a
+    URI or a [=Repository=], or a [=Branch=] object (depending on whether the
+    VCS supports branches, e.g. Git does but Darcs doesn't)
+
+*t* may receive an updated version of its patch set, by having Luke perform a
+VCS push to the origin repository/branch. It may be done via the following
+steps:
+
+1. Luke pushes (or force-pushes, i.e. adding, changing or deleting commits) to
+    the origin repository/branch
+2. *P*, which SHOULD be a follower of the origin repository, receives the
+    [=Push=] activity and checks if any of its Merge Requests have that
+    repository/branch as their origin - indeed *t* is such a Merge Request
+3. *P* pulls the origin repo/branch, compares it to the [=Offer=]'s [=target=]
+    repo/branch, and updates the [=Offer=]'s [=object=], i.e. the patch
+    collection, in the same manner as described in [[#updating-mr-patches]].
+    Note that if no [=object=] collection is specified, *P* isn't required to
+    generate patches. However, if it's specified, *P* MUST either update it or
+    remove it.
+
 ## Commenting ## {#commenting}
 
 Minimal required role: [=report=]
