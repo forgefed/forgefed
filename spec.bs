@@ -2453,6 +2453,49 @@ had received from *R*:
     now similarly publishes Revoke activities and considers those extension
     Grants invalid
 
+## Creating Resource Actors
+
+Minimal required role: [=write=]
+
+There are 2 types of actors whose process of creation is a special case:
+
+1. [=Person=]: Created by registering an account
+2. [=Factory=]: Can be created by a C2S [=Create=] activity, where the access
+    control to this operation is server-specific (for example perhaps only
+    server administrators can create Factories)
+
+All the other actor types, the resouce actors besides Factory, MUST be created
+via a [=Factory=] actor.
+
+- [=Repository=]
+- [=TicketTracker=]
+- [=PatchTracker=]
+- [=Project=]
+- [=Team=]
+
+A given factory specifies via the [=availableActorTypes=] the specific types it
+supports.
+
+Assuming:
+
+- A factory *F*
+- A person with [=write=] access to *F*, Philip
+
+Philip wants to create a new actor, of a type supported by *F*. The exchange of
+activities SHOULD be as follows:
+
+1. Philip sends a [=Create=] activity in which:
+    - [=object=] contains the properties of the new actor to be created
+    - [=origin=] is the URI of *F*
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's access
+        to *F*
+2. *F*, seeing and authorizing the Create, publishes an [=Accept=] where
+    [=object=] is the Create's URI and [=result=] is the URI of the newly
+    created actor *A*
+3. *A*, upon its creation, publishes a [[#direct-granting|direct-Grant]] in
+    which the [=target=] is Philip and [=object=] is [=admin=], thus giving
+    Philip full access to manage *A*
+
 # Actor Interface
 
 Issue: This section will provide, for each actor type, a summary of the various
@@ -2466,6 +2509,8 @@ inbox-forwarding and not by `Announce`ing (or custom `Forward`ing) those
 activities.
 
 ## Person ## {#person-iface}
+
+## Factory ## {#factory-iface}
 
 ## Team ## {#team-iface}
 
@@ -3219,6 +3264,57 @@ In that special [=attachment=] of type [=Offer=]:
 </xmp>
 </div>
 
+## Factory
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Factory=]
+[=name=]:
+    The user-given name of the factory, e.g. "My default factory"
+[=published=]:
+    The time the project was created on the server
+[=summary=]:
+    A one-line user provided description of the factory, as HTML, e.g.
+    "`<p>Allows local users to create public resources</p>`"
+[=availableActorTypes=]:
+    Zero or more resource actor types whose creatio is supported and enabled by
+    this Factory.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://grape.fr33domlover.site/factories/YGQoZ",
+    "type": "Factory",
+    "name": "final-factory",
+    "summary": ".",
+    "availableActorTypes": [
+        "TicketTracker",
+        "Project",
+        "Team",
+        "Repository"
+    ],
+
+    "outbox": "https://grape.fr33domlover.site/factories/YGQoZ/outbox",
+    "publicKey": [
+        "https://grape.fr33domlover.site/akey1",
+        "https://grape.fr33domlover.site/akey2"
+    ],
+    "collaborators": "https://grape.fr33domlover.site/factories/YGQoZ/collabs",
+    "followers": "https://grape.fr33domlover.site/factories/YGQoZ/followers",
+    "inbox": "https://grape.fr33domlover.site/factories/YGQoZ/inbox",
+    "teams": "https://grape.fr33domlover.site/factories/YGQoZ/teams"
+}
+</xmp>
+</div>
+
 # Access Control
 
 ## Giving Access
@@ -3917,6 +4013,50 @@ Description:
 </xmp>
 </div>
 
+#### Utility
+
+<pre class=simpledef>
+Name: <dfn dfn export>Factory</dfn>
+URI: https://forgefed.org/ns#Factory
+Extends: [=Object=]
+Description:
+  A service actor that creates resource actors (such as
+  [=Repository=]), exists to allow access control on creation of remote
+  resources.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://grape.fr33domlover.site/factories/YGQoZ",
+    "type": "Factory",
+    "name": "final-factory",
+    "summary": ".",
+    "availableActorTypes": [
+        "TicketTracker",
+        "Project",
+        "Team",
+        "Repository"
+    ],
+
+    "outbox": "https://grape.fr33domlover.site/factories/YGQoZ/outbox",
+    "publicKey": [
+        "https://grape.fr33domlover.site/akey1",
+        "https://grape.fr33domlover.site/akey2"
+    ],
+    "collaborators": "https://grape.fr33domlover.site/factories/YGQoZ/collabs",
+    "followers": "https://grape.fr33domlover.site/factories/YGQoZ/followers",
+    "inbox": "https://grape.fr33domlover.site/factories/YGQoZ/inbox",
+    "teams": "https://grape.fr33domlover.site/factories/YGQoZ/teams"
+}
+</xmp>
+</div>
+
 ### Objects
 
 <pre class=simpledef>
@@ -4217,6 +4357,50 @@ Description:
     "attributedTo": "https://dev.example/aviva",
     "content": "I agree!!111",
     "currentVersion": "https://dev.example/aviva/notes/107"
+}
+</xmp>
+</div>
+
+### Factories
+
+<pre class=simpledef>
+Name: <dfn dfn export>availableActorTypes</dfn>
+URI: https://forgefed.org/ns#availableActorTypes
+Domain: [=Factory=]
+Range: URI
+Functional: No
+Inverse of: None
+Description: Specifies the actor types that can be created via this Factory.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://w3id.org/security/v2",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://grape.fr33domlover.site/factories/YGQoZ",
+    "type": "Factory",
+    "name": "final-factory",
+    "summary": ".",
+    "availableActorTypes": [
+        "TicketTracker",
+        "Project",
+        "Team",
+        "Repository"
+    ],
+
+    "outbox": "https://grape.fr33domlover.site/factories/YGQoZ/outbox",
+    "publicKey": [
+        "https://grape.fr33domlover.site/akey1",
+        "https://grape.fr33domlover.site/akey2"
+    ],
+    "collaborators": "https://grape.fr33domlover.site/factories/YGQoZ/collabs",
+    "followers": "https://grape.fr33domlover.site/factories/YGQoZ/followers",
+    "inbox": "https://grape.fr33domlover.site/factories/YGQoZ/inbox",
+    "teams": "https://grape.fr33domlover.site/factories/YGQoZ/teams"
 }
 </xmp>
 </div>
