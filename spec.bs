@@ -1495,7 +1495,7 @@ If *R* is a [=Project=] or a [=Team=], additional steps occur:
     [[#extending-a-delegation-chain|extend a Grant chain]] to *A*, it uses
     *A*'s delegate-Grant as the [=capability=]
 
-#### Offering access using Invite activities
+#### Offering access using Invite activities #### {#access-via-invite}
 
 When an actor *A* wishes to offer actor *B* access to resource *R* (where the
 *resource actor* who manages *R* is neither *A* nor *B*), then actor *A* SHOULD
@@ -1532,7 +1532,7 @@ Actor *B* can now use the URI of that new `Grant` as the
 [=capability=] when it sends activities that access or
 manipulate resource *R*.
 
-#### Requesting access using Join activities
+#### Requesting access using Join activities #### {#access-via-join}
 
 When an actor *A* wishes to request access to resource *R* (where the *resource
 actor* who manages *R* isn't *A*), then actor *A* SHOULD use a
@@ -1633,7 +1633,7 @@ So, once a `Join` is rejected (using an authorized `Reject`), it cannot be
 accepted. But actor *A* MAY send a new `Join`, which could then possibly get
 accepted.
 
-### Revoking access
+### Revoking access ### {#revoking-access}
 
 #### Taking away access using Remove activities
 
@@ -2921,6 +2921,50 @@ Role: [=admin=]
 Other requirements:
     Each specified type MUST be a type this Factory is programmed to support
 </pre>
+
+## Repository-PatchTracker Links
+
+### Adding
+
+A link between a [=Repository=] and a [=PatchTracker=] essentially means:
+
+1. The repo officially indicates "send patches via this tracker"
+2. The tracker says "I manage patches for this repository"
+3. The tracker has access to push commits to the repository (that's how it
+    merges Merge Requests into the repo)
+
+Given:
+
+- A [=Repository=] *R*
+- A [=PatchTracker=] *P*
+- An actor with [=admin=] access to *R*, Luke
+- An actor with [=admin=] access to *P*, Aviva
+
+Luke and Aviva can form the link by a direct Grant of the [=write=] role for
+*P* to access *R*. See [[#granting-access]]. The process can be initiated via
+an [[#access-via-invite|Invite]] or [[#access-via-join|Join]] activity.
+
+Upon successful completion of the process, *R* SHOULD point to *P* via the
+[=sendPatchesTo=] property, and *P* SHOULD point to *R* via the
+[=tracksPatchesFor=] property.
+
+### Removing
+
+Given:
+
+- A [=Repository=] *R*
+- A [=PatchTracker=] *P*
+- *R* and *P* have been linked as described above
+- An actor with [=admin=] access to *R*, Luke
+- An actor with [=admin=] access to *P*, Aviva
+
+Luke or Aviva can remove the link by revoking the [=write=] access, see
+[[#revoking-access]]. Once the [=Grant=] is revoked, *R* and *P* MUST stop
+pointing to each another via the [=sendPatchesTo=] and [=tracksPatchesFor=]
+properties.
+
+If *P* has any open Merge Requests for *R* at the time of revocation, it SHOULD
+freeze any further edits of these MRs, making them read-only.
 
 # Actor Interface
 
