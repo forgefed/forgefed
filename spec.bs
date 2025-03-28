@@ -391,7 +391,9 @@ which is an actor, automatically sends Luke an Accept activity:
 </xmp>
 </div>
 
-## Opening a merge request ## {#opening-mr}
+## Merge Requests
+
+### Open ### {#opening-mr}
 
 Minimal required role: [=report=]
 
@@ -531,6 +533,39 @@ sends Luke an Accept activity:
 }
 </xmp>
 </div>
+
+### Apply ### {#applying-mr}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=Repository=] actor, *R*
+- A [=PatchTracker=] actor, *P*, that is tracking patches for *R*
+- An actor with [=write=] access to *P*, Alice
+- A [=Ticket=] *t*, that is a Merge Request tracked by *P*
+
+*t* may be merged into repository *R* via the following steps:
+
+1. Alice sends *P* an [=Apply=] activity where:
+    - [=object=] is the URI of *t*
+    - [=target=] is the URI of *R* or a [=Branch=] object with [=context=]
+        being the URI of *R*, [=name=] being the branch name (e.g. "main") and
+        [=ref=] being the unique identifier of the branch within the repo e.g.
+        "refs/heads/main")
+    - [=capability=] is the URI of a [=Grant=] activity granting Alice
+        [=write=] access to *P*
+2. *P* verifies that:
+    - The [=Apply=]'s [=target=] matches the target repo/branch specified by
+        *t*
+    - *t* can be merged without conflict
+    - The specified [=capability=] is valid
+3. *P*, via the version control system's protocol, pushes the patches/commits
+    to *R*
+4. *P* publishes an [=Accept=] activity whose [=object=] points to the
+    [=Apply=], and marks *t* as resolved
+5. *R*, upon processing the push, publishes a [=Push=] activity, see
+    [[#pushing]].
 
 ## Commenting ## {#commenting}
 
@@ -3889,6 +3924,42 @@ Description:
         ]
     },
     "target": "https://example.dev/aviva/myproject/branches/master"
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Apply</dfn>
+URI: https://forgefed.org/ns#Apply
+Extends: [=Activity=]
+Description:
+    Indicates a request to apply a Merge Request to a [=Repository=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://fig.fr33domlover.site/people/qn870/outbox/ZnqL0",
+    "type": "Apply",
+    "actor": "https://fig.fr33domlover.site/people/qn870",
+    "object": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob",
+    "target": {
+        "type": "Branch",
+        "context": "https://fig.fr33domlover.site/repos/9nOkn",
+        "name": "main",
+        "ref": "/refs/heads/main"
+    },
+    "capability": "https://fig.fr33domlover.site/looms/9nOkn/outbox/kDJx0",
+    "to": [
+        "https://fig.fr33domlover.site/looms/9nOkn",
+        "https://fig.fr33domlover.site/people/qn870/followers",
+        "https://fig.fr33domlover.site/looms/9nOkn/followers",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/followers"
+    ]
 }
 </xmp>
 </div>
