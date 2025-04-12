@@ -265,6 +265,28 @@ the federated implementation of the various features of forges and related
 software. It provides a complete picture of interaction flows, which the actor
 API section can't, because it focuses on a single actor type at a time.
 
+## Following
+
+Minimal required role: [=visit=]
+
+Following can be done using a [=Follow=] activity, and unfollowing can be done
+via an [=Undo=] activity whose [=object=] is a [=Follow=]. And the receiving
+actor sends back an Accept or Reject (or nothing). See the ActivityPub
+specification section on
+[S2S Follow](https://www.w3.org/TR/activitypub/#follow-activity-inbox) for more
+details.
+
+However, ForgeFed adds certain elements:
+
+1. The [=Follow=]'s [=object=] is either an actor or an object managed by an
+    actor. For example, it's possible to follow a specific [=Ticket=], not just
+    the whole [=TicketTracker=]. In that case, the [=TicketTracker=] receives
+    the [=Follow=], recognizes that the [=object=] is one of its tickets, and
+    responds as normal with Accept/Reject.
+2. Following requires the [=visit=] role, i.e. for the [=Follow=] to specify a
+    valid [=capability=]. For publicly visible objects (such as public projects
+    on typical FOSS code hosting platforms), the [=capability=] MAY be omitted.
+
 ## Reporting Pushed Commits ## {#pushing}
 
 - Role required for pushing: [=write=]
@@ -1024,6 +1046,25 @@ with the following properties:
 - [=allows=]: Specifies [=invoke=]
 - [=delegates=]: Not used
 
+#### Public and Collective Granting #### {#public-granting}
+
+An object typically has certain operations that it allows any actor to perform,
+and certain operations that only explicitly authorized actors have access to.
+For example, on a typical public hosting platform for FOSS projects, opening an
+issue or PR doesn't require special permissions. But pushing commits or merging
+a PR does.
+
+In a [=Grant=] activity this can be done using the [=target=] field. Instead of
+pointing to a specific actor, it can alternatively have a special value
+referring to a certain audience of actors. The supported special values are:
+
+- [=Public=]: Refers to all actors on the network, i.e. this Grant can be used
+    by any actor to manipulate the resource. We'll refer to such a Grant as a
+    public-Grant.
+
+Using the [=publicCapability=] property, an object can specify a public-Grant
+to be available to anyone wishing to interact with the object.
+
 #### Granting the delegate role #### {#grant-delegate}
 
 A special case of direct granting is *granting permission to delegate*: If role
@@ -1437,7 +1478,8 @@ access or modify some resource. If some actor *A* wishes to access or modify a
 resource *r*, using a `Grant` activity *g* for authorization, preconditions
 for a successful invocation include:
 
-- *g*'s [=target=] is actor *A*
+- *g*'s [=target=] is actor *A* (or an audience that includes *A*, see
+    [[#public-granting]])
 - *g*'s [=context=] is either the resource *r*, or a resource in which *r* is
     contained, or the actor that [=managedBy|manages=] *r*
 - *g*'s [=object=] is a [=Role=] that permits the kind of operation
@@ -2634,9 +2676,9 @@ link, receiving the Add, is specified in the [=object=] property.
 Whenever authorization is mentioned below, it SHOULD be done using the
 [[#s2s-grant-flow|invocation verification process]].
 
-### Forming a team-resource link
+### Forming a team-resource link ### {#forming-team-resource-link}
 
-#### Initiated by the resource
+#### Initiated by the resource #### {#forming-team-resource-link-r}
 
 Assuming:
 
@@ -2673,7 +2715,7 @@ follows:
 Now *R* sends delegation Grant activities, see the [[#deleg-step-tr]] section
 below.
 
-#### Initiated by the team
+#### Initiated by the team #### {#forming-team-resource-link-t}
 
 Assuming:
 
@@ -2742,9 +2784,9 @@ receives a delegation Grant from any of its components or children, it SHOULD
 send *T* an extension-Grant as described above, and *T* SHOULD extend it
 further.
 
-### Removing a team-resource link
+### Removing a team-resource link ### {#removing-team-resource-link}
 
-#### Initiated by the resource
+#### Initiated by the resource #### {#removing-team-resource-link-r}
 
 Assuming:
 
@@ -2760,7 +2802,7 @@ SHOULD be as follows:
     - [=capability=] is the URI of a [=Grant=] that authorizes Robin's admin
         access to *R*
 2. *R*, seeing and authorizing the Remove, publishes an [=Accept=] where
-    [=object=] is the Add's URI, and *R* removes *T* from its [=teams=]
+    [=object=] is the Remove's URI, and *R* removes *T* from its [=teams=]
     collection
 3. *T*, seeing the Remove and the Accept, publishes a [=Revoke=] activity in
     which the [=object=] is the delegate-Grant it had sent to *R*, and now
@@ -2777,7 +2819,7 @@ had received from *R*:
     now similarly publishes Revoke activities and considers those extension
     Grants invalid
 
-#### Initiated by the team
+#### Initiated by the team #### {#removing-team-resource-link-t}
 
 Assuming:
 
@@ -2912,7 +2954,7 @@ Role: For the author not required, otherwise [=triage=]
 Other requirements: None
 </pre>
 
-### Edit a Factory's list of available actor types
+### Edit a Factory's list of available actor types ### {#editing-factory-types}
 
 <pre class=simpledef>
 Type: [=Factory=]
@@ -2978,9 +3020,273 @@ actors, which cc the target actor's followers and the target actor delivers via
 inbox-forwarding and not by `Announce`ing (or custom `Forward`ing) those
 activities.
 
+Issue: I'm starting to fill this section, just methods for now. Events will
+come soon.
+
+Notes:
+
+- I'm putting links to Vervis implementation, since it has additional low-level
+    detail and notes that might be useful hints to implementors
+
 ## Person ## {#person-iface}
 
+TODO
+
 ## Factory ## {#factory-iface}
+
+Vervis implementation:
+[Vervis.Actor.Factory](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Factory.hs)
+
+### Accept ### {#factory-beh-accept}
+
+Meanings:
+
+- A collaborator is being added to me
+- A Team collaborator is being added to me
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+- If it's an Accept on an Invite or Join to be a collaborator in me:
+    - If it's an Invite, verify Accept [=actor=] is the Invite's
+        [=target=]
+    - If it's a Join, verify the Accept is authorized with [=admin=]
+        access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3 or
+        [[#access-via-join]] step 2
+- If it's an Accept on an Add I've seen, asking to add a Team
+    collaborator to me
+    - If the Add was sent from our side:
+        Error/ignore, we aren't supposed get any Accept
+    - Otherwise, i.e. Add was sent from the Team's side, proceed
+    - Option 1: If I haven't yet seen the Team's Accept:
+        Verify the Accept's [=actor=] is the Team
+    - Option 2: If I saw Team's Acccept but not yet my collaborator's
+        Accept: Verify the Accept is authorized with [=admin=] access
+    - Otherwise, error/ignore, no Accept is needed
+    - For option 1: Record Team's Accept in DB
+    - For option 2: Record my collaborator's Accept in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - For option 2, send an Accept, see [[#forming-team-resource-link-t]] step
+        4
+
+### Add ### {#factory-beh-add}
+
+Meanings:
+
+- A Team collaborator is being added to me
+
+Processes:
+
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+- If the Add [=target=] is my [=teams=] list:
+    - Verify the [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already an active team of mine
+    - Insert the Add to my inbox & forward the Add to my followers
+    - Publish an Accept, see [[#forming-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being added to some teams' resource list:
+    - Verify the [=target=] is a [=Collection=] whose [=context=] is a [=Team=]
+        that points back to the collection via its [=teams=] field
+    - Verify it's not already an active team of mine
+    - Insert the Add to my inbox & forward the Add to my followers
+
+### Create ### {#factory-beh-create}
+
+Meanings:
+
+- I'm being requested to spawn a new resource actor
+
+Processes:
+
+- [[#creating-resource-actors]]
+
+Behavior:
+
+- Verify the Create's [=origin=] is me
+- Verify the Create is authorized with [=maintain=] access
+- Launch the new actor described by the Create's [=object=]
+- Insert the Create to my inbox & forward the Create to my followers
+- Publish an Accept, see [[#creating-resource-actors]] step 2
+
+### Edit ### {#factory-beh-edit}
+
+Meanings:
+
+- My list of available resource actor types is being edited
+
+Processes:
+
+- [[#editing]], in particular [[#editing-factory-types]]
+
+Behavior:
+
+- Verify the [=object=]'s [=id=] is me
+- Verify the Edit is authorized with [=admin=] access
+- Update my list of available types from [=object=]'s [=availableActorTypes=]
+- Insert the Edit to my inbox & forward the Edit to my followers
+- Send an Accept, see [[#editing]] step 2
+
+### Follow ### {#factory-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of me
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to my list of followers
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#factory-beh-grant}
+
+Meanings:
+
+- A Team-Collaborator-in-process is sending me the delegate-Grant
+
+Processes:
+
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+- Enable the Team Collaborator in DB
+- Send the Team a start-Grant, see [[#deleg-step-tr]] step 1
+
+### Invite ### {#factory-beh-invite}
+
+Meanings:
+
+- Someone is inviting someone else to be a collaborator in me
+
+Processes:
+
+- [[#access-via-invite]]
+
+Behavior:
+
+- Verify the [=target=] is my [=collaborators=] collection
+- Verify the Invite is authorized with [=admin=] access
+- Verify the [=object=] isn't already a collaborator of me
+- Insert the Invite to my inbox & forward to followers
+- Publish an [=Accept=] whose [=object=] points to the Invite
+
+Note: The Accept in the last step does NOT indicate that a collaborator has
+been added. It merely signals to the potential collaborator that the Invite is
+authorized, and now they can decide whether to accept/reject/ignore it.
+
+### Join ### {#factory-beh-join}
+
+Meanings:
+
+- Someone is asking to become a collaborator in me
+
+Processes:
+
+- [[#access-via-join]]
+
+Behavior:
+
+- Verify the [=object=] is my [=collaborators=] collection
+- Verify the [=actor=] isn't already a collaborator of me
+- If the Join specifies a [=capability=]:
+    - Verify the Join is authorized with [=admin=] access
+    - Insert the Join to my inbox & forward to my followers
+    - Publish a [=Grant=], see [[#access-via-join]] option 1 step 2.2
+- Otherwise, i.e. if it doesn't:
+    - Insert the Join to my inbox & forward to my followers
+
+### Remove ### {#factory-beh-remove}
+
+Meanings:
+
+- One of my Collaborators is being removed
+- One of my Team Collaborators is being removed
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+
+Behavior:
+
+- If [=origin=] is my [=collaborators=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my collaborators
+    - Remove the [=object=] actor from my list of collaborators and invalidate
+        the direct-Grant I had sent them
+    - Insert the Remove to my inbox & forward to my followers
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+
+- If [=origin=] is my [=teams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my Team Collaborators
+    - Remove the [=object=] actor from my list of Team Collaborators and
+        invalidate the start-Grant I had sent it
+    - Insert the Remove to my inbox & forward to my followers
+    - Publish an [=Accept=], see [[#removing-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=teamResources=] collection of a Team Collaborator of mine:
+        - Nothing to do, just waiting for the Team to send a Revoke on the
+            delegate-Grant it had sent me
+
+### Revoke ### {#factory-beh-revoke}
+
+Meanings:
+
+- A Team Collaborator of mine is revoking the delegate-Grant it gave me
+
+Processes:
+
+- [[#removing-team-resource-link]]
+
+Behavior:
+
+- Verify the [=actor=] is a Team Collaborator of mine
+- Verify the [=object=] is the delegate-Grant it had sent me
+- Remove the Team from my [=teams=] collection and invalidate the start-Grant I
+    had sent it
+- Insert the Revoke to my inbox & forward to my followers
+- Publish an Accept, see [[#removing-team-resource-link-t]] step 3
+
+### Undo ### {#factory-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is a Follow whose [=object=] is me
+- Verify the [=actor=] is a follower of me
+- Remove [=actor=] from my list of followers
+- Send back an [=Accept=] whose [=object=] points to the [=Undo=]
 
 ## Team ## {#team-iface}
 
@@ -2989,6 +3295,41 @@ activities.
 ## Repository ## {#repo-iface}
 
 ## TicketTracker ## {#tt-iface}
+
+Vervis implementation:
+[Vervis.Actor.Deck](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Deck.hs)
+
+### Accept ### {#factory-beh-accept}
+
+Meanings:
+
+- A collaborator is being added to me
+- A Team collaborator is being added to me
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+- If it's an Accept on an Invite or Join to be a collaborator in me:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## PatchTracker ## {#pt-iface}
 
@@ -5939,6 +6280,24 @@ TODO
 </div>
 
 <pre class=simpledef>
+Name: <dfn dfn export>publicCapability</dfn>
+URI: https://forgefed.org/ns#publicCapability
+Domain: [=Object=]
+Range: [=Grant=]
+Functional: No
+Inverse of: None
+Description:
+    Specifies a [=Grant=] activity providing access to the [=Public=], i.e. a
+    Grant that any user/actor can use to interact with the object.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
 Name: <dfn dfn export>managedBy</dfn>
 URI: https://forgefed.org/ns#managedBy
 Domain: [=Object=]
@@ -5988,6 +6347,44 @@ Description:
     provided by an earlier `Grant`, the former uses `delegates` to specify the
     latter. That earlier `Grant` is also called the "parent capability" of this
     `Grant`.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasCollaborator</dfn>
+URI: https://forgefed.org/ns#hasCollaborator
+Domain: [=Actor=]
+Range: [=Actor=]
+Functional: No
+Inverse of: None
+Description:
+    For a given actor *A*, specifies an actor *B* who has been giving a
+    direct [=Grant=] to access/manipulate *A*
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>collaborators</dfn>
+URI: https://forgefed.org/ns#collaborators
+Domain: [=Actor=]
+Range: A [=Collection=] of [=Relationship=] objects
+Functional: Yes
+Inverse of: None
+Description:
+    A collection of the direct collaborators of the actor, i.e. actors that
+    have been given a direct-Grant to it. In each [=Relationship=] object, the
+    [=subject=] is the actor, [=relationship=] is [=hasCollaborator=],
+    [=object=] is the collaborator and [=instrument=] is the role.
 </pre>
 
 <div class=example>
@@ -6350,5 +6747,6 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: to
     text: type
 urlPrefix: https://www.w3.org/TR/activitypub/#; type: dfn; spec: activitypub
+    text: Public; url: https://www.w3.org/TR/activitypub/#public-addressing
     text: followers
 </pre>
