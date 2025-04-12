@@ -2075,7 +2075,7 @@ In particular, once the new member *M* sends the project *J* the
 - Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
     [=gatherAndConvey=], that *J* has received from any of its components
 
-## Associating Projects and Components
+## Associating Projects and Components ## {#linking-projects-components}
 
 Minimal required role: [=admin=]
 
@@ -2087,7 +2087,7 @@ the action using admin access to the project.
 Whenever authorization is mentioned below, it SHOULD be done using the
 [[#s2s-grant-flow|invocation verification process]].
 
-### Adding a component to a project - component side
+### Adding a component to a project - component side ### {#linking-projects-components-c}
 
 Assuming:
 
@@ -2127,7 +2127,7 @@ SHOULD be as follows:
     [[#extending-a-delegation-chain|extends the Grant chain]] as relevant, to
     its members and parent projects
 
-### Removing a component from a project - component side
+### Removing a component from a project - component side ### {#unlinking-projects-components-c}
 
 Assuming:
 
@@ -2151,7 +2151,7 @@ exchange of activities SHOULD be as follows:
     sent to *C* (and *P* now considers that Grant revoked and no longer
     considers *C* a component of it)
 
-### Adding a component to a project - project side
+### Adding a component to a project - project side ### {#linking-projects-components-p}
 
 Assuming:
 
@@ -2192,7 +2192,7 @@ SHOULD be as follows:
     [[#extending-a-delegation-chain|extends the Grant chain]] as relevant, to
     its members and parent projects
 
-### Removing a component from a project - project side
+### Removing a component from a project - project side ### {#unlinking-projects-components-p}
 
 Assuming:
 
@@ -3025,12 +3025,162 @@ come soon.
 
 Notes:
 
+- Successful processing SHOULD include inserting the incoming activity to the
+    receiving actor's inbox & forwarding to the receiving actor's followers if
+    relevant - for simplicity this step is omitted from some of the behavior
+    dscriptions below
 - I'm putting links to Vervis implementation, since it has additional low-level
     detail and notes that might be useful hints to implementors
 
 ## Person ## {#person-iface}
 
-TODO
+Vervis implementation:
+[Vervis.Actor.Person](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Person.hs)
+
+Unlike non-human actors, the [=Person=] inbox is also intended for the person
+to view incoming notifications. Therefore most activity types, even if
+unrelated specifically to the receiving [=Person=], SHOULD still be inserted
+into the inbox, for viewing. The interfaces and behaviors described below are
+specifically the ones where automated action beyond insertion-to-inbox is
+required.
+
+### Accept ### {#person-beh-accept}
+
+Meanings:
+
+- My follow request has been accepted
+- An invite, for me to become a collaborator on a resource, has been approved
+    by the resource actor
+- My request to create an actor via a [=Factory=] has been fulfilled
+
+Processes:
+
+- [[#following]]
+- [[#access-via-invite]]
+- [[#creating-resource-actors]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's a [=Follow=] whose [=object=] is, or the [=object=]'s managing actor
+    is, identical to the Accept's [=actor=]:
+    - Insert the Follow [=object=] to my [=following=] collection
+
+- If it's an [=Invite=] where the [=object=] is me:
+    - Verify the Accept [=actor=] is the resource (i.e. the actor whose
+        [=collaborators=] or [=members=] URI is the Invite's [=target=])
+    - Insert to my inbox & forward to my followers
+
+- If it's on a [=Create=] I'd sent to a [=Factory=]:
+    - Send a [=Follow=] to the newly created actor (i.e. the Accept's
+        [=result=])
+
+### Follow ### {#person-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- If my account settings require manual approval of follow requests, just wait
+    for the human to approve
+- Otherwise, i.e. if no manual approval is required:
+    - Insert [=actor=] to the list of followers of the [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#person-beh-grant}
+
+Meanings:
+
+- A [=Factory=] is sending me authorization to use it
+- I'm becoming a collaborator/member in some resource/team
+- A [=Grant=] is being extended to me, due to me being a collaborator in some
+    Project or a member of some Team
+
+Processes:
+
+- [[#creating-resource-actors]]
+
+Behavior:
+
+- If it's a [=Factory=] sending me a [=write=] direct-Grant:
+    - Insert to my inbox
+
+- If it's a direct-Grant that [=fulfills=] an [=Invite=] or [=Join=] where I'm
+    the actor being given access, or a [=Create=] I'd sent to create that
+    actor:
+    - Verify the [=actor=] is the resource
+    - Verify the given role is identical to what was requested in the
+        [=Invite=] or [=Join=], or in the case of Create, verify the role is
+        [=admin=]
+    - If the resource actor is a [=Project=] or [=Team=], send it a
+        delegate-Grant, see [[#initial-grant-upon-resource-creation]] step 1,
+        or [[#access-via-invite]] step 5, or [[#access-via-join]] option 1 step
+        4 or option 2 step 5
+
+- If it's an extension-Grant whose [=capability=] is a delegate-Grant I'd sent:
+    - Verify the delegate-Grant is valid and gives [=delegate=] access to the
+        extension-Grant's [=actor=]
+    - Insert to my inbox
+
+### Reject ### {#person-beh-reject}
+
+Meanings:
+
+- An actor is rejecting my follow request
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Update the status of the follow request in DB
+
+### Revoke ### {#person-beh-revoke}
+
+Meanings:
+
+- A direct-Grant given to me is being revoked
+- An extension-Grant given to me is being revoked
+
+Processes:
+
+- [[#s2s-revoke]]
+
+Behavior:
+
+- Verify the [=actor=] is identical to the actor of the [=Grant=] referred by
+    the Revoke's [=object=]
+- Verify that Grant's [=target=] is me
+- Insert to my inbox & update my tracking of that Grant in DB
+
+### Undo ### {#person-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
 
 ## Factory ## {#factory-iface}
 
@@ -3052,21 +3202,31 @@ Processes:
 
 Behavior:
 
-- If it's an Accept on an Invite or Join to be a collaborator in me:
-    - If it's an Invite, verify Accept [=actor=] is the Invite's
-        [=target=]
-    - If it's a Join, verify the Accept is authorized with [=admin=]
-        access
+Examine the Accept's [=object=].
+
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
     - Verify this collaborator hasn't been enabled already
     - Enable this collaborator in DB
     - Insert the Accept to my inbox & forward to my followers
-    - Send a Grant as described in [[#access-via-invite]] step 3 or
-        [[#access-via-join]] step 2
-- If it's an Accept on an Add I've seen, asking to add a Team
-    collaborator to me
-    - If the Add was sent from our side:
-        Error/ignore, we aren't supposed get any Accept
-    - Otherwise, i.e. Add was sent from the Team's side, proceed
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an Add whose [=target=] is my [=teams=] collection,
+    i.e. a Team Collaborator is being added to me and the process is
+    initiated on *our* side:
+    - Error/ignore, we aren't supposed get any Accept
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
     - Option 1: If I haven't yet seen the Team's Accept:
         Verify the Accept's [=actor=] is the Team
     - Option 2: If I saw Team's Acccept but not yet my collaborator's
@@ -3099,7 +3259,7 @@ Behavior:
 
 - If I'm the [=object=], being added to some teams' resource list:
     - Verify the [=target=] is a [=Collection=] whose [=context=] is a [=Team=]
-        that points back to the collection via its [=teams=] field
+        that points back to the collection via its [=teamResources=] field
     - Verify it's not already an active team of mine
     - Insert the Add to my inbox & forward the Add to my followers
 
@@ -3175,6 +3335,9 @@ Behavior:
 
 ### Invite ### {#factory-beh-invite}
 
+*Same as Invite handler for the Component actors (TicketTracker, PatchTracker,
+Repository).*
+
 Meanings:
 
 - Someone is inviting someone else to be a collaborator in me
@@ -3196,6 +3359,9 @@ been added. It merely signals to the potential collaborator that the Invite is
 authorized, and now they can decide whether to accept/reject/ignore it.
 
 ### Join ### {#factory-beh-join}
+
+*Same as Join handler for the Component actors (TicketTracker, PatchTracker,
+Repository).*
 
 Meanings:
 
@@ -3294,44 +3460,622 @@ Behavior:
 
 ## Repository ## {#repo-iface}
 
+Vervis implementation:
+[Vervis.Actor.Repo](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Repo.hs)
+
+### Accept ### {#repo-beh-accept}
+
+Same as for [=TicketTracker=], see [[#tt-beh-accept]].
+
+### Add ### {#repo-beh-add}
+
+Same as for [=TicketTracker=], see [[#tt-beh-add]].
+
+### Edit ### {#repo-beh-edit}
+
+TODO edit default branch?
+
+### Follow ### {#repo-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#repo-beh-grant}
+
+Same as for [=TicketTracker=], see [[#tt-beh-grant]].
+
+### Invite ### {#repo-beh-invite}
+
+Same as for [=Factory=], see [[#factory-beh-invite]].
+
+### Join ### {#repo-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Reject ### {#repo-beh-reject}
+
+Same as for [=TicketTracker=], see [[#tt-beh-reject]].
+
+### Remove ### {#repo-beh-remove}
+
+Same as for [=TicketTracker=], see [[#tt-beh-remove]].
+
+### Undo ### {#repo-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
 ## TicketTracker ## {#tt-iface}
 
 Vervis implementation:
 [Vervis.Actor.Deck](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Deck.hs)
 
-### Accept ### {#factory-beh-accept}
+### Accept ### {#tt-beh-accept}
+
+*Same as Accept handler for the other Component actors (PatchTracker,
+Repository).*
 
 Meanings:
 
-- A collaborator is being added to me
-- A Team collaborator is being added to me
+- Someone is becoming a Collaborator in me
+- A Team is becoming a Team Collaborator in me
+- I'm becoming a component of a Project
 
 Processes:
 
 - [[#access-via-invite]]
 - [[#access-via-join]]
 - [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
 
 Behavior:
 
-- If it's an Accept on an Invite or Join to be a collaborator in me:
+Check the Accept's [=object=] as follows.
 
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3
 
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-join]] step 2
 
+- If it's an Add whose [=target=] is my [=teams=] collection,
+    i.e. a Team Collaborator is being added to me and the process is
+    initiated on *our* side:
+    - Error/ignore, we aren't supposed get any Accept
 
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Option 1: If I haven't yet seen the Team's Accept:
+        Verify the Accept's [=actor=] is the Team
+    - Option 2: If I saw Team's Acccept but not yet my collaborator's
+        Accept: Verify the Accept is authorized with [=admin=] access
+    - Otherwise, error/ignore, no Accept is needed
+    - For option 1: Record Team's Accept in DB
+    - For option 2: Record my collaborator's Accept in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - For option 2, send an Accept, see [[#forming-team-resource-link-t]]
+        step 4
 
+- If it's an Add whose [=target=] is my [=context=] (i.e. projects) collection,
+    i.e. I'm being added to a project and the process is initiated on *our*
+    side:
+    - Nothing to do, just ignore the Accept, waiting for the delegate-Grant
+        from the Project
 
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Project=] that points back to the collection via
+    its [=components=] field, i.e. I'm being added to a project and the process
+    is initiated on *their* side:
+    - If I haven't yet seen the project's approval:
+        - Verify the author is the project
+        - Insert to my inbox & forward to my followers
+    - If I saw project's approval, but not my collaborators' approval:
+        - Verify the Accept is authorized with [=admin=] access
+        - Insert to my inbox & forward to my followers
+        - Publish an Accept, see [[#linking-projects-components-p]] step 4
+    - If I already saw both approvals, respond with error
 
+### Add ### {#tt-beh-add}
 
+*Same as Accept handler for the other Component actors (PatchTracker,
+Repository).*
 
+Meanings:
 
+- A Team collaborator is being added to me
+- I'm being added as a component of a Project
 
+Processes:
 
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
 
+Behavior:
 
+- If [=target=] is my [=teams=] collection, i.e. a Team Collaborator is being
+    added to me and the process is initiated on *our* side:
+    - Verify the [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already an active team of mine
+    - Insert the Add to my inbox & forward the Add to my followers
+    - Publish an Accept, see [[#forming-team-resource-link-r]] step 2
 
+- If [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Verify it's not already an active team of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=target=] is my [=context=] (i.e. projects) collection, i.e. I'm being
+    added to a project and the process is initiated on *our* side:
+    - Verify the Add is authorized with [=admin=] access
+    - Verify the [=object=] is a [=Project=]
+    - Verify I'm not yet a component of this Project
+    - Insert to my inbox & forward to my followers
+    - Publish an Accept, see [[#linking-projects-components-c]] step 2
+
+- If [=object=] is me and [=target=] points to a collection whose [=context=]
+    is a [=Project=] that points back to the collection via its [=components=]
+    field, i.e. I'm being added to a project and the process is initiated on
+    *their* side:
+    - Verify I'm not already a component of this Project
+    - Insert to my inbox & forward to my followers
+
+### Create ### {#tt-beh-create}
+
+Meanings:
+
+- Someone is commenting on a Ticket of mine
+
+Processes:
+
+- [[#commenting]]
+
+Behavior:
+
+- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine
+- Insert to inbox & forward to my followers & ticket followers
+
+### Delete ### {#tt-beh-delete}
+
+Meanings:
+
+- Someone is deleting their comment on a ticket of mine
+
+Processes:
+
+- [[#commenting]]
+
+Behavior:
+
+- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine
+- Verify sender is the actual author of the Note
+- Insert to inbox & forward to my followers & ticket followers
+
+### Edit ### {#tt-beh-edit}
+
+Meanings:
+
+- Someone is deleting their comment on a ticket of mine
+- Someone is asking to edit the text of one of my tickets
+
+Processes:
+
+- [[#commenting]]
+- [[#editing-ticket]]
+
+Behavior:
+
+- If [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine:
+    - Verify sender is the actual author of the Note
+    - Insert to inbox & forward to my followers & ticket followers
+
+- If [=object=] is a [=Ticket=] whose [=context=] is me:
+    - Verify the Edit is authorized with [=triage=] access, OR the [=actor=] is
+        the same actor as the one who submitted the ticket
+    - Update the ticket in DB from the Edit [=object=]'s fields: [=summary=],
+        [=source=], [=content=]
+
+### Follow ### {#tt-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me or a Ticket of mine
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me or one of my tickets
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#tt-beh-grant}
+
+*Same as Grant handler for the other Component actors (PatchTracker,
+Repository).*
+
+Meanings:
+
+- A Project-in-process is sending me the delegate-Grant
+- A Team-Collaborator-in-process is sending me the delegate-Grant
+
+Processes:
+
+- [[#linking-projects-components]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+Check the Grant's [=fulfills=] field, verify it's an [=Add=] activity that I've
+seen:
+
+- If it's a Project-in-process which is now sending me the delegate-Grant, and
+    the previous steps in the process successfully happened:
+    - Insert the Project to my list of Projects and enable in DB
+    - Send the Project a start-Grant, see [[#linking-projects-components-c]]
+        step 5 or [[#linking-projects-components-p]] step 6
+
+- If it's a Team-Collaborator-in-process which is now sending me the
+    delegate-Grant, and the previous steps in the process successfully
+    happened:
+    - Insert the Team to my list of Team Collaborators and enable in DB
+    - Send the Team a start-Grant, see [[#deleg-step-tr]] step 1
+
+### Invite ### {#tt-beh-invite}
+
+Same as for [=Factory=], see [[#factory-beh-invite]].
+
+### Join ### {#tt-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Offer ### {#tt-beh-offer}
+
+Meanings:
+
+- Someone is submitting a new ticket
+
+Processes:
+
+- [[#opening-issue]]
+
+Behavior:
+
+- Verify the [=target=] is me and [=object=] is a [=Ticket=]
+- Create new Ticket in DB
+- Publish an [=Accept=], see [[#opening-issue]]
+
+### Reject ### {#tt-beh-reject}
+
+*Same as Reject handler for the other Component actors (PatchTracker,
+Repository).*
+
+Meanings:
+
+- An collaborator Invite is being rejected by the invited actor
+- A collaborator Join request is being rejected by an existing collaborator
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+
+Behavior:
+
+Check the Reject's [=object=].
+
+- If it's an [=Invite=] where [=target=] is my [=collaborators=] collection:
+    - Verify the Reject's [=actor=] is the Invite's [=object=]
+    - Publish a [=Reject=] on the [=Invite=]
+
+- If it's a [=Join=] without a [=capability=] and where [=object=] is my
+    [=collaborators=] collection:
+    - Verify the Reject is authorized with [=admin=] access
+    - Publish a [=Reject=] on the [=Join=]
+
+### Remove ### {#tt-beh-remove}
+
+*Same as Remove handler for the other Component actors (PatchTracker,
+Repository).*
+
+Meanings:
+
+- One of my Collaborators is being removed
+- One of my Team Collaborators is being removed
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+- [[#linking-projects-components]]
+
+Behavior:
+
+- If [=origin=] is my [=collaborators=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my collaborators
+    - Remove the [=object=] actor from my list of collaborators and invalidate
+        the direct-Grant I had sent them
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+
+- If [=origin=] is my [=context=] (i.e. projects) collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of the projects in which I'm a component
+    - Remove the [=object=] actor from my list of projects and invalidate the
+        start-Grant I had sent it
+    - Publish an [=Revoke=], see [[#unlinking-projects-components-c]] step 2
+
+- If [=origin=] is my [=teams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my Team Collaborators
+    - Remove the [=object=] actor from my list of Team Collaborators and
+        invalidate the start-Grant I had sent it
+    - Publish an [=Accept=], see [[#removing-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=components=] collection of a Project of mine:
+        - Just forward to my followers
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=teamResources=] collection of a Team Collaborator of mine:
+        - Nothing to do, just waiting for the Team to send a Revoke on the
+            delegate-Grant it had sent me
+
+### Resolve ### {#tt-beh-resolve}
+
+Meanings:
+
+- Someone is requesting to close a ticket
+
+Processes:
+
+- [[#closing-issue]]
+
+Behavior:
+
+- Verify the [=object=] is one of my tickets
+- Verify the Resolve is authorized with [=triage=] access
+- Mark the ticket as closed in DB
+- Publish an Accept, see [[#closing-issue]] step 3
+
+### Undo ### {#tt-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+- Someone is asking to reopen one of my closed tickets
+
+Processes:
+
+- [[#following]]
+- [[#reopening-issue]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me or one of my tickets:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
+It's a [=Resolve=] whose [=object=] is one of my tickets:
+    - Verify the Resolve is authorized with [=triage=] access
+    - Update the ticket in DB
+    - Publish an [=Accept=], see [[#reopening-issue]] step 3
 
 ## PatchTracker ## {#pt-iface}
+
+Vervis implementation:
+[Vervis.Actor.Loom](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Loom.hs)
+
+### Accept ### {#pt-beh-accept}
+
+Same as for [=TicketTracker=], see [[#tt-beh-accept]].
+
+### Add ### {#pt-beh-add}
+
+Same as for [=TicketTracker=], see [[#tt-beh-add]].
+
+### Create ### {#pt-beh-create}
+
+Meanings:
+
+- Someone is commenting on a MR of mine
+
+Processes:
+
+- [[#commenting]]
+
+Behavior:
+
+- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine
+- Insert to inbox & forward to my followers & MR followers
+
+### Delete ### {#pt-beh-delete}
+
+Meanings:
+
+- Someone is deleting their comment on a MR of mine
+
+Processes:
+
+- [[#commenting]]
+
+Behavior:
+
+- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine
+- Verify sender is the actual author of the Note
+- Insert to inbox & forward to my followers & MR followers
+
+### Edit ### {#pt-beh-edit}
+
+Meanings:
+
+- Someone is deleting their comment on a MR of mine
+- Someone is asking to edit the text of one of my MRs
+
+Processes:
+
+- [[#commenting]]
+- [[#editing-ticket]]
+
+Behavior:
+
+- If [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine:
+    - Verify sender is the actual author of the Note
+    - Insert to inbox & forward to my followers & MR followers
+
+- If [=object=] is a [=Ticket=] whose [=context=] is me:
+    - Verify the Edit is authorized with [=triage=] access, OR the [=actor=] is
+        the same actor as the one who submitted the ticket
+    - Update the MR in DB from the Edit [=object=]'s fields: [=summary=],
+        [=source=], [=content=]
+
+### Follow ### {#pt-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me or a MR of mine
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me or one of my tickets
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#pt-beh-grant}
+
+Same as for [=TicketTracker=], see [[#tt-beh-grant]].
+
+### Invite ### {#pt-beh-invite}
+
+Same as for [=Factory=], see [[#factory-beh-invite]].
+
+### Join ### {#pt-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Offer ### {#pt-beh-offer}
+
+Meanings:
+
+- Someone is submitting a new MR
+
+Processes:
+
+- [[#opening-mr]]
+
+Behavior:
+
+- Verify the [=target=] is me and [=object=] is a [=Ticket=] with an
+    [=attachment=], see [[#opening-mr]] step 3
+- Create new MR in DB
+- Publish an [=Accept=] on the [=Offer=], see [[#opening-mr]]
+
+### Reject ### {#pt-beh-reject}
+
+Same as for [=TicketTracker=], see [[#tt-beh-reject]].
+
+### Remove ### {#pt-beh-remove}
+
+Same as for [=TicketTracker=], see [[#tt-beh-remove]].
+
+### Resolve ### {#pt-beh-resolve}
+
+Meanings:
+
+- Someone is requesting to close an open MR
+
+Processes:
+
+- [[#closing-mr]]
+
+Behavior:
+
+- Verify the [=object=] is one of my MRs
+- Verify the Resolve is authorized with [=triage=] access
+- Mark the MR as closed in DB
+- Publish an Accept, see [[#closing-issue]] step 3
+
+### Undo ### {#pt-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+- Someone is asking to reopen one of my closed (but not merged) MRs
+
+Processes:
+
+- [[#following]]
+- [[#reopening-mr]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me or one of my MRs:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
+It's a [=Resolve=] whose [=object=] is one of my closed but not merged MRs:
+    - Verify the Resolve is authorized with [=triage=] access
+    - Update the MR in DB
+    - Publish an [=Accept=], see [[#reopening-issue]] step 3
 
 # Client to Server Interactions
 
@@ -6749,4 +7493,5 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
 urlPrefix: https://www.w3.org/TR/activitypub/#; type: dfn; spec: activitypub
     text: Public; url: https://www.w3.org/TR/activitypub/#public-addressing
     text: followers
+    text: following
 </pre>
