@@ -3010,27 +3010,17 @@ freeze any further edits of these MRs, making them read-only.
 
 # Actor Interface
 
-Issue: This section will provide, for each actor type, a summary of the various
-(1) "methods" i.e. activities it can receive as requests for action; (2)
-"events", i.e. activities it sends out; (3) perhaps representation of resources
-that are specific to the actor type. Right now there's a grey zone between
-methods and events, because some activities are methods for the target actor
-but events for any other recipient, and some events are actually sent by other
-actors, which cc the target actor's followers and the target actor delivers via
-inbox-forwarding and not by `Announce`ing (or custom `Forward`ing) those
-activities.
+This section provides, for each actor types, the various activity types it
+receives and how it might react to them in order to implement the features
+described in the [[#s2s]] section.
 
-Issue: I'm starting to fill this section, just methods for now. Events will
-come soon.
+Successful processing SHOULD include inserting the incoming activity to the
+receiving actor's inbox & forwarding to the receiving actor's followers if
+relevant - for simplicity this step is omitted from some of the behavior
+dscriptions below
 
-Notes:
-
-- Successful processing SHOULD include inserting the incoming activity to the
-    receiving actor's inbox & forwarding to the receiving actor's followers if
-    relevant - for simplicity this step is omitted from some of the behavior
-    dscriptions below
-- I'm putting links to Vervis implementation, since it has additional low-level
-    detail and notes that might be useful hints to implementors
+There are links to the Vervis implementation, since it has additional low-level
+detail and notes that might be useful hints to implementors.
 
 ## Person ## {#person-iface}
 
