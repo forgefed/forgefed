@@ -2216,7 +2216,7 @@ activities SHOULD be as follows:
     sent to *P* (and *C* now considers that Grant revoked and no longer
     considers itself as a component of *P*)
 
-## Adding and Removing Children and Parents to Projects and Teams
+## Adding and Removing Children and Parents to Projects and Teams ## {#linking-parent-child}
 
 Minimal required role: [=admin=]
 
@@ -2270,9 +2270,9 @@ link is specified in the [=object=] property.
 Whenever authorization is mentioned below, it SHOULD be done using the
 [[#s2s-grant-flow|invocation verification process]].
 
-### Forming a project child-parent link
+### Forming a project child-parent link ### {#linking-parent-child-p}
 
-#### Initiated by the parent
+#### Initiated by the parent #### {#linking-parent-child-p-p}
 
 Assuming:
 
@@ -2310,7 +2310,7 @@ of *C*). The exchange of activities SHOULD be as follows:
 Now *C* sends delegation Grant activities, see the [[#deleg-step-j]] section
 below.
 
-#### Initiated by the child
+#### Initiated by the child #### {#linking-parent-child-p-c}
 
 Assuming:
 
@@ -2379,9 +2379,9 @@ receives a delegation Grant from any of its components or children, it SHOULD
 send *P* an extension-Grant as described above, and *P* SHOULD extend it
 further.
 
-### Removing a project child-parent link
+### Removing a project child-parent link ### {#unlinking-parent-child-p}
 
-#### Initiated by the child
+#### Initiated by the child #### {#unlinking-parent-child-p-c}
 
 Assuming:
 
@@ -2415,7 +2415,7 @@ had received from *C*:
     now similarly publishes Revoke activities and considers those extension
     Grants invalid
 
-#### Initiated by the parent
+#### Initiated by the parent #### {#unlinking-parent-child-p-p}
 
 Assuming:
 
@@ -2448,9 +2448,9 @@ had received from *C*:
     now similarly publishes Revoke activities and considers those extension
     Grants invalid
 
-### Forming a team child-parent link
+### Forming a team child-parent link ### {#linking-parent-child-t}
 
-#### Initiated by the parent
+#### Initiated by the parent #### {#linking-parent-child-t-p}
 
 Assuming:
 
@@ -2487,7 +2487,7 @@ of *C*). The exchange of activities SHOULD be as follows:
 Now *P* sends delegation Grant activities, see the [[#deleg-step-t]] section
 below.
 
-#### Initiated by the child
+#### Initiated by the child #### {#linking-parent-child-t-c}
 
 Assuming:
 
@@ -2556,9 +2556,9 @@ receives a delegation Grant from any of its projects, components or parents, it
 SHOULD send *C* an extension-Grant as described above, and *C* SHOULD extend it
 further.
 
-### Removing a team child-parent link
+### Removing a team child-parent link ### {#unlinking-parent-child-t}
 
-#### Initiated by the child
+#### Initiated by the child #### {#unlinking-parent-child-t-c}
 
 Assuming:
 
@@ -2591,7 +2591,7 @@ had received from *P*:
     now similarly publishes Revoke activities and considers those extension
     Grants invalid
 
-#### Initiated by the parent
+#### Initiated by the parent #### {#unlinking-parent-child-t-p}
 
 Assuming:
 
@@ -3336,7 +3336,7 @@ Behavior:
 ### Invite ### {#factory-beh-invite}
 
 *Same as Invite handler for the Component actors (TicketTracker, PatchTracker,
-Repository).*
+Repository) and for Project.*
 
 Meanings:
 
@@ -3361,7 +3361,7 @@ authorized, and now they can decide whether to accept/reject/ignore it.
 ### Join ### {#factory-beh-join}
 
 *Same as Join handler for the Component actors (TicketTracker, PatchTracker,
-Repository).*
+Repository) and for Project.*
 
 Meanings:
 
@@ -3456,7 +3456,693 @@ Behavior:
 
 ## Team ## {#team-iface}
 
+Vervis implementation:
+[Vervis.Actor.Group](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Group.hs)
+
+### Accept ### {#team-beh-accept}
+
+Meanings:
+
+- Someone is becoming a Collaborator in me
+- I'm gaining access to a resource
+- I'm becoming a child/parent of another Team
+- My child/parent link with another project is being removed
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#forming-team-resource-link]]
+- [[#linking-parent-child]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's an Invite whose [=target=] is my [=members=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=members=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an Add whose [=target=] is my [=context=] (i.e. parents) collection,
+    and [=object=] is a [=Team=], i.e. I'm getting a new parent team and the
+    process was initiated on *our* side:
+    - Verify I haven't seen the parent team'ss Accept yet
+    - If Accept [=actor=] is the parent team:
+        - Verify I've already published my own Accept
+        - Publish a delegate-Grant, see [[#linking-parent-child-t-c]] step
+            5
+    - Otherwise:
+        - Just forward to my followers (hopefully this is the parent team's
+            collaborator giving their approval)
+
+- If it's an Add whose [=object=] is me and whose [=target=] is the URI of the
+    [=subteams=] of some [=Team=], i.e. I'm getting a new parent team and
+    the process was initiated on *their* side:
+    - If I haven't seen the parent team's Accept yet:
+        - Verify the Accept [=actor=] is the parent
+        - Insert to my inbox & forward to my followers
+    - If I've already seen the parent team's Accept, but not yet my
+        collaborator's Accept:
+        - Verify the (new) Accept is authorized with [=admin=] access
+        - Send a delegate-Grant, see [[#linking-parent-child-t-p]] step 4
+
+- If it's an Add whose [=target=] is my [=subteams=] collection, and [=object=]
+    is some [=Team=], i.e. I'm getting a new child and the process was
+    initiated on *our* side:
+    - Ignore/error, I'm not expecting any Accept
+
+- If it's an Add whose [=object=] is me and whose [=target=] is the
+    [=context=] (i.e. parents) collection of some [=Team=], i.e. I'm getting a
+    new child and the process was initiated on *their* side:
+    - If I haven't yet seen the child's Accept:
+        - Verify the Accept [=actor=] is the child
+        - Insert to my inbox & forward to my followers
+    - If I've seen it, but haven't yet seen my collaborator's Accept:
+        - Verify the Accept is authorized with [=admin=] access
+        - Send an Accept, see [[#linking-parent-child-t-c]] step 4
+
+- If it's a Remove whose [=object=] is me and whose [=origin=] is the URI of
+    the [=subteams=] of some [=Team=], i.e. a parent team of mine is being
+    removed and the process was initiated on *their* side:
+    - Verify the [=actor=] is the parent
+    - Publish a [=Revoke=], see [[#unlinking-parent-child-t-p]] step 3
+    - Remove the parent from my [=context=] collection
+    - Publish a [=Revoke=] on every extension-Grant I've published as an
+        extension of a Grant I received from the parent, see
+        [[#unlinking-parent-child-t-p]] after step 4
+
+- If it's an Add whose [=target=] is my [=teamResources=] collection and
+    [=object=] is some resource actor, i.e. I'm becoming a Team Collaborator in
+    a resource and the process was initiated on *our* side:
+    - Verify I haven't yet seen the resource's Accept
+    - If sender is the resource:
+        - Send a delegate-Grant, see [[#forming-team-resource-link-t]] step 5
+    - Otherwise:
+        - Just forward to my followers
+
+- If it's an Add whose [=object=] is me and whose [=target=] is some resource
+    actor's [=teams=] collection, i.e. I'm becoming a Team Collaborator in a
+    resource and the process was initiated on *their* side:
+    - If I haven't seen the resource actor's Accept yet:
+        - Verify [=actor=] is the resource
+        - Insert to my inbox & forward to my followers
+    - If I've seen it, but not yet my collaborator's Accept:
+        - Verify the (new) Accept is authorized with [=admin=] access
+        - Send a delegate-Grant, see [[#forming-team-resource-link-r]] step 4
+
+- If it's a Remove whose [=object=] is me and whose [=origin=] is the URI of
+    the [=teams=] of some resource actor, i.e. my Team Collaborator access to
+    some resource is being revoked and the process was initiated on *their*
+    side:
+    - Verify the [=actor=] is the resource
+    - Publish a [=Revoke=], see [[#removing-team-resource-link-r]] step 3
+    - Remove the resource from my [=teamResources=] collection
+    - Publish a [=Revoke=] on every extension-Grant I've published as an
+        extension of a Grant I received from the resource, see
+        [[#removing-team-resource-link-r]] after step 3
+
+### Add ### {#team-beh-add}
+
+Meanings:
+
+- I'm gaining access to a resource
+- A child/parent project is being added to me
+
+Processes:
+
+- [[#forming-team-resource-link]]
+- [[#linking-parent-child]]
+
+Behavior:
+
+- If [=target=] is my [=subteams=] collection, i.e. I'm getting a new
+    child and the process is initiated on *our* side:
+    - Verify [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already a child or parent of mine
+    - Publish an Accept, see [[#linking-parent-child-t-p]] step 2
+
+- If [=target=] is my [=context=] (i.e. parents) collection, i.e. I'm getting a
+    new parent and the process is initiated on *our* side:
+    - Verify [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already a child or parent of mine
+    - Publish an Accept, see [[#linking-parent-child-t-c]] step 2
+
+- If [=target=] is my [=teamResources=] collection, i.e. I'm becoming a Team
+    Collaborator of some resource and the process is initiated on *our* side:
+    - Verify the [=object=] a resource actor that isn't a Team
+    - Verify the Add is authorized with [=admin=] access
+    - Verify I don't already have access to this resource
+    - Publish an Accept, see [[#forming-team-resource-link-t]] step 2
+
+- If [=object=] is me and [=target=] is some [=Team=]'s [=context=] (i.e.
+    parents) collection, i.e. I'm getting a new child and the process is
+    initiated on *their* side:
+    - Verify I'm not already a child or parent of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=object=] is me and [=target=] is some [=Team=]'s [=subteams=]
+    collection, i.e. I'm getting a new parent and the process is initiated on
+    *their* side:
+    - Verify I'm not already a child or parent of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=object=] is me and [=target=] is some resource actor's [=teams=]
+    collection, i.e. I'm becoming a Team Collaborator of some resource and the
+    process is initiated on *their* side:
+    - Verify I'm not already a Team Collaborator of this resource
+    - Insert to my inbox & forward to my followers
+
+### Edit ### {#team-beh-edit}
+
+TODO editing team name and description
+
+### Follow ### {#team-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#team-beh-grant}
+
+Meanings:
+
+- Resource sending me a start-Grant or extension-Grant
+- Member sending me the delegate-Grant
+- Parent team sending me a start-Grant or extension-Grant
+- Almost-child team sending me the delegate-Grant
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#linking-parent-child]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+- Resource sending me a start-Grant or extension-Grant:
+    - Verify the Grant is authorized by the delegate-Grant I had sent to the
+        resource
+    - Send extension-Grants to each team member and child team of mine, see
+        [[#extending-a-delegation-chain]]
+
+- Member sending me the delegate-Grant:
+    - Verify the Grant is authorized by the direct-Grant I had sent to the
+        member
+    - Verify I don't yet have a delegate-Grant from this member
+    - For each start-Grant or extension-Grant I received from a parent of
+        resource, send an extension-Grant to the member, see
+        [[#extending-a-delegation-chain]]
+
+- Parent team sending me a start-Grant or extension-Grant:
+    - Verify the Grant is authorized by the delegate-Grant I had sent to the
+        parent
+    - Send an extension-Grant to every team member and child team, see
+        [[#extending-a-delegation-chain]]
+
+- Almost-child team sending me the delegate-Grant
+    - Send a start-Grant and extension-Grants, see [[#deleg-step-t]]
+
+### Invite ### {#team-beh-invite}
+
+Same as for [=Factory=], see [[#factory-beh-invite]]. With the exception that
+[=target=] is my [=members=] URI rather than [=collaborators=].
+
+### Join ### {#team-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]]. With the exception that
+[=object=] is my [=members=] URI rather than [=collaborators=].
+
+### Reject ### {#team-beh-reject}
+
+Same as for [=TicketTracker=], see [[#tt-beh-reject]]. With the exception that
+[=target=]/[=object=] is my [=members=] URI rather than [=collaborators=].
+
+### Remove ### {#team-beh-remove}
+
+Meanings:
+
+- One of my members is being removed
+- One of my resources is being removed
+- One of my parents or children is being removed
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+- [[#linking-parent-child]]
+
+Behavior:
+
+- If [=origin=] is my [=members=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my members
+    - Remove the [=object=] actor from my list of members and invalidate
+        the direct-Grant I had sent them
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+    - Publish [=Revoke=] activities on all the extension-Grants I've sent to
+        this collaborator
+
+- If [=origin=] is my [=context=] (i.e. parents) collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my parents
+    - Remove the [=object=] actor from my [=context=] collection
+    - Publish an [=Revoke=] on the delegate-Grant, see
+        [[#unlinking-parent-child-t-c]] step 2
+    - Publish [=Revoke=]s on all extension-Grants I've sent, that extend a
+        start-Grant or extension-Grant I'd received from the parent
+
+- If [=origin=] is my [=subteams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my children
+    - Remove the [=object=] actor from my [=subteams=] collection
+    - Send an [=Accept=], see [[#unlinking-parent-child-t-p]] step 2
+
+- If [=origin=] is my [=teamResources=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is in my [=teamResources=] collection
+    - Remove the [=object=] actor from my [=teamResources=] collection
+    - Publish an [=Revoke=] on the delegate-Grant, see
+        [[#removing-team-resource-link-t]] step 2
+    - Publish [=Revoke=]s on all extension-Grants I've sent, that extend a
+        start-Grant or extension-Grant I'd received from the resource
+
+- If I'm the [=object=], being removed from the [=subteams=] collection of a
+    parent of mine:
+    - Just forward to my followers
+
+- If I'm the [=object=], being removed from the [=context=] (i.e. parents)
+    collection of a child of mine:
+    - Do nothing, just waiting for child to send a Revoke on the
+        delegate-Grant
+
+- If I'm the [=object=], being removed from the [=teams=] collection of one of
+    my resources:
+    - Just forward to my followers
+
+### Undo ### {#team-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
 ## Project ## {#project-iface}
+
+Vervis implementation:
+[Vervis.Actor.Project](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Project.hs)
+
+### Accept ### {#project-beh-accept}
+
+Meanings:
+
+- Someone is becoming a Collaborator in me
+- A component is being added to me
+- A Team is becoming a Team Collaborator in me
+- I'm becoming a child/parent of another Project
+- My child/parent link with another project is being removed
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#linking-projects-components]]
+- [[#forming-team-resource-link]]
+- [[#linking-parent-child]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an [=Add=] where [=target=] is my [=components=] collection and
+    [=object=] is a component actor, i.e. a component is being added to me and
+    the process was inisiated on our side:
+    - If the Accept [=actor=] is the component:
+        - Insert the component to my [=components=] collection
+        - Send a delegate-Grant, see [[#linking-projects-components-p]] step 5
+    - If it's not the component:
+        - Just forward the Accept to my followers (hopefully it is the
+            component's collaborator giving their approval)
+
+- If it's an [=Add=] where I'm the [=object=] and [=target=] is the URI of a
+    collection whose [=context=] is a component that points back to the
+    collection via its own [=context=] field, i.e. a component is being added
+    to me and the process was initiated on the component's side:
+    - If Accept [=actor=] is the component:
+        - Verify I haven't seen the component's Accept yet
+        - Insert to my inbox & forward to my followers
+    - If it isn't the component:
+        - Verify I've seen the component's Accept
+        - Verify the (new) Accept is authorized with [=admin=] access
+        - Insert the component to my [=components=] collection
+        - Send a delegate-Grant, see [[#linking-projects-components-c]] step 4
+
+- If it's an Add whose [=target=] is my [=subprojects=] collection, and
+    [=object=] is a [=Project=], i.e. I'm getting a new child project and the
+    process was initiated on *our* side:
+    - Verify I haven't seen the child project's Accept yet
+    - If Accept [=actor=] is the child project:
+        - Verify I've already published my own Accept
+        - Publish a delegate-Grant, see [[#linking-parent-child-p-p]] step
+            4
+    - Otherwise:
+        - Just forward to my followers (hopefully this is the child
+            project's collaborator giving their approval)
+
+- If it's an Add whose [=object=] is me and whose [=target=] is the URI of the
+    [=context=] of some [=Project=], i.e. I'm getting a new child project and
+    the process was initiated on *their* side:
+    - If I haven't seen the child project's Accept yet:
+        - Verify the Accept [=actor=] is the child
+        - Insert to my inbox & forward to my followers
+    - If I've already seen the child project's Accept, but not yet my
+        collaborator's Accept:
+        - Verify the (new) Accept is authorized with [=admin=] access
+        - Send a delegate-Grant, see [[#linking-parent-child-p-c]] step 4
+
+- If it's an Add whose [=target=] is my [=context=] (i.e. parents) collection,
+    and [=object=] is some [=Project=], i.e. I'm getting a new parent and the
+    process was initiated on *our* side:
+    - Ignore/error, I'm not expecting any Accept
+
+- If it's an Add whose [=object=] is me and whose [=target=] is the
+    [=subprojects=] collection of some [=Project=], i.e. I'm getting a new
+    parent and the process was initiated on *their* side:
+    - If I haven't yet seen the parent's Accept:
+        - Verify the Accept [=actor=] is the parent
+        - Insert to my inbox & forward to my followers
+    - If I've seen it, but haven't yet seen my collaborator's Accept:
+        - Verify the Accept is authorized with [=admin=] access
+        - Send an Accept, see [[#linking-parent-child-p-p]] step 4
+
+- If it's a Remove whose [=object=] is me and whose [=origin=] is the URI of the
+    [=context=] of some [=Project=], i.e. a child project of mine is being
+    removed and the process was initiated on *their* side:
+    - Verify the [=actor=] is the child
+    - Publish a [=Revoke=], see [[#unlinking-parent-child-p-c]] step 3
+    - Publish a [=Revoke=] on every extension-Grant I've published as an
+        extension of a Grant I received from the child, see
+        [[#unlinking-parent-child-p-c]] step 5
+
+### Add ### {#project-beh-add}
+
+Meanings:
+
+- A Team collaborator is being added to me
+- A component is being added to me
+- A child/parent project is being added to me
+
+Processes:
+
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#linking-parent-child]]
+
+Behavior:
+
+- If [=target=] is my [=components=] collection, i.e. I'm getting a new
+    component and the process is initiated on *our* side:
+    - Verify the Add is authorized with [=admin=] access
+    - Verify the [=object=] is a component actor
+    - Verify I don't yet have this actor as a component
+    - Publish an Accept, see [[#linking-projects-components-p]] step 2
+
+- If [=target=] is my [=subprojects=] collection, i.e. I'm getting a new
+    child and the process is initiated on *our* side:
+    - Verify [=object=] is a [=Project=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already a child or parent of mine
+    - Publish an Accept, see [[#linking-parent-child-p-p]] step 2
+
+- If [=target=] is my [=context=] (i.e. parents) collection, i.e. I'm getting a
+    new parent and the process is initiated on *our* side:
+    - Verify [=object=] is a [=Project=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already a child or parent of mine
+    - Publish an Accept, see [[#linking-parent-child-p-c]] step 2
+
+- If [=target=] is my [=teams=] collection, i.e. a Team Collaborator is being
+    added to me and the process is initiated on *our* side:
+    - Verify the [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already an active team of mine
+    - Publish an Accept, see [[#forming-team-resource-link-r]] step 2
+
+
+- If [=object=] is me and [=target=] is some [=Project=]'s [=context=] (i.e.
+    parents) collection, i.e. I'm getting a new child and the process is
+    initiated on *their* side:
+    - Verify I'm not already a child or parent of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=object=] is me and [=target=] is some [=Project=]'s [=subprojects=]
+    collection, i.e. I'm getting a new parent and the process is initiated on
+    *their* side:
+    - Verify I'm not already a child or parent of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=object=] is me and [=target=] is some [=Team=]'s [=teamResources=]
+    collection, i.e. a Team Collaborator is being added to me and the process
+    is initiated on *their* side:
+    - Verify it's not already an active team of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=object=] is me and [=target=] is some component actor's [=context=]
+    (i.e. projects) collection, i.e. a component is being added to me and the
+    process is initiated on *their* side:
+    - Verify it's not already a component of mine
+    - Insert to my inbox & forward to my followers
+
+### Edit ### {#project-beh-edit}
+
+TODO editing project name and description
+
+### Follow ### {#project-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#project-beh-grant}
+
+Meanings:
+
+- Component sending me the start-Grant
+- Collaborator sending me the delegate-Grant
+- Child project sending me a start-Grant or extension-Grant
+- Almost-parent project sending me the delegate-Grant
+- Almost-team sending me the delegate-Grant
+
+Processes:
+
+- [[#linking-projects-components]]
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#linking-parent-child]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+- Component sending me a start-Grant:
+    - Verify role is same one specified in the [=Add=]
+    - Verify the Grant is authorized by the delegate-Grant I had sent to the
+        component
+    - Send extension-Grants to each collaborator, team collaborator and parent
+        project of mine, see [[#extending-a-delegation-chain]]
+
+- Collaborator sending me a delegate-Grant:
+    - Verify the Grant is authorized by the direct-Grant I had sent to the
+        collaborator
+    - Verify I don't yet have a delegate-Grant from this collaborator
+    - Sending extension-Grants to the collaborator, see
+        [[#extending-a-delegation-chain]]:
+        - Each start-Grant I received from a component of mine
+        - Each start-Grant or extension-Grant I received from a child of mine
+
+- Child sending me a start-Grant or extension-Grant:
+    - Verify it's authorized with the delegate-Grant I had sent to the child
+    - Send extension-Grants to each collaborator, team collaborator and parent
+        project of mine, see [[#extending-a-delegation-chain]]
+
+- Almost-Parent sending me the delegate-Grant:
+    - Send a start-Grant and extension-Grants, see [[#deleg-step-j]]
+
+- Almost-Team-Collaborator sending me the delegate-Grant:
+    - Send a start-Grant and extension-Grants, see [[#deleg-step-j]]
+
+### Invite ### {#project-beh-invite}
+
+Same as for [=Factory=], see [[#factory-beh-invite]].
+
+### Join ### {#project-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Reject ### {#project-beh-reject}
+
+Same as for [=TicketTracker=], see [[#tt-beh-reject]].
+
+### Remove ### {#project-beh-remove}
+
+Meanings:
+
+- One of my Collaborators is being removed
+- One of my Team Collaborators is being removed
+- One of my components is being removed
+- One of my parents or children is being removed
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#linking-parent-child]]
+
+Behavior:
+
+- If [=origin=] is my [=collaborators=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my collaborators
+    - Remove the [=object=] actor from my list of collaborators and invalidate
+        the direct-Grant I had sent them
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+    - Publish [=Revoke=] activities on all the extension-Grants I've sent to
+        this collaborator
+
+- If [=origin=] is my [=components=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my components
+    - Remove the [=object=] actor from my components collection
+    - Publish an [=Revoke=] on the delegate-Grant, see
+        [[#unlinking-projects-components-p]] step 2
+    - Publish [=Revoke=]s on all extension-Grants I've sent, that extend the
+        start-Grant I'd received from the component
+
+- If [=origin=] is my [=subprojects=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my children
+    - Remove the [=object=] actor from my [=subprojects=] collection
+    - Publish an [=Revoke=] on the delegate-Grant, see
+        [[#unlinking-parent-child-p-p]] step 2
+    - Publish [=Revoke=]s on all extension-Grants I've sent, that extend a
+        start-Grant or extension-Grant I'd received from the child
+
+- If [=origin=] is my [=context=] (i.e. parents) collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my parents
+    - Remove the [=object=] actor from my [=context=] collection
+    - Send an [=Accept=], see [[#unlinking-parent-child-p-c]] step 2
+
+- If [=origin=] is my [=teams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my Team Collaborators
+    - Remove the [=object=] actor from my list of Team Collaborators and
+        invalidate the start-Grant I had sent it
+    - Publish an [=Accept=], see [[#removing-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being removed from the [=context=] (i.e. parents)
+    collection of a child of mine:
+    - Just forward to my followers
+
+- If I'm the [=object=], being removed from the [=subprojects=] collection of a
+    parent of mine:
+    - Do nothing, just waiting for parent to send a Revoke on the
+        delegate-Grant
+
+- If I'm the [=object=], being removed from the [=context=] (i.e. projects)
+    collection of a component of mine:
+    - Do nothing, just waiting for component to send a Revoke on the
+        start-Grant
+
+- If I'm the [=object=], being removed from the [=teamResources=] collection of
+    a Team Collaborator of mine:
+    - Nothing to do, just waiting for the Team to send a Revoke on the
+        delegate-Grant it had sent me
+
+### Undo ### {#project-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
 
 ## Repository ## {#repo-iface}
 
