@@ -458,6 +458,109 @@ following steps:
 2. *T* sets *t*'s [=isResolved=] to False
 3. *T* publishes an [=Accept=] whose [=object=] points to the [=Undo=]
 
+### Assign ### {#issue-assign}
+
+Minimal required role: [=triage=]
+
+Given:
+
+- A [=TicketTracker=] actor, *T*
+- An actor with [=triage=] access to *T*, Tessa
+- A [=Ticket=] *t*, that is tracked by *T*
+- A [=Person=] or [=Team=] that is about to be assigned, *A*
+
+*A* can be assigned to *t* via the following steps.
+
+#### Assign myself #### {#issue-assign-self}
+
+If *A* and Tessa are the same actor:
+
+1. Tessa sends *T* an [=Assign=] activity whose:
+    - [=object=] is Tessa
+    - [=target=] is *t*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* inserts to *t*'s [=assignments=] collection a [=Relationship=] object
+    with an [=id=], whose [=subject=] is *t*, [=relationship=] is
+    [=assignedTo=] and [=object=] is Tessa
+3. *T* sends an [=Accept=] whose [=object=] is the Assign and whose [=result=]
+    is the ID URI of the new [=Relationship=] object
+
+#### Assign another actor #### {#issue-assign-other}
+
+If *A* and Tessa aren't the same actor:
+
+1. Tessa sends *T* and *A* an [=Assign=] activity whose:
+    - [=object=] is *A*
+    - [=target=] is *t*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* sends *A* an [=Accept=] whose [=object=] is the Assign and whose
+    [=result=] isn't specified, to indicate that the Assign is authorized
+3. If *A* is a [=Team=], an actor with [=triage=] access to *A* sends an
+    [=Accept=] whose:
+    - [=object=] is the Assign
+    - [=capability=] is the URI of a [=Grant=] for *A*, with role [=triage=] or
+        higher
+4. *A* publishes an [=Accept=] whose [=object=] is the Assign
+5. *T* inserts to *t*'s [=assignments=] collection a [=Relationship=] object
+    with an [=id=], whose [=subject=] is *t*, [=relationship=] is
+    [=assignedTo=] and [=object=] is *A*
+6. *T* sends an [=Accept=] whose [=object=] is the Assign and whose [=result=]
+    is the ID URI of the new [=Relationship=] object
+
+### Unassign ### {#issue-unassign}
+
+#### Unassign myself #### {#issue-unassign-self}
+
+Minimal required role: [=visit=]
+
+Given:
+
+- A [=TicketTracker=] actor, *T*
+- A [=Ticket=] *t*, that is tracked by *T*
+- A [=Person=] assigned to *t*, Tessa
+
+Tessa can be unassigned from *t* via the following steps:
+
+1. Tessa sends *T* and *A* an [=Undo=] activity whose:
+    - [=object=] is an object whose:
+        - [=type=] is [=Assign=]
+        - [=object=] is Tessa
+        - [=target=] is *t*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action (unless
+        *T* is considered a publicly visible resource, in which case the
+        [=capability=] can be omitted)
+2. *T* removes from *t*'s [=assignments=] collection the [=Relationship=]
+    object whose [=object=] is Tessa
+3. *T* sends an [=Accept=] whose [=object=] is the Assign and whose [=result=]
+    is the ID URI of the removed [=Relationship=] object
+
+#### Unassign another actor #### {#issue-unassign-other}
+
+Minimal required role: [=triage=]
+
+Given:
+
+- A [=TicketTracker=] actor, *T*
+- An actor with [=triage=] access to *T*, Tessa
+- A [=Ticket=] *t*, that is tracked by *T*
+- A [=Person=] or [=Team=] that is assigned to *t*, *A* (who isn't Tessa)
+
+*A* can be unassigned from *t* via the following steps:
+
+1. Tessa sends *T* and *A* an [=Undo=] activity whose:
+    - [=object=] is an object whose:
+        - [=type=] is [=Assign=]
+        - [=object=] is *A*
+        - [=target=] is *t*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* sends *A* an [=Accept=] whose [=object=] is the Undo and whose
+    [=result=] isn't specified, to indicate that the Assign is authorized
+3. *A* publishes an [=Accept=] whose [=object=] is the Assign
+4. *T* removes from *t*'s [=assignments=] collection the [=Relationship=]
+    object whose [=object=] is *A*
+5. *T* sends an [=Accept=] whose [=object=] is the Assign and whose [=result=]
+    is the ID URI of the removed [=Relationship=] object
+
 ### Delete ### {#deleting-issue}
 
 Minimal required role: [=admin=]
@@ -925,6 +1028,16 @@ process as for issues, see [[#closing-issue]].
 A Merge Request that was *closed without being merged/applied* can be reopened.
 Aside from that constraint, it is the same process as for issues. See
 [[#reopening-issue]].
+
+### Assign ### {#mr-assign}
+
+A Merge Request can be assigned in the same process as for issues. See
+[[#issue-assign]].
+
+### Unassign ### {#mr-unassign}
+
+A Merge Request can be unassigned in the same process as for issues. See
+[[#issue-unassign]].
 
 ### Delete ### {#deleting-mr}
 
@@ -3524,6 +3637,7 @@ Meanings:
 - I'm gaining access to a resource
 - I'm becoming a child/parent of another Team
 - My child/parent link with another project is being removed
+- I'm being um/assigned to/from a ticket/MR
 
 Processes:
 
@@ -3531,6 +3645,7 @@ Processes:
 - [[#access-via-join]]
 - [[#forming-team-resource-link]]
 - [[#linking-parent-child]]
+- [[#issue-assign]]
 
 Behavior:
 
@@ -3628,6 +3743,35 @@ Check the Accept's [=object=] as follows.
         extension of a Grant I received from the resource, see
         [[#removing-team-resource-link-r]] after step 3
 
+- If it's an [=Assign=] whose [=object=] is me and [=target=] is some tracker's
+    ticket/MR:
+    - If I've already seen the tracker's Accept that specifies a [=result=],
+        ignore/error, otherwise proceed
+    - Option 1: If the Accept [=actor=] is the tracker, and [=result=] isn't specified,
+        and I've haven't yet seen the tracker's Accept:
+        - Insert to my inbox & forward to my followers
+    - Option 2: f the Accept has a [=capability=] and I haven't yet seen my
+        collaborator's Accept:
+        - Verify the [=Accept=] is authorized with [=triage=] access
+        - Insert to my inbox & forward to my followers
+    - If I've now seen both of those Accepts, publish my own Accept, see
+        [[#issue-assign-other]] step 4
+    - Option 3: If I already saw both Accepts before:
+        - Verify Accept [=actor=] is the tracker
+        - Verify [=result=] is specified
+        - Insert to my inbox & forward to my followers
+
+- If it's an [=Undo=] whose [=object=] is an [=Assign=] where [=object=] is me
+    and [=target=] is some tracker's ticket/MR:
+    - Verify the Accept's [=actor=] is the tracker
+    - If it doesn't specify a [=result=] and I haven't yet seen the tracker's
+        Accepts:
+        - Publish an Accept, see [[#issue-unassign-other]] step 3
+        - Insert to my inbox & forward to my followers
+    - If it specifies a [=result=] and I haven't yet seen the tracker's
+        Accept-with-[=result=]:
+        - Just insert to my inbox & forward to my followers
+
 ### Add ### {#team-beh-add}
 
 Meanings:
@@ -3680,6 +3824,22 @@ Behavior:
     process is initiated on *their* side:
     - Verify I'm not already a Team Collaborator of this resource
     - Insert to my inbox & forward to my followers
+
+### Assign ### {#team-beh-assign}
+
+Meanings:
+
+- I'm being assigned to a ticket/MR
+
+Processes:
+
+- [[#issue-assign]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=target=] is a ticket/MR to which I'm not already assigned
+- Insert to my inbox & forward to my followers
 
 ### Delete ### {#team-beh-delete}
 
@@ -3846,10 +4006,12 @@ Behavior:
 Meanings:
 
 - Someone is asking to unfollow me
+- I'm being unassigned from a ticket/MR
 
 Processes:
 
 - [[#following]]
+- [[#issue-assign]]
 
 Behavior:
 
@@ -3859,6 +4021,11 @@ Check the Undo's [=object=].
     - Verify the [=actor=] is a follower of the Follow's [=object=]
     - Remove [=actor=] from the list of followers of the Follow's [=object=]
     - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
+- If it's an [=Assign=] whose [=object=] is me:
+    - Verify the Assign's [=target=] is some tracker's ticket/MR
+    - Verify I'm currently assigned to that ticket/MR
+    - Insert to my inbox & forward to my followers
 
 ## Project ## {#project-iface}
 
@@ -4244,7 +4411,75 @@ Vervis implementation:
 
 ### Accept ### {#repo-beh-accept}
 
-Same as for [=TicketTracker=], see [[#tt-beh-accept]].
+Meanings:
+
+- Someone is becoming a Collaborator in me
+- A Team is becoming a Team Collaborator in me
+- I'm becoming a component of a Project
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an Add whose [=target=] is my [=teams=] collection,
+    i.e. a Team Collaborator is being added to me and the process is
+    initiated on *our* side:
+    - Error/ignore, we aren't supposed get any Accept
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Option 1: If I haven't yet seen the Team's Accept:
+        Verify the Accept's [=actor=] is the Team
+    - Option 2: If I saw Team's Acccept but not yet my collaborator's
+        Accept: Verify the Accept is authorized with [=admin=] access
+    - Otherwise, error/ignore, no Accept is needed
+    - For option 1: Record Team's Accept in DB
+    - For option 2: Record my collaborator's Accept in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - For option 2, send an Accept, see [[#forming-team-resource-link-t]]
+        step 4
+
+- If it's an Add whose [=target=] is my [=context=] (i.e. projects) collection,
+    i.e. I'm being added to a project and the process is initiated on *our*
+    side:
+    - Nothing to do, just ignore the Accept, waiting for the delegate-Grant
+        from the Project
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Project=] that points back to the collection via
+    its [=components=] field, i.e. I'm being added to a project and the process
+    is initiated on *their* side:
+    - If I haven't yet seen the project's approval:
+        - Verify the author is the project
+        - Insert to my inbox & forward to my followers
+    - If I saw project's approval, but not my collaborators' approval:
+        - Verify the Accept is authorized with [=admin=] access
+        - Insert to my inbox & forward to my followers
+        - Publish an Accept, see [[#linking-projects-components-p]] step 4
+    - If I already saw both approvals, respond with error
 
 ### Add ### {#repo-beh-add}
 
@@ -4337,14 +4572,14 @@ Vervis implementation:
 
 ### Accept ### {#tt-beh-accept}
 
-*Same as Accept handler for the other Component actors (PatchTracker,
-Repository).*
+*Same as Accept handler for PatchTracker.*
 
 Meanings:
 
 - Someone is becoming a Collaborator in me
 - A Team is becoming a Team Collaborator in me
 - I'm becoming a component of a Project
+- Some is being assigned to one of my tickets
 
 Processes:
 
@@ -4352,6 +4587,7 @@ Processes:
 - [[#access-via-join]]
 - [[#forming-team-resource-link]]
 - [[#linking-projects-components]]
+- [[#issue-assign]]
 
 Behavior:
 
@@ -4410,6 +4646,30 @@ Check the Accept's [=object=] as follows.
         - Publish an Accept, see [[#linking-projects-components-p]] step 4
     - If I already saw both approvals, respond with error
 
+- If it's an [=Assign=] I've seen and authorized, where [=target=] is one of my
+    tickets, and where [=actor=] and [=object=] aren't the same actor:
+    - Verify the Assign's [=object=] actor isn't already assigned to this
+        ticket
+    - If the Accept's [=actor=] is the Assign's [=object=]:
+        - Insert an item into *t*'s [=assignments=] collection, see
+            [[#issue-assign-other]] step 5
+        - Send an [=Accept=], see [[#issue-assign-other]] step 6
+    - Otherwise:
+        - If Assign's [=object=] is a [=Team=]:
+            - Just forward to my followers (hopefully this is one of the Team's
+                collaborators giving their approval)
+        - Otherwise:
+            - Ignore/error, not expecting such an Accept
+
+- If it's an Undo I've seen and authorized, whose [=object=] is an [=Assign=]
+    where [=target=] is one of my tickets, and where [=actor=] and [=object=]
+    aren't the same actor:
+    - Verify the Assign's [=object=] is currently assigned to the ticket
+    - Verify the Accept's [=actor=] is the Assign's [=object=]
+    - Update the ticket's [=assignments=] collection, see
+        [[#issue-unassign-other]] step 4
+    - Send an Accept, see [[#issue-unassign-other]] step 5
+
 ### Add ### {#tt-beh-add}
 
 *Same as Accept handler for the other Component actors (PatchTracker,
@@ -4456,6 +4716,29 @@ Behavior:
     *their* side:
     - Verify I'm not already a component of this Project
     - Insert to my inbox & forward to my followers
+
+### Assign ### {#tt-beh-assign}
+
+*Same as Assign handler for PatchTracker.*
+
+Meanings:
+
+- A [=Person=] or [=Team=] is being assigned to one of my tickets
+
+Processes:
+
+- [[#issue-assign]]
+
+Behavior:
+
+- Verify [=target=] is one of my tickets
+- Verify the Assign is authorized with [=triage=] access
+- If the [=actor=] is a [=Person=] assigning themselves:
+    - Insert a [=Relationship=] object to the ticket's [=assignments=]
+        collection, see [[#issue-assign-self]] step 2
+    - Send an [=Accept=], see [[#issue-assign-self]] step 3
+- If [=actor=] and [=object=] aren't the same actor:
+    - Send an [=Accept=], see [[#issue-assign-other]] step 2
 
 ### Create ### {#tt-beh-create}
 
@@ -4703,11 +4986,13 @@ Meanings:
 
 - Someone is asking to unfollow me
 - Someone is asking to reopen one of my closed tickets
+- A [=Person=] or [=Team=] is being unassigned from one of my tickets
 
 Processes:
 
 - [[#following]]
 - [[#reopening-issue]]
+- [[#issue-assign]]
 
 Behavior:
 
@@ -4718,10 +5003,22 @@ Check the Undo's [=object=].
     - Remove [=actor=] from the list of followers of the Follow's [=object=]
     - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
 
-It's a [=Resolve=] whose [=object=] is one of my tickets:
+- It's a [=Resolve=] whose [=object=] is one of my tickets:
     - Verify the Resolve is authorized with [=triage=] access
     - Update the ticket in DB
     - Publish an [=Accept=], see [[#reopening-issue]] step 3
+
+- If it's an [=Assign=] whose [=target=] is one of my tickets:
+    - If the [=actor=] is a [=Person=] unassigning themselves:
+        - Verify the Undo is authorized with [=visit=] access (unless I'm
+            considered a public resource and then the [=capability=] MAY be
+            omitted)
+        - Remove the [=Relationship=] object from the ticket's [=assignments=]
+            collection, see [[#issue-unassign-self]] step 2
+        - Send an [=Accept=], see [[#issue-assign-self]] step 3
+    - If Undo's [=actor=] and Assign's [=object=] aren't the same actor:
+        - Verify the Undo is authorized with [=triage=] access
+        - Send an [=Accept=], see [[#issue-unassign-other]] step 2
 
 ## PatchTracker ## {#pt-iface}
 
@@ -4735,6 +5032,10 @@ Same as for [=TicketTracker=], see [[#tt-beh-accept]].
 ### Add ### {#pt-beh-add}
 
 Same as for [=TicketTracker=], see [[#tt-beh-add]].
+
+### Assign ### {#pt-beh-assign}
+
+Same as for [=TicketTracker=], see [[#tt-beh-assign]].
 
 ### Create ### {#pt-beh-create}
 
@@ -4886,11 +5187,13 @@ Meanings:
 
 - Someone is asking to unfollow me
 - Someone is asking to reopen one of my closed (but not merged) MRs
+- A [=Person=] or [=Team=] is being unassigned from one of my MRs
 
 Processes:
 
 - [[#following]]
 - [[#reopening-mr]]
+- [[#mr-assign]]
 
 Behavior:
 
@@ -4905,6 +5208,18 @@ It's a [=Resolve=] whose [=object=] is one of my closed but not merged MRs:
     - Verify the Resolve is authorized with [=triage=] access
     - Update the MR in DB
     - Publish an [=Accept=], see [[#reopening-issue]] step 3
+
+- If it's an [=Assign=] whose [=target=] is one of my MRs:
+    - If the [=actor=] is a [=Person=] unassigning themselves:
+        - Verify the Undo is authorized with [=visit=] access (unless I'm
+            considered a public resource and then the [=capability=] MAY be
+            omitted)
+        - Remove the [=Relationship=] object from the MR's [=assignments=]
+            collection, see [[#issue-unassign-self]] step 2
+        - Send an [=Accept=], see [[#issue-assign-self]] step 3
+    - If Undo's [=actor=] and Assign's [=object=] aren't the same actor:
+        - Verify the Undo is authorized with [=triage=] access
+        - Send an [=Accept=], see [[#issue-unassign-other]] step 2
 
 # Client to Server Interactions
 
@@ -6246,6 +6561,20 @@ Description:
 #### Related to ticket tracking
 
 <pre class=simpledef>
+Name: <dfn dfn export>Assign</dfn>
+URI: https://forgefed.org/ns#Assign
+Extends: [=Activity=]
+Description:
+    Indicates that a [=Ticket=] is being assigned to a [=Person=] or [=Team=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
 Name: <dfn dfn export>Resolve</dfn>
 URI: https://forgefed.org/ns#Resolve
 Extends: [=Activity=]
@@ -6746,7 +7075,7 @@ Description:
         "content": "Please fix. *Everything* is broken!",
         "mediaType": "text/markdown; variant=CommonMark"
     },
-    "assignedTo": "https://example.dev/alice",
+    "assignments": "https://example.dev/alice/myrepo/issues/42/assignments",
     "isResolved": false
 }
 </xmp>
@@ -7119,11 +7448,32 @@ TODO
 Name: <dfn dfn export>assignedTo</dfn>
 URI: https://forgefed.org/ns#assignedTo
 Domain: [=Ticket=]
-Range: [=Person=]
+Range: [=Person=] or [=Team=]
+Functional: No
+Inverse of: None
+Description:
+    Identifies a [=Person=] or [=Team=] assigned to work on this [=Ticket=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>assignments</dfn>
+URI: https://forgefed.org/ns#assignments
+Domain: [=Ticket=]
+Range:
+    [=OrderedCollection=] of [=Relationship=] objects, in each of which
+    [=subject=] is the Ticket, [=relationship=] is [=assignedTo=] and
+    [=object=] is a [=Person=] or [=Team=]
 Functional: Yes
 Inverse of: None
 Description:
-    Identifies the [=Person=] assigned to work on this [=Ticket=].
+    Identifies the [=Person=]s and [=Team=]s assigned to work on this
+    [=Ticket=].
 </pre>
 
 <div class=example>
