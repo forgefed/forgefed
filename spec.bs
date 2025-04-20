@@ -458,6 +458,22 @@ following steps:
 2. *T* sets *t*'s [=isResolved=] to False
 3. *T* publishes an [=Accept=] whose [=object=] points to the [=Undo=]
 
+### Delete ### {#deleting-issue}
+
+Minimal required role: [=admin=]
+
+- A [=TicketTracker=] actor, *T*
+- An actor with [=admin=] access to *T*, Alice
+- A [=Ticket=] *t*, that is tracked by *T*
+
+*t* may be deleted via the following steps:
+
+1. Alice sends *T* a [=Delete=] activity whose:
+    - [=object=] is the URI of *t*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* deletes *t* such that GET requests for *t* get a 404 or 410 response
+3. *T* publishes an [=Accept=] whose [=object=] points to the [=Delete=]
+
 ## Merge Requests
 
 ### Open ### {#opening-mr}
@@ -909,6 +925,11 @@ process as for issues, see [[#closing-issue]].
 A Merge Request that was *closed without being merged/applied* can be reopened.
 Aside from that constraint, it is the same process as for issues. See
 [[#reopening-issue]].
+
+### Delete ### {#deleting-mr}
+
+A Merge Request may be deleted. It is the same process as for issues, see
+[[#deleting-issue]].
 
 ## Commenting ## {#commenting}
 
@@ -2894,6 +2915,32 @@ activities SHOULD be as follows:
     which the [=target=] is Philip and [=object=] is [=admin=], thus giving
     Philip full access to manage *A*
 
+## Deleting Resource Actors
+
+Minimal required role: [=admin=]
+
+Given:
+
+- A resource actor *R*, i.e. an actor whose type is one of:
+    - [=Factory=]
+    - [=Repository=]
+    - [=TicketTracker=]
+    - [=PatchTracker=]
+    - [=Project=]
+    - [=Team=]
+- A person with [=admin=] access to *R*, Philip
+
+*R* can be deleted via the following sequence:
+
+1. Philip sends a [=Delete=] activity in which:
+    - [=object=] is the URI of *R*
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's
+        [=admin=] access to *R*
+2. *R* sends, to its followers and to Philip, an [=Accept=] activity whose
+    [=object=] is the URI of the [=Delete=]
+3. *R* deletes itself, such that further GET requests for *R* or any of its
+    objects return 404 or 410 status
+
 ## Editing an Object ## {#editing}
 
 Minimal required role: It varies
@@ -3271,6 +3318,26 @@ Behavior:
 - Insert the Create to my inbox & forward the Create to my followers
 - Publish an Accept, see [[#creating-resource-actors]] step 2
 
+### Delete ### {#factory-beh-delete}
+
+Meanings:
+
+- Someone is asking to delete me
+
+Processes:
+
+- [[#deleting-resource-actors]]
+
+Behavior:
+
+Examine the Delete's [=object=].
+
+- If it's me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
+
 ### Edit ### {#factory-beh-edit}
 
 Meanings:
@@ -3614,6 +3681,24 @@ Behavior:
     - Verify I'm not already a Team Collaborator of this resource
     - Insert to my inbox & forward to my followers
 
+### Delete ### {#team-beh-delete}
+
+Meanings:
+
+- Someone is asking to delete me
+
+Processes:
+
+- [[#deleting-resource-actors]]
+
+Behavior:
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
+
 ### Edit ### {#team-beh-edit}
 
 TODO editing team name and description
@@ -3955,6 +4040,24 @@ Behavior:
     - Verify it's not already a component of mine
     - Insert to my inbox & forward to my followers
 
+### Delete ### {#project-beh-delete}
+
+Meanings:
+
+- Someone is asking to delete me
+
+Processes:
+
+- [[#deleting-resource-actors]]
+
+Behavior:
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
+
 ### Edit ### {#project-beh-edit}
 
 TODO editing project name and description
@@ -4146,6 +4249,24 @@ Same as for [=TicketTracker=], see [[#tt-beh-accept]].
 ### Add ### {#repo-beh-add}
 
 Same as for [=TicketTracker=], see [[#tt-beh-add]].
+
+### Delete ### {#repo-beh-delete}
+
+Meanings:
+
+- Someone is asking to delete me
+
+Processes:
+
+- [[#deleting-resource-actors]]
+
+Behavior:
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
 
 ### Edit ### {#repo-beh-edit}
 
@@ -4356,16 +4477,32 @@ Behavior:
 Meanings:
 
 - Someone is deleting their comment on a ticket of mine
+- Someone is asking to delete a ticket of mine
+- Someone is asking to delete me
 
 Processes:
 
 - [[#commenting]]
+- [[#deleting-issue]]
+- [[#deleting-resource-actors]]
 
 Behavior:
 
-- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine
-- Verify sender is the actual author of the Note
-- Insert to inbox & forward to my followers & ticket followers
+- If [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine:
+    - Verify sender is the actual author of the Note
+    - Insert to inbox & forward to my followers & ticket followers
+
+- If [=object=] is a ticket of mine:
+    - Verify the Delete is authorized with [=admin=] access
+    - Delete the ticket from DB, such that GET requests for it now return 404
+        or 410 status
+    - Send an [=Accept=], see [[#deleting-issue]] step 3
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
 
 ### Edit ### {#tt-beh-edit}
 
@@ -4619,16 +4756,32 @@ Behavior:
 Meanings:
 
 - Someone is deleting their comment on a MR of mine
+- Someone is asking to delete a MR of mine
+- Someone is asking to delete me
 
 Processes:
 
 - [[#commenting]]
+- [[#deleting-mr]]
+- [[#deleting-resource-actors]]
 
 Behavior:
 
-- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine
-- Verify sender is the actual author of the Note
-- Insert to inbox & forward to my followers & MR followers
+- If [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine:
+    - Verify sender is the actual author of the Note
+    - Insert to inbox & forward to my followers & MR followers
+
+- If [=object=] is a [=Ticket=] of mine:
+    - Verify the Delete is authorized with [=admin=] access
+    - Delete the MR from DB, such that GET requests for it now return 404 or
+        410 status
+    - Send an [=Accept=], see [[#deleting-issue]] step 3
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
 
 ### Edit ### {#pt-beh-edit}
 
