@@ -31,6 +31,17 @@ Abstract:
 This draft is generated from branch <code>[GITBRANCH]</code>, commit
 <a href="https://codeberg.org/ForgeFed/ForgeFed/commit/[GITCOMMIT]">[GITSHORT]</a>.
 
+<!-- -------------------------------------------------------------------------
+
+# #    # ##### #####   ####
+# ##   #   #   #    # #    #
+# # #  #   #   #    # #    #
+# #  # #   #   #####  #    #
+# #   ##   #   #   #  #    #
+# #    #   #   #    #  ####
+
+-------------------------------------------------------------------------- -->
+
 # Introduction # {#intro}
 
 Note: The spec is still under construction. Want to start implementing? Check
@@ -81,6 +92,17 @@ The ForgeFed modeling specification defines rules for representing forge
 related objects as ActivityPub JSON-LD objects, and these objects are used in
 the **behavior specification**, included in activities, mentioned in
 activities, or modified as a result of activity side-effects.
+
+<!-- -------------------------------------------------------------------------
+
+ ####  #####       # ######  ####  #####  ####
+#    # #    #      # #      #    #   #   #
+#    # #####       # #####  #        #    ####
+#    # #    #      # #      #        #        #
+#    # #    # #    # #      #    #   #   #    #
+ ####  #####   ####  ######  ####    #    ####
+
+-------------------------------------------------------------------------- -->
 
 # Objects
 
@@ -258,6 +280,18 @@ activity:
 </xmp>
 </div>
 
+<!-- -------------------------------------------------------------------------
+
+        #####
+ ####  #     #  ####
+#            # #
+ ####   #####   ####
+     # #            #
+#    # #       #    #
+ ####  #######  ####
+
+-------------------------------------------------------------------------- -->
+
 # Server to Server Interactions # {#s2s}
 
 Issue: This section describes the whole flow of actor interactions, that allows
@@ -265,7 +299,7 @@ the federated implementation of the various features of forges and related
 software. It provides a complete picture of interaction flows, which the actor
 API section can't, because it focuses on a single actor type at a time.
 
-## Following
+## Following ## {#following}
 
 Minimal required role: [=visit=]
 
@@ -418,6 +452,10 @@ which is an actor, automatically sends Luke an Accept activity:
 ### Update title and description ### {#updating-issue-text}
 
 See [[#editing]] and [[#editing-ticket]].
+
+### Update custom fields ### {#updating-issue-custom}
+
+See [[#editing]] and [[#editing-ticket-custom]].
 
 ### Close ### {#closing-issue}
 
@@ -756,6 +794,10 @@ Given:
 ### Update title and description ### {#updating-mr-text}
 
 See [[#editing]] and [[#editing-ticket]].
+
+### Update custom fields ### {#updating-mr-custom}
+
+See [[#editing]] and [[#editing-ticket-custom]].
 
 ### Update patches (via web) ### {#updating-mr-patches}
 
@@ -3002,6 +3044,7 @@ via a [=Factory=] actor.
 - [=Repository=]
 - [=TicketTracker=]
 - [=PatchTracker=]
+- [=Workflow=]
 - [=Project=]
 - [=Team=]
 
@@ -3039,6 +3082,7 @@ Given:
     - [=Repository=]
     - [=TicketTracker=]
     - [=PatchTracker=]
+    - [=Workflow=]
     - [=Project=]
     - [=Team=]
 - A person with [=admin=] access to *R*, Philip
@@ -3114,6 +3158,22 @@ Role: For the author not required, otherwise [=triage=]
 Other requirements: None
 </pre>
 
+### Edit a Ticket's custom fields ### {#editing-ticket-custom}
+
+<pre class=simpledef>
+Type: [=Ticket=]
+Properties: [=customFields=]
+Role: [=triage=]
+Other requirements:
+    1. Allowed only if the tracker has an associated [=Workflow=]
+    2. Note that this Edit is special! Rather than setting the [=customFields=]
+        property, it *edits* it. [=customFields=] MUST specify here 1 or more
+        objects in which [=type=] is [=FieldValue=], [=context=] refers to a
+        [=Field=] and [=prop:fieldValue=] is either a value matching that
+        field's type (which indicates setting the field) or `null` (which
+        indicates removing the field).
+</pre>
+
 ### Edit a Factory's list of available actor types ### {#editing-factory-types}
 
 <pre class=simpledef>
@@ -3124,7 +3184,44 @@ Other requirements:
     Each specified type MUST be a type this Factory is programmed to support
 </pre>
 
-## Repository-PatchTracker Links
+### Edit a Enum Value's name, description, color ### {#editing-enum-value}
+
+<pre class=simpledef>
+Type: [=EnumValue=]
+Properties: [=name=], [=summary=], [=enumValueColor=]
+Role: [=maintain=]
+Other requirements: [=name=] must be unique among the values of that enum
+</pre>
+
+### Edit a Enum's name, description, orderedness ### {#editing-enum}
+
+<pre class=simpledef>
+Type: [=Enum=]
+Properties: [=name=], [=summary=], [=enumIsOrdered=]
+Role: [=maintain=]
+Other requirements: [=name=] must be unique among the enums in the [=Workflow=]
+</pre>
+
+### Edit a Field's name, description, color ### {#editing-field}
+
+<pre class=simpledef>
+Type: [=Field=]
+Properties: [=name=], [=summary=], [=fieldColor=]
+Role: [=maintain=]
+Other requirements:
+    [=name=] must be unique among the fields in the [=Workflow=]
+</pre>
+
+### Edit a Workflow's name and description ### {#editing-workflow}
+
+<pre class=simpledef>
+Type: [=Workflow=]
+Properties: [=name=], [=summary=]
+Role: [=admin=]
+Other requirements: None
+</pre>
+
+## Repository-PatchTracker Links ## {#s2s-repo-pt-link}
 
 ### Adding
 
@@ -3168,7 +3265,320 @@ properties.
 If *P* has any open Merge Requests for *R* at the time of revocation, it SHOULD
 freeze any further edits of these MRs, making them read-only.
 
-# Actor Interface
+## Workflows ## {#s2s-wf}
+
+Workflows are a powerful customization engine. If you look at a project as an
+information system, a database, then workflows allow to extend the data schema
+without programming and without launching a patched version of your project
+management software.
+
+The project management features that FLOSS-hosting forges provide are usually
+very simple and limited. This not not just a practical limitation, but also a
+political one: Does the global FLOSS community have sufficient tools for
+effective team collaboration?
+
+In ForgeFed, project management software and code hosting software can federate
+and provide together a more advanced set of interoperable tools.
+
+In particular, workflows allow to customize the properties of issues and merge
+requests. A simple but common use of workflows is to define issue labels (and
+often projects "abuse" issue labels to define custom properties, because forges
+often don't provide such customization directly).
+
+Workflows also allow to provide forward-compatibility: Implement
+new/experimental project tracking features using workflows first, and later
+convert to native vocabulary.
+
+Issue: Even me (Pere/fr33domlover), while I'm writing this spec via a Git repo,
+I'm tracking my tasks using Vikunja! There's no integration, e.g. Vikunja
+tasks linked with PRs on Codeberg. Why is it like this in 2025?
+
+TODO: It's time for the whole (outdated?) concept of email based
+task/memo/meeting tracking stuff to come to ActivityPub as well. And implement
+federation of that into Nextcloud. Oh well, more dreams than working hands.
+Anyone wanna help? :)
+
+### Edit name and description ### {#s2s-wf-edit}
+
+See [[#editing-workflow]].
+
+### Enum ### {#s2s-wf-enum}
+
+#### Create #### {#s2s-wf-enum-create}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- An actor with [=maintain=] access to *W*, Alice
+
+Alice can create a new enumeration type under *W* via the following steps:
+
+1. Alice sends *W* an [=Offer=] activity where:
+    - [=object=] is a an object where:
+        - [=type=] is [=Enum=]
+        - [=name=] is its name
+        - [=summary=] is a one-line description
+        - [=enumIsOrdered=] is specified
+        - [=enumValues=] is an object where:
+            - [=type=] is [=OrderedCollection=]
+            - [=items=] (or [=orderedItems=]) is a list of objects in which:
+                - [=type=] is [=EnumValue=]
+                - [=name=] is the value's name
+                - [=summary=] is a one-line description
+                - [=enumValueColor=] is optionally specified
+    - [=target=] is *W*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* inserts the new [=Enum=] into its [=workflowEnums=] collection,
+    assigning [=id=] URIs to the [=Enum=] and to each of its values
+3. *W* sends an [=Accept=] where:
+    - [=object=] refers to the [=Offer=]
+    - [=result=] is the [=id=] URI of the new [=Enum=]
+
+#### Delete #### {#s2s-enum-delete}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- An [=Enum=] under *W*, *E*
+- An actor with [=maintain=] access to *W*, Alice
+
+Alice can remove *E* from *W* via the following steps:
+
+1. Alice sends *W* a [=Delete=] activity where:
+    - [=object=] refers to *E*
+    - [=origin=] refers to *W*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* verifies authorization & that none of its [=Field=]s are using *E*
+3. *W* removes *E* from its [=workflowEnums=] collection
+4. *W* sends an [=Accept=] where [=object=] refers to the [=Delete=]
+
+#### Edit
+
+See [[#editing-enum]].
+
+#### Add Value #### {#s2s-wf-enum-add}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- An [=Enum=] under *W*, *E*
+- An actor with [=maintain=] access to *W*, Alice
+
+Alice can add a new value to *E* via the following steps:
+
+1. Alice sends *W* an [=Add=] activity where:
+    - [=object=] is a an object where:
+        - [=type=] is [=EnumValue=]
+        - [=name=] is the value's name
+        - [=summary=] is a one-line description
+        - [=enumValueColor=] is optionally specified
+    - [=target=] is *E*'s [=enumValues=] collection's URI
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* inserts the new [=EnumValue=] into *E*'s [=enumValues=] collection,
+    assigning an [=id=] URI to the new value
+3. *W* sends an [=Accept=] where [=object=] refers to the [=Add=] and
+    [=result=] refers to the newly created [=EnumValue=]
+
+#### Remove Value #### {#s2s-wf-enum-remove}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- An [=Enum=] under *W*, *E*
+- An [=EnumValue=] within *E*, *V*
+- An actor with [=maintain=] access to *W*, Alice
+
+Alice can remove *V* from *E* via the following steps:
+
+1. Alice sends *W* a [=Remove=] activity where:
+    - [=object=] refers to *V*
+    - [=origin=] refers to *E*'s [=enumValues=] collection
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* removes *V* from *E*'s [=enumValues=] collection
+3. *W* sends an [=Accept=] where [=object=] refers to the [=Remove=]
+
+#### Reorder Value #### {#s2s-wf-enum-reorder}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- An [=Enum=] under *W*, *E*, whose [=enumIsOrdered=] is `true`
+- An [=EnumValue=] within *E*, *V*, in position *p* (e.g. p=3 means *E* is the
+    3rd element in the collection of values)
+- An actor with [=maintain=] access to *W*, Alice
+
+Alice can move *V* from position *p* to be placed after the element that is
+currently at position *q* (and 0 means place at the beginning) via the
+following steps:
+
+1. Alice sends *W* a [=Move=] activity where:
+    - [=object=] refers to *E*
+    - Optionally, for verification:
+        - [=originPosition=] is *p*
+        - [=target=] refers to the value currently at position *q*
+    - [=targetPositionAfter=] is *q*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* moves *E* from position *p* to be placed after the value that is
+    currently at position *q*
+3. *W* sends an [=Accept=] where [=object=] refers to the [=Move=]
+
+#### Edit a Value
+
+See [[#editing-enum-value]].
+
+### Field ### {#s2s-wf-field}
+
+#### Create #### {#s2s-wf-field-create}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- An actor with [=maintain=] access to *W*, Alice
+- If needed, an [=Enum=] within *W*, *E*
+
+Alice can create a new field under *W* via the following steps:
+
+1. Alice sends *W* an [=Offer=] activity where:
+    - [=object=] is a an object where:
+        - [=type=] is [=Field=]
+        - [=name=] is its name
+        - [=summary=] is a one-line description
+        - [=prop:fieldType=] is specified
+        - If [=prop:fieldType=] is [=fieldTypeEnum=]:
+            - [=instrument=] refers to *E*
+        - [=fieldColor=] is optionally specified
+    - [=target=] is *W*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* inserts the new [=Field=] into its [=workflowFields=] collection,
+    assigning [=id=] URIs to the [=Field=] and to each of its values
+3. *W* sends an [=Accept=] where:
+    - [=object=] refers to the [=Offer=]
+    - [=result=] is the [=id=] URI of the new [=Field=]
+
+#### Delete #### {#s2s-field-delete}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- An [=Field=] under *W*, *F*
+- An actor with [=maintain=] access to *W*, Alice
+
+Alice can remove *F* from *W* via the following steps:
+
+1. Alice sends *W* a [=Delete=] activity where:
+    - [=object=] refers to *F*
+    - [=origin=] refers to *W*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* removes *F* from its [=workflowFields=] collection
+3. *W* sends an [=Accept=] where [=object=] refers to the [=Delete=]
+
+#### Edit
+
+See [[#editing-field]].
+
+#### Reorder #### {#s2s-wf-field-reorder}
+
+Minimal required role: [=maintain=]
+
+Given:
+
+- A [=Workflow=] actor, *W*
+- A [=Field=] under *W*, *F*, in position *p* (e.g. p=3 means *F* is the 3rd
+    element in the collection of fields)
+- An actor with [=maintain=] access to *W*, Alice
+
+Alice can move *F* from position *p* to be placed after the element that is
+currently at position *q* (and 0 means place at the beginning) via the
+following steps:
+
+1. Alice sends *W* a [=Move=] activity where:
+    - [=object=] refers to *F*
+    - Optionally, for verification:
+        - [=originPosition=] is *p*
+        - [=target=] refers to the value currently at position *q*
+    - [=targetPositionAfter=] is *q*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *W* moves *F* from position *p* to be placed after the field that is
+    currently at position *q* in *W*'s [=workflowFields=] collection
+3. *W* sends an [=Accept=] where [=object=] refers to the [=Move=]
+
+### Tracker-Workflow Link ### {#s2s-wf-link}
+
+### Adding
+
+A link between a [=TicketTracker=]/[=PatchTracker=] and a [=Workflow=]
+essentially means:
+
+1. The workflow says "As far as I know, this tracker is using me"
+2. The tracker says "I use this workflow in my [=Ticket=]s"
+
+Given:
+
+- A [=Workflow=] *W*
+- A [=TicketTracker=] or [=PatchTracker=] *T*
+- An actor with [=admin=] access to *W*, Luke
+- An actor with [=admin=] access to *T*, Aviva
+
+Luke and Aviva can form the link by a direct Grant of the [=visit=] role for
+*T* to access *W*. See [[#granting-access]]. The process can be initiated via
+an [[#access-via-invite|Invite]] or [[#access-via-join|Join]] activity.
+
+Upon successful completion of the process:
+
+- *W* SHOULD insert *T* to *W*'s [=workflowTrackers=] collection
+- *T* SHOULD point to *W* via [=trackerWorkflow=]
+- *T* SHOULD start following *W*, to be able to update its tickets accordingly
+    (see [[#following]])
+
+### Removing
+
+Given:
+
+- A [=Workflow=] *W*
+- A [=TicketTracker=] or [=PatchTracker=] *T*
+- *W* and *T* have been linked as described above
+- An actor with [=admin=] access to *W*, Luke
+- An actor with [=admin=] access to *T*, Aviva
+
+Luke or Aviva can remove the link by revoking the [=visit=] access, see
+[[#revoking-access]]. Once the [=Grant=] is revoked, *W* and *T* MUST stop
+pointing to each another via the [=workflowTrackers=] and [=trackerWorkflow=]
+properties.
+
+<!-- -------------------------------------------------------------------------
+
+#####  ###### #    #   ##   #    # #  ####  #####
+#    # #      #    #  #  #  #    # # #    # #    #
+#####  #####  ###### #    # #    # # #    # #    #
+#    # #      #    # ###### #    # # #    # #####
+#    # #      #    # #    #  #  #  # #    # #   #
+#####  ###### #    # #    #   ##   #  ####  #    #
+
+-------------------------------------------------------------------------- -->
+
+# Actor Interface and Behavior # {#actor-interface}
 
 This section provides, for each actor types, the various activity types it
 receives and how it might react to them in order to implement the features
@@ -3505,8 +3915,7 @@ Behavior:
 
 ### Invite ### {#factory-beh-invite}
 
-*Same as Invite handler for the Component actors (TicketTracker, PatchTracker,
-Repository) and for Project.*
+*Same as Invite handler for Repository, Workflow, Project.*
 
 Meanings:
 
@@ -3531,7 +3940,7 @@ authorized, and now they can decide whether to accept/reject/ignore it.
 ### Join ### {#factory-beh-join}
 
 *Same as Join handler for the Component actors (TicketTracker, PatchTracker,
-Repository) and for Project.*
+Repository, Workflow) and for Project.*
 
 Meanings:
 
@@ -4528,7 +4937,32 @@ Behavior:
 
 ### Grant ### {#repo-beh-grant}
 
-Same as for [=TicketTracker=], see [[#tt-beh-grant]].
+Meanings:
+
+- A Project-in-process is sending me the delegate-Grant
+- A Team-Collaborator-in-process is sending me the delegate-Grant
+
+Processes:
+
+- [[#linking-projects-components]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+Check the Grant's [=fulfills=] field, verify it's an [=Add=] activity that I've
+seen:
+
+- If it's a Project-in-process which is now sending me the delegate-Grant, and
+    the previous steps in the process successfully happened:
+    - Insert the Project to my list of Projects and enable in DB
+    - Send the Project a start-Grant, see [[#linking-projects-components-c]]
+        step 5 or [[#linking-projects-components-p]] step 6
+
+- If it's a Team-Collaborator-in-process which is now sending me the
+    delegate-Grant, and the previous steps in the process successfully
+    happened:
+    - Insert the Team to my list of Team Collaborators and enable in DB
+    - Send the Team a start-Grant, see [[#deleg-step-tr]] step 1
 
 ### Invite ### {#repo-beh-invite}
 
@@ -4545,6 +4979,25 @@ Same as for [=TicketTracker=], see [[#tt-beh-reject]].
 ### Remove ### {#repo-beh-remove}
 
 Same as for [=TicketTracker=], see [[#tt-beh-remove]].
+
+### Revoke ### {#tt-beh-revoke}
+
+Meanings:
+
+- A direct-Grant given to me by the [=Workflow=] is being revoked
+
+Processes:
+
+- [[#revoking-access]]
+
+Behavior:
+
+- Verify the [=actor=] is identical to the actor of the [=Grant=] referred by
+    the Revoke's [=object=]
+- Verify that Grant's [=target=] is me
+- Optional: Verify none of my tickets use custom fields OR remove all custom
+    fields
+- Remove my [=trackerWorkflow=] field
 
 ### Undo ### {#repo-beh-undo}
 
@@ -4579,7 +5032,8 @@ Meanings:
 - Someone is becoming a Collaborator in me
 - A Team is becoming a Team Collaborator in me
 - I'm becoming a component of a Project
-- Some is being assigned to one of my tickets
+- Someone is being assigned to one of my tickets
+- I'm becoming a collaborator in a [=Workflow=]
 
 Processes:
 
@@ -4588,6 +5042,7 @@ Processes:
 - [[#forming-team-resource-link]]
 - [[#linking-projects-components]]
 - [[#issue-assign]]
+- [[#s2s-wf-link]]
 
 Behavior:
 
@@ -4669,6 +5124,13 @@ Check the Accept's [=object=] as follows.
     - Update the ticket's [=assignments=] collection, see
         [[#issue-unassign-other]] step 4
     - Send an Accept, see [[#issue-unassign-other]] step 5
+
+- If it's an Invite I've seen, whose [=object=] is me, and whose [=target=] is
+    some [=Workflow=]'s [=collaborators=] collection, and whose [=instrument=]
+    is [=visit=]:
+    - Verify Accept [=actor=] is the [=Workflow=]
+    - Verify I don't have a [=trackerWorkflow=]
+    - Send an [=Accept=], see [[#access-via-invite]] step 2
 
 ### Add ### {#tt-beh-add}
 
@@ -4793,11 +5255,13 @@ Meanings:
 
 - Someone is deleting their comment on a ticket of mine
 - Someone is asking to edit the text of one of my tickets
+- Someone is asking to edit the custom fields of one of my tickets
 
 Processes:
 
 - [[#commenting]]
 - [[#editing-ticket]]
+- [[#editing-ticket-custom]]
 
 Behavior:
 
@@ -4806,10 +5270,21 @@ Behavior:
     - Insert to inbox & forward to my followers & ticket followers
 
 - If [=object=] is a [=Ticket=] whose [=context=] is me:
-    - Verify the Edit is authorized with [=triage=] access, OR the [=actor=] is
-        the same actor as the one who submitted the ticket
-    - Update the ticket in DB from the Edit [=object=]'s fields: [=summary=],
-        [=source=], [=content=]
+    - If [=object=] has [=summary=] and/or [=content=]:
+        - Verify the Edit is authorized with [=triage=] access, OR the [=actor=]
+            is the same actor as the one who submitted the ticket
+        - Update the ticket in DB from the Edit [=object=]'s fields:
+            [=summary=], [=source=], [=content=]
+    - If [=object=] specifies only [=customFields=] AND I have a
+        [=trackerWorkflow=] set:
+        - Verify the Edit is authorized with [=triage=] access
+        - For each object listed under [=customFields=]:
+            - Verify it has a [=context=] that refers to a [=Field=]
+            - Verify it has a [=prop:fieldValue=] specifying a matching value
+            - If the value is `null`:
+                - Update DB, removing the custom field from the ticket
+            - Otherwise:
+                - Update DB, updating the custom field on the ticket
 
 ### Follow ### {#tt-beh-follow}
 
@@ -4832,23 +5307,24 @@ Behavior:
 
 ### Grant ### {#tt-beh-grant}
 
-*Same as Grant handler for the other Component actors (PatchTracker,
-Repository).*
+*Same as Grant handler for PatchTracker.*
 
 Meanings:
 
 - A Project-in-process is sending me the delegate-Grant
 - A Team-Collaborator-in-process is sending me the delegate-Grant
+- A [=Workflow=] is sending me the direct-Grant
 
 Processes:
 
 - [[#linking-projects-components]]
 - [[#forming-team-resource-link]]
+- [[#s2s-wf-link]]
 
 Behavior:
 
-Check the Grant's [=fulfills=] field, verify it's an [=Add=] activity that I've
-seen:
+Check the Grant's [=fulfills=] field, verify it's an
+[=Add=]/[=Invite=]/[=Join=] activity that I've seen:
 
 - If it's a Project-in-process which is now sending me the delegate-Grant, and
     the previous steps in the process successfully happened:
@@ -4862,9 +5338,38 @@ seen:
     - Insert the Team to my list of Team Collaborators and enable in DB
     - Send the Team a start-Grant, see [[#deleg-step-tr]] step 1
 
+- If it's a [=Workflow=], in which I'm becoming a [=visit=] Collaborator, now
+    sending me the direct-Grant:
+    - Verify I don't have a [=trackerWorkflow=] yet
+    - Set [=trackerWorkflow=] to refer to this [=Workflow=]
+
 ### Invite ### {#tt-beh-invite}
 
-Same as for [=Factory=], see [[#factory-beh-invite]].
+Meanings:
+
+- Someone is inviting someone else to be a collaborator in me
+- Someone is inviting me to be a collaborator in a [=Workflow=]
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#s2s-wf-link]]
+
+Behavior:
+
+- If [=target=] is my [=collaborators=] collection:
+    - Verify the Invite is authorized with [=admin=] access
+    - Verify the [=object=] isn't already a collaborator of me
+    - Publish an [=Accept=] whose [=object=] points to the Invite
+
+Note: The Accept in the last step does NOT indicate that a collaborator has
+been added. It merely signals to the potential collaborator that the Invite is
+authorized, and now they can decide whether to accept/reject/ignore it.
+
+- If [=object=] is me and [=target=] is some [=Workflow=]'s [=collaborators=]
+    collection:
+    - Verify [=instrument=] is [=visit=]
+    - Just insert to my inbox & forward to my followers
 
 ### Join ### {#tt-beh-join}
 
@@ -4889,7 +5394,7 @@ Behavior:
 ### Reject ### {#tt-beh-reject}
 
 *Same as Reject handler for the other Component actors (PatchTracker,
-Repository).*
+Repository, Workflow).*
 
 Meanings:
 
@@ -4923,6 +5428,7 @@ Meanings:
 
 - One of my Collaborators is being removed
 - One of my Team Collaborators is being removed
+- I'm being removed from one of my Projects
 
 Processes:
 
@@ -5090,6 +5596,8 @@ Meanings:
 
 - Someone is deleting their comment on a MR of mine
 - Someone is asking to edit the text of one of my MRs
+- Someone is asking to edit the custom fields of one of my tickets
+- [[#editing-ticket-custom]]
 
 Processes:
 
@@ -5103,10 +5611,21 @@ Behavior:
     - Insert to inbox & forward to my followers & MR followers
 
 - If [=object=] is a [=Ticket=] whose [=context=] is me:
-    - Verify the Edit is authorized with [=triage=] access, OR the [=actor=] is
-        the same actor as the one who submitted the ticket
-    - Update the MR in DB from the Edit [=object=]'s fields: [=summary=],
-        [=source=], [=content=]
+    - If [=object=] has [=summary=] and/or [=content=]:
+        - Verify the Edit is authorized with [=triage=] access, OR the [=actor=]
+            is the same actor as the one who submitted the MR
+        - Update the MR in DB from the Edit [=object=]'s fields:
+            [=summary=], [=source=], [=content=]
+    - If [=object=] specifies only [=customFields=] AND I have a
+        [=trackerWorkflow=] set:
+        - Verify the Edit is authorized with [=triage=] access
+        - For each object listed under [=customFields=]:
+            - Verify it has a [=context=] that refers to a [=Field=]
+            - Verify it has a [=prop:fieldValue=] specifying a matching value
+            - If the value is `null`:
+                - Update DB, removing the custom field from the MR
+            - Otherwise:
+                - Update DB, updating the custom field on the MR
 
 ### Follow ### {#pt-beh-follow}
 
@@ -5133,7 +5652,7 @@ Same as for [=TicketTracker=], see [[#tt-beh-grant]].
 
 ### Invite ### {#pt-beh-invite}
 
-Same as for [=Factory=], see [[#factory-beh-invite]].
+Same as for [=TicketTracker=], see [[#tt-beh-invite]].
 
 ### Join ### {#pt-beh-join}
 
@@ -5163,6 +5682,10 @@ Same as for [=TicketTracker=], see [[#tt-beh-reject]].
 ### Remove ### {#pt-beh-remove}
 
 Same as for [=TicketTracker=], see [[#tt-beh-remove]].
+
+### Revoke ### {#pt-beh-revoke}
+
+Same as for [=TicketTracker=], see [[#tt-beh-revoke]].
 
 ### Resolve ### {#pt-beh-resolve}
 
@@ -5221,6 +5744,417 @@ It's a [=Resolve=] whose [=object=] is one of my closed but not merged MRs:
         - Verify the Undo is authorized with [=triage=] access
         - Send an [=Accept=], see [[#issue-unassign-other]] step 2
 
+## Workflow ## {#wf-beh}
+
+Vervis implementation: None currently
+
+### Accept ### {#wf-beh-accept}
+
+Meanings:
+
+- Someone is becoming a Collaborator in me
+- A Team is becoming a Team Collaborator in me
+- I'm becoming a component of a Project
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=object=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - If [=instrument=] is [=visit=] and [=object=] is a [=TicketTracker=] or a
+        [=PatchTracker=]:
+        - Insert the [=object=] to my [=workflowTrackers=] collection
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - If [=instrument=] is [=visit=] and [=actor=] is a [=TicketTracker=] or a
+        [=PatchTracker=]:
+        - Insert the [=actor=] to my [=workflowTrackers=] collection
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an Add whose [=target=] is my [=teams=] collection,
+    i.e. a Team Collaborator is being added to me and the process is
+    initiated on *our* side:
+    - Error/ignore, we aren't supposed get any Accept
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Option 1: If I haven't yet seen the Team's Accept:
+        Verify the Accept's [=actor=] is the Team
+    - Option 2: If I saw Team's Acccept but not yet my collaborator's
+        Accept: Verify the Accept is authorized with [=admin=] access
+    - Otherwise, error/ignore, no Accept is needed
+    - For option 1: Record Team's Accept in DB
+    - For option 2: Record my collaborator's Accept in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - For option 2, send an Accept, see [[#forming-team-resource-link-t]]
+        step 4
+
+- If it's an Add whose [=target=] is my [=context=] (i.e. projects) collection,
+    i.e. I'm being added to a project and the process is initiated on *our*
+    side:
+    - Nothing to do, just ignore the Accept, waiting for the delegate-Grant
+        from the Project
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Project=] that points back to the collection via
+    its [=components=] field, i.e. I'm being added to a project and the process
+    is initiated on *their* side:
+    - If I haven't yet seen the project's approval:
+        - Verify the author is the project
+        - Insert to my inbox & forward to my followers
+    - If I saw project's approval, but not my collaborators' approval:
+        - Verify the Accept is authorized with [=admin=] access
+        - Insert to my inbox & forward to my followers
+        - Publish an Accept, see [[#linking-projects-components-p]] step 4
+    - If I already saw both approvals, respond with error
+
+### Add ### {#wf-beh-add}
+
+Meanings:
+
+- A Team collaborator is being added to me
+- I'm being added as a component of a Project
+- An [=EnumValue=] is being added to one of my [=Enum=]s
+
+Processes:
+
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#s2s-wf-enum-add]]
+
+Behavior:
+
+- If [=target=] is my [=teams=] collection, i.e. a Team Collaborator is being
+    added to me and the process is initiated on *our* side:
+    - Verify the [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already an active team of mine
+    - Insert the Add to my inbox & forward the Add to my followers
+    - Publish an Accept, see [[#forming-team-resource-link-r]] step 2
+
+- If [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Verify it's not already an active team of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=target=] is my [=context=] (i.e. projects) collection, i.e. I'm being
+    added to a project and the process is initiated on *our* side:
+    - Verify the Add is authorized with [=admin=] access
+    - Verify the [=object=] is a [=Project=]
+    - Verify I'm not yet a component of this Project
+    - Insert to my inbox & forward to my followers
+    - Publish an Accept, see [[#linking-projects-components-c]] step 2
+
+- If [=object=] is me and [=target=] points to a collection whose [=context=]
+    is a [=Project=] that points back to the collection via its [=components=]
+    field, i.e. I'm being added to a project and the process is initiated on
+    *their* side:
+    - Verify I'm not already a component of this Project
+    - Insert to my inbox & forward to my followers
+
+- If [=target=] is my [=enumValues=] collection:
+    - Verify the Add is authorized with [=maintain=] access
+    - Verify [=object=] is a valid [=EnumValue=]
+    - Insert the [=EnumValue=] to my [=enumValues=] collection
+    - Send an [=Accept=], see [[#s2s-wf-enum-add]] step 3
+
+### Delete ### {#wf-beh-delete}
+
+Meanings:
+
+- Someone is asking to delete an [=Enum=] of mine
+- Someone is asking to delete an [=Field=] of mine
+- Someone is asking to delete me
+
+Processes:
+
+- [[#s2s-enum-delete]]
+- [[#s2s-field-delete]]
+- [[#deleting-resource-actors]]
+
+Behavior:
+
+- If [=object=] is an [=Enum=] of mine and [=origin=] is me:
+    - Verify the Delete is authorized with [=maintain=] access
+    - Verify none of my [=Field=]s are using this [=Enum=]
+    - Delete the Enum from DB, such that GET requests for it now return 404 or
+        410 status
+    - Send an [=Accept=], see [[#s2s-enum-delete]] step 4
+
+- If [=object=] is an [=Field=] of mine and [=origin=] is me:
+    - Verify the Delete is authorized with [=maintain=] access
+    - Delete the Field from DB, such that GET requests for it now return 404 or
+        410 status
+    - Send an [=Accept=], see [[#s2s-field-delete]] step 3
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
+
+### Edit ### {#wf-beh-edit}
+
+Meanings:
+
+- Someone is asking to edit my name and/or description
+
+Processes:
+
+- [[#editing-workflow]]
+
+Behavior:
+
+Check the [=object=]'s [=id=].
+
+- If it's me:
+    - Verify the Edit is authorized with [=admin=] access
+    - Update me in DB from the Edit [=object=]'s fields: [=name=], [=summary=]
+
+- If it's a [=Field=] of mine:
+    - Verify the Edit is authorized with [=maintain=] access
+    - Update the [=Field=] in DB from the Edit [=object=]'s fields: [=name=],
+        [=summary=], [=fieldColor=]
+
+- If it's an [=Enum=] of mine:
+    - Verify the Edit is authorized with [=maintain=] access
+    - Update the [=Enum=] in DB from the Edit [=object=]'s fields: [=name=],
+        [=summary=], [=enumIsOrdered=]. If [=enumIsOrdered=] is being set to
+        `false`, order the values by the order in which the values were
+        created, first to last.
+
+- If it's an [=EnumValue=] of mine:
+    - Verify the Edit is authorized with [=maintain=] access
+    - Update the [=EnumValue=] in DB from the Edit [=object=]'s fields:
+        [=name=], [=summary=], [=enumValueColor=]
+
+### Follow ### {#wf-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#wf-beh-grant}
+
+Meanings:
+
+- A Project-in-process is sending me the delegate-Grant
+- A Team-Collaborator-in-process is sending me the delegate-Grant
+
+Processes:
+
+- [[#linking-projects-components]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+Check the Grant's [=fulfills=] field, verify it's an [=Add=] activity that I've
+seen:
+
+- If it's a Project-in-process which is now sending me the delegate-Grant, and
+    the previous steps in the process successfully happened:
+    - Insert the Project to my list of Projects and enable in DB
+    - Send the Project a start-Grant, see [[#linking-projects-components-c]]
+        step 5 or [[#linking-projects-components-p]] step 6
+
+- If it's a Team-Collaborator-in-process which is now sending me the
+    delegate-Grant, and the previous steps in the process successfully
+    happened:
+    - Insert the Team to my list of Team Collaborators and enable in DB
+    - Send the Team a start-Grant, see [[#deleg-step-tr]] step 1
+
+### Invite ### {#wf-beh-invite}
+
+Same as for [=Factory=], see [[#factory-beh-invite]].
+
+### Join ### {#wf-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Move ### {#wf-beh-move}
+
+Meanings:
+
+- I'm requested to update the order of values in one of my [=Enum=]s
+- I'm requested to update the order of my [=Fields=]s
+
+Processes:
+
+- [[#s2s-wf-enum-reorder]]
+- [[#s2s-wf-field-reorder]]
+
+Behavior:
+
+- If [=object=] is an [=EnumValue=] within one of my [=Enum=]s:
+    - Verify the Move is authorized with [=maintain=] access
+    - Verify the Enum's [=enumIsOrdered=] is `true`
+    - If [=originPosition=] is specified, verify it's the current 1-based
+        position of the value referred by [=object=]
+    - If [=target=] is specified, verify it refers to the item that is
+        currently at the 1-based position pointed by [=targetPositionAfter=]
+    - Update the Enum's value list, moving the value to the position after the
+        1-based index indicated by [=targetPositionAfter=] (0 means move to the
+        beginning)
+    - Send an [=Accept=], see [[#s2s-wf-enum-reorder]] step 3
+
+- If [=object=] is one of my [=Field=]s:
+    - Verify the Move is authorized with [=maintain=] access
+    - If [=originPosition=] is specified, verify it's the current 1-based
+        position of the field referred by [=object=]
+    - If [=target=] is specified, verify it refers to the item that is
+        currently at the 1-based position pointed by [=targetPositionAfter=]
+    - Update my fields list, moving the field to the position after the 1-based
+        index indicated by [=targetPositionAfter=] (0 means move to the
+        beginning)
+    - Send an [=Accept=], see [[#s2s-wf-field-reorder]] step 3
+
+### Offer ### {#wf-beh-offer}
+
+Meanings:
+
+- Someone is submitting a new [=Enum=]
+- Someone is submitting a new [=Field=]
+
+Processes:
+
+- [[#s2s-wf-enum-create]]
+- [[#s2s-wf-field-create]]
+
+Behavior:
+
+- If [=target=] is me and [=object=] is an [=Enum=]:
+    - Verify the Offer is authorized with [=maintain=] access
+    - Store new Enum in DB
+    - Publish an [=Accept=], see [[#s2s-wf-enum-create]] step 3
+
+- If [=target=] is me and [=object=] is a [=Field=]:
+    - Verify the Offer is authorized with [=maintain=] access
+    - Store new Field in DB
+    - Publish an [=Accept=], see [[#s2s-wf-field-create]] step 3
+
+### Reject ### {#wf-beh-reject}
+
+Same as for [=TicketTracker=], see [[#tt-beh-reject]].
+
+### Remove ### {#wf-beh-remove}
+
+Meanings:
+
+- One of my Collaborators is being removed
+- One of my Team Collaborators is being removed
+- I'm being removed from one of my Projects
+- One of my [=EnumValue=]s is being removed
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#s2s-wf-enum-remove]]
+
+Behavior:
+
+- If [=origin=] is my [=collaborators=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my collaborators
+    - Remove the [=object=] actor from my list of collaborators and invalidate
+        the direct-Grant I had sent them
+    - If [=object=] appears in my [=workflowTrackers=] collection, remove it
+        from there
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+
+- If [=origin=] is my [=context=] (i.e. projects) collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of the projects in which I'm a component
+    - Remove the [=object=] actor from my list of projects and invalidate the
+        start-Grant I had sent it
+    - Publish an [=Revoke=], see [[#unlinking-projects-components-c]] step 2
+
+- If [=origin=] is my [=teams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my Team Collaborators
+    - Remove the [=object=] actor from my list of Team Collaborators and
+        invalidate the start-Grant I had sent it
+    - Publish an [=Accept=], see [[#removing-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=components=] collection of a Project of mine:
+        - Just forward to my followers
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=teamResources=] collection of a Team Collaborator of mine:
+        - Nothing to do, just waiting for the Team to send a Revoke on the
+            delegate-Grant it had sent me
+
+- If [=origin=] is the [=enumValues=] collection of one of my [=Enum=]s:
+    - Verify [=object=] refers to one of the [=EnumValues=] of that [=Enum=]
+    - Verify the Remove is authorized with [=maintain=] access
+    - Remove the value from the Enum's list of values
+    - Send an [=Accept=], see [[#s2s-wf-enum-remove]] step 3
+
+### Undo ### {#wf-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me or one of my MRs:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
+<!-- -------------------------------------------------------------------------
+
+        #####
+ ####  #     #  ####
+#    #       # #
+#       #####   ####
+#      #            #
+#    # #       #    #
+ ####  #######  ####
+
+-------------------------------------------------------------------------- -->
+
 # Client to Server Interactions
 
 Issue: This section is about how a human or bot can interact with the system by
@@ -5245,6 +6179,17 @@ The Push activity is used to notify followers when somebody has pushed changes
 to a Repository.
 The client MUST send a Push activity to the Repository's outbox. The server
 in turn delivers the message to the Repository followers.
+
+<!-- -------------------------------------------------------------------------
+
+#####  #####  ######  ####  ###### #    #  ####    ##   ##### #  ####  #    #
+#    # #    # #      #      #      ##   # #       #  #    #   # #    # ##   #
+#    # #    # #####   ####  #####  # #  #  ####  #    #   #   # #    # # #  #
+#####  #####  #           # #      #  # #      # ######   #   # #    # #  # #
+#      #   #  #      #    # #      #   ## #    # #    #   #   # #    # #   ##
+#      #    # ######  ####  ###### #    #  ####  #    #   #   #  ####  #    #
+
+-------------------------------------------------------------------------- -->
 
 # Actor and Resource Representation
 
@@ -6014,6 +6959,109 @@ Properties:
 </xmp>
 </div>
 
+## EnumValue ## {#model-enum-value}
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=EnumValue=]
+[=name=]:
+    Plain-text name for the value.
+[=summary=]:
+    A one-line description, as HTML-escaped plain text.
+[=published=]:
+    The time the value was created on the server.
+[=enumValueColor=]:
+    RGB background color to use when displaying the value's name.
+[=context=]:
+    The [=Enum=] that this value belongs to.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+## Enum ## {#model-enum}
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Enum=]
+[=name=]:
+    Plain-text name for the enum.
+[=enumIsOrdered=]:
+    Boolean. Whether the enum value order matters or not.
+[=enumValues=]:
+    [=OrderedCollection=] of [=EnumValue=]s. If [=enumIsOrdered=] is false, the
+    collection order is the order in which the values were created, first to
+    last.
+[=summary=]:
+    A one-line description, as HTML-escaped plain text.
+[=published=]:
+    The time the enum was created on the server.
+[=context=]:
+    The [=Workflow=] that this enum belongs to.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+## Field ## {#model-field}
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Field=]
+[=name=]:
+    Plain-text name for the field.
+[=summary=]:
+    A one-line description, as HTML-escaped plain text.
+[=prop:fieldType=]:
+    The field's type.
+[=instrument=]:
+    If [=prop:fieldType=] is [=fieldTypeEnum=], specifies the specific [=Enum=].
+[=fieldColor=]:
+    RGB background color to use when displaying the field's name, and possibly
+    its value as well.
+[=published=]:
+    The time the field was created on the server.
+[=context=]:
+    The [=Workflow=] that this field belongs to.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+<!-- -------------------------------------------------------------------------
+
+  ##    ####   ####  ######  ####   ####
+ #  #  #    # #    # #      #      #
+#    # #      #      #####   ####   ####
+###### #      #      #           #      #
+#    # #    # #    # #      #    # #    #
+#    #  ####   ####  ######  ####   ####
+
+
+ ####   ####  #    # ##### #####   ####  #
+#    # #    # ##   #   #   #    # #    # #
+#      #    # # #  #   #   #    # #    # #
+#      #    # #  # #   #   #####  #    # #
+#    # #    # #   ##   #   #   #  #    # #
+ ####   ####  #    #   #   #    #  ####  ######
+
+-------------------------------------------------------------------------- -->
+
 # Access Control
 
 ## Giving Access
@@ -6343,6 +7391,17 @@ Properties:
     A previously published `Grant`, giving the `actor` permission to disable
     the [=object=] actor's access to the resource
 </pre>
+
+<!-- -------------------------------------------------------------------------
+
+#    #  ####   ####    ##   #####  #    # #        ##   #####  #   #
+#    # #    # #    #  #  #  #    # #    # #       #  #  #    #  # #
+#    # #    # #      #    # #####  #    # #      #    # #    #   #
+#    # #    # #      ###### #    # #    # #      ###### #####    #
+ #  #  #    # #    # #    # #    # #    # #      #    # #   #    #
+  ##    ####   ####  #    # #####   ####  ###### #    # #    #   #
+
+-------------------------------------------------------------------------- -->
 
 # Vocabulary # {#vocab}
 
@@ -6719,6 +7778,21 @@ Description:
 </xmp>
 </div>
 
+<pre class=simpledef>
+Name: <dfn dfn export>Workflow</dfn>
+URI: https://forgefed.org/ns#Workflow
+Extends: [=Object=]
+Description:
+    Manages a set of custom labels and properties of tickets and MRs, as well
+    as the possible transitions between property values.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
 #### Organizational structure tools
 
 <pre class=simpledef>
@@ -7081,6 +8155,109 @@ Description:
 </xmp>
 </div>
 
+<pre class=simpledef>
+Name: <dfn dfn export>Enum</dfn>
+URI: https://forgefed.org/ns#Enum
+Extends: [=Object=]
+Description:
+    Represents a set of named values.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>EnumValue</dfn>
+URI: https://forgefed.org/ns#EnumValue
+Extends: [=Object=]
+Description:
+    Represents a single named value within an [=Enum=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<!--
+
+<pre class=simpledef>
+Name: <dfn dfn export>EnumTransition</dfn>
+URI: https://forgefed.org/ns#EnumTransition
+Extends: [=Object=]
+Description:
+    Represents an allowed transition between values of a specific [=Enum=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>EnumTransitionSet</dfn>
+URI: https://forgefed.org/ns#EnumTransitionSet
+Extends: [=Object=]
+Description:
+    Represents a set of allowed transitions between values of a specific
+    [=Enum=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+-->
+
+<pre class=simpledef>
+Name: <dfn dfn export>Field</dfn>
+URI: https://forgefed.org/ns#Field
+Extends: [=Object=]
+Description:
+    Represents a custom ticket field within a [=Workflow=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>FieldType</dfn>
+URI: https://forgefed.org/ns#FieldType
+Extends: [=Object=]
+Description:
+    Represents the type of a [=Field=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>FieldValue</dfn>
+URI: https://forgefed.org/ns#FieldValue
+Extends: [=Object=]
+Description:
+    Specifies a value of a [=Field=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
 ## Properties
 
 ### General-purpose
@@ -7187,6 +8364,44 @@ Description:
     "content": "I agree!!111",
     "currentVersion": "https://dev.example/aviva/notes/107"
 }
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>originPosition</dfn>
+URI: https://forgefed.org/ns#originPosition
+Domain: [=Move=]
+Range: `xsd:nonNegativeInteger`
+Functional: Yes
+Inverse of: None
+Description:
+    When moving an element in an ordered list, indicates the origin position
+    from which the element is moved.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=10>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>targetPositionAfter</dfn>
+URI: https://forgefed.org/ns#targetPositionAfter
+Domain: [=Move=]
+Range: `xsd:nonNegativeInteger`
+Functional: Yes
+Inverse of: None
+Description:
+    Indicates in which position in a list to place a certain element. 1 means
+    "place after the element that is currently the first", 2 means "place after
+    the element that is currently the 2nd", and so on. 0 means "place before
+    the first element".
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=10>
+TODO
 </xmp>
 </div>
 
@@ -7603,6 +8818,42 @@ Description:
     Identifies a [=Collection=] of [=TicketDependency=] which specify tickets
     that depends on this [=Ticket=], i.e. this ticket is the [=object=] of the
     [=dependsOn=] relationship. Often called "reverse dependencies".
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+### Ticket fields
+
+<pre class=simpledef>
+Name: <dfn dfn export>customFields</dfn>
+URI: https://forgefed.org/ns#customFields
+Domain: [=Object=]
+Range: [=FieldValue=]
+Functional: No
+Inverse of: None
+Description:
+    Specifies a custom field on a ticket.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export lt="prop:fieldValue">fieldValue</dfn>
+URI: https://forgefed.org/ns#fieldValue
+Domain: [=FieldValue=]
+Range: Any
+Functional: Yes
+Inverse of: None
+Description:
+    Specifies the value ofa custom field.
 </pre>
 
 <div class=example>
@@ -8434,6 +9685,170 @@ Description:
 </xmp>
 </div>
 
+### Workflow enums
+
+<pre class=simpledef>
+Name: <dfn dfn export>enumValueColor</dfn>
+URI: https://forgefed.org/ns#enumValueColor
+Domain: [=EnumValue=]
+Range:
+    `xsd:string` that begins with `#` and then exactly 6 hexadecimal digits,
+    representing a RGB color.
+Functional: Yes
+Inverse of: None
+Description:
+    For a given [=EnumValue=], identifies the color associated with it.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>enumValues</dfn>
+URI: https://forgefed.org/ns#enumValues
+Domain: [=Enum=]
+Range: An [=OrderedCollection=] whose items are of type [=EnumValue=]
+Functional: Yes
+Inverse of: None, but [=context=] is used for that
+Description:
+    For a given [=Enum=], identifies the list of possible values it has.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>enumIsOrdered</dfn>
+URI: https://forgefed.org/ns#enumIsOrdered
+Domain: [=Enum=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    For a given [=Enum=], indicates whether its values have an ordering
+    relation, or they're an unordered set.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+### Workflow fields
+
+<pre class=simpledef>
+Name: <dfn dfn export lt="prop:fieldType">fieldType</dfn>
+URI: https://forgefed.org/ns#fieldType
+Domain: [=Field=]
+Range: [=FieldType=]
+Functional: Yes
+Inverse of: None
+Description:
+    For a given [=Field=], specifies its type.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>fieldColor</dfn>
+URI: https://forgefed.org/ns#fieldColor
+Domain: [=Field=]
+Range:
+    `xsd:string` that begins with `#` and then exactly 6 hexadecimal digits,
+    representing a RGB color.
+Functional: Yes
+Inverse of: None
+Description:
+    For a given [=Field=], identifies the color associated with it.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+### Workflows
+
+<pre class=simpledef>
+Name: <dfn dfn export>workflowEnums</dfn>
+URI: https://forgefed.org/ns#workflowEnums
+Domain: [=Workflow=]
+Range: [=OrderedCollection=], ordered by publishing time, of [=Enum=] objects
+Functional: Yes
+Inverse of: None, but [=context=] is used for that
+Description:
+    For a given [=Workflow=], specifies its set of enum types.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>workflowFields</dfn>
+URI: https://forgefed.org/ns#workflowFields
+Domain: [=Workflow=]
+Range: [=OrderedCollection=] of [=Field=] objects
+Functional: Yes
+Inverse of: None, but [=context=] is used for that
+Description:
+    For a given [=Workflow=], specifies its set of custom fields.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>workflowTrackers</dfn>
+URI: https://forgefed.org/ns#workflowTrackers
+Domain: [=Workflow=]
+Range: [=OrderedCollection=] of [=TicketTracker=] and [=PatchTracker=] objects
+Functional: Yes
+Inverse of: None, but see [=trackerWorkflow=]
+Description:
+    For a given [=Workflow=], specifies the trackers it is serving.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>trackerWorkflow</dfn>
+URI: https://forgefed.org/ns#trackerWorkflow
+Domain: [=TicketTracker=] | [=PatchTracker=]
+Range: [=Workflow=]
+Functional: Yes
+Inverse of: None, but see [=workflowTrackers=]
+Description:
+    For a given tracker, specifies the workflow it uses for custom fields.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
 ## Values
 
 ### Capability uses
@@ -8596,6 +10011,57 @@ Description:
     delegations to the [=Grant=] sender (i.e. [=actor=])
 </pre>
 
+### Field Types
+
+<pre class=simpledef>
+Name: <dfn dfn export>fieldTypeText</dfn>
+URI: https://forgefed.org/ns#fieldTypeText
+Type: [=FieldType=]
+Description:
+    Text. Any JSON text string. Example: `"hello"`.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>fieldTypeInteger</dfn>
+URI: https://forgefed.org/ns#fieldTypeInteger
+Type: [=FieldType=]
+Description:
+    Any integral numeric literal. Example: `42`.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>fieldTypeRational</dfn>
+URI: https://forgefed.org/ns#fieldTypeRational
+Type: [=FieldType=]
+Description:
+    Any numeric literal. Example: `3.14`.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>fieldTypeBoolean</dfn>
+URI: https://forgefed.org/ns#fieldTypeBoolean
+Type: [=FieldType=]
+Description:
+    A boolean value. Examples: `true`, `false`.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>fieldTypeClass</dfn>
+URI: https://forgefed.org/ns#fieldTypeClass
+Type: [=FieldType=]
+Description:
+    No value. The presence or absence of the field itself is the information.
+    Can be used for representing simple issue labels.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>fieldTypeEnum</dfn>
+URI: https://forgefed.org/ns#fieldTypeEnum
+Type: [=FieldType=]
+Description:
+    A certain specific [=Enum=].
+</pre>
+
 <pre class=biblio>
 {
     "wikipedia-ticket-tracker": {
@@ -8625,6 +10091,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: Invite
     text: Join
     text: Leave
+    text: Move
     text: Offer
     text: Reject
     text: Remove
