@@ -321,6 +321,69 @@ However, ForgeFed adds certain elements:
     valid [=capability=]. For publicly visible objects (such as public projects
     on typical FOSS code hosting platforms), the [=capability=] MAY be omitted.
 
+## Starring ## {#s2s-star}
+
+On some forges, it's possible to "star" a repository, and repositories display
+their count of stars given.
+
+In a federated network, there's a risk of bot servers producing large amount of
+stars on a certain repository, making it appear popular, and even misleading
+people by serving supposedly-popular exact copies of (really) popular software
+projects, except e.g. patched with malware.  Thus, care needs to be taken in
+order to avoid such confusion.
+
+Another consideration is that [=Repository=] and [=Project=] and distinct
+notions in ForgeFed. Which one would be starred? The repo or the project? What
+if a project contains multiple repos? And what if someone wants to star the
+project as a whole? Thus, we allow both.
+
+### Add a star ### {#s2s-star-add}
+
+Minimal required role: [=visit=]
+
+Given:
+
+- A [=Project=] or [=Repository=], *R*
+- A [=Person=] with [=visit=] access to *R*, Alice
+
+Alice can add her star to *R*'s star count via the following steps:
+
+1. Alice sends *R* a [=Like=] activity in which:
+    - [=object=] refers to *R*
+    - [=capability=] refers to a [=Grant=] activity that gives the relevant
+        access (unless *R* is considered a publicly visible resource and then
+        [=capability=] can be omitted)
+2. *R* verifies authorization, and that Alice hasn't already [=Like=]d *R*
+3. *R* inserts the [=Like=] to its [=likes=] collection and increments the
+    collection's [=totalItems=] count
+4. If a [=capability=] was specified, *R* SHOULD send Alice an [=Accept=] whose
+    [=object=] refers to the [=Like=]. If [=capability=] wasn't specified, *R*
+    MAY send such an [=Accept=].
+
+### Remove a star ### {#s2s-star-remove}
+
+Minimal required role: [=visit=]
+
+Given:
+
+- A [=Project=] or [=Repository=], *R*
+- A [=Person=] with [=visit=] access to *R*, Alice, who has [=Like=]d *R*
+
+Alice can remove her star from *R*'s star count via the following steps:
+
+1. Alice sends *R* an [=Undo=] activity whose [=object=] is a [=Like=] activity
+    in which:
+    - [=object=] refers to *R*
+    - [=capability=] refers to a [=Grant=] activity that gives the relevant
+        access (unless *R* is considered a publicly visible resource and then
+        [=capability=] can be omitted)
+2. *R* verifies authorization, and that Alice has indeed [=Like=]d *R*
+3. *R* removes Alice's past [=Like=] from its [=likes=] collection and
+    decrements the collection's [=totalItems=] count
+4. If a [=capability=] was specified, *R* SHOULD send Alice an [=Accept=] whose
+    [=object=] refers to the [=Undo=]. If [=capability=] wasn't specified, *R*
+    MAY send such an [=Accept=].
+
 ## Reporting Pushed Commits ## {#pushing}
 
 - Role required for pushing: [=write=]
@@ -615,7 +678,7 @@ Minimal required role: [=admin=]
 2. *T* deletes *t* such that GET requests for *t* get a 404 or 410 response
 3. *T* publishes an [=Accept=] whose [=object=] points to the [=Delete=]
 
-## Merge Requests
+## Merge Requests ## {#s2s-mr}
 
 ### Open ### {#opening-mr}
 
@@ -1085,6 +1148,74 @@ A Merge Request can be unassigned in the same process as for issues. See
 
 A Merge Request may be deleted. It is the same process as for issues, see
 [[#deleting-issue]].
+
+## Issue and MR Dependencies ## {#s2s-dep}
+
+Issues and Merge Requests may have various relationships to other issues/MRs.
+This section talks about [=Ticket=] dependencies, and is relevant to both
+issues and MRs. It's also possible for an issue to depend on a MR and vice
+versa.
+
+A dependency between [=Ticket=]s doesn't require consent of both sides. It
+requires consent only from the "parent", i.e. the ticket that depends on
+another ticket (the latter is therefore the "child").
+
+### Add ### {#s2s-dep-add}
+
+Minimal required role: [=triage=]
+
+Given:
+
+- A [=TicketTracker=] or [=PatchTracker=], *P*
+- A [=TicketTracker=] or [=PatchTracker=], *C*
+- *P* and *C* may be the same actor or be different actors
+- A [=Ticket=] under *P*, *p*
+- A [=Ticket=] under *C*, *c*
+- An actor with [=triage=] access to *P*, Alice
+
+Alice may create a dependency of *p* on *c* via the following steps:
+
+1. Alice sends *P* and *C* an [=Offer=] activity where:
+    - [=target=] refers to *P*
+    - [=object=] is an object where:
+        - [=type=] is [=TicketDependency=]
+        - [=subject=] refers to *p*
+        - [=relationship=] is [=dependsOn=]
+        - [=object=] refers to *c*
+    - [=capability=] refers to a [=Grant=] authorizing the operation
+2. *P* validates the authorization and inserts the [=TicketDependency=] object
+    to *p*'s [=dependencies=] collection, assigning it an [=id=]
+3. *P* sends an [=Accept=] activity where:
+    - [=object=] refers to the [=Offer=]
+    - [=result=] refers to the new [=TicketDependency=]
+4. *C*, seeing the [=Offer=] and the [=Accept=], inserts the
+    [=TicketDependency=] to *c*'s [=dependants=] collection
+
+### Remove ### {#s2s-dep-remove}
+
+Minimal required role: [=triage=]
+
+Given:
+
+- A [=TicketTracker=] or [=PatchTracker=], *P*
+- A [=TicketTracker=] or [=PatchTracker=], *C*
+- *P* and *C* may be the same actor or be different actors
+- A [=Ticket=] under *P*, *p*
+- A [=Ticket=] under *C*, *c*
+- An actor with [=triage=] access to *P*, Alice
+- *p* depends on *c*
+
+Alice may remove the dependency of *p* on *c* via the following steps:
+
+1. Alice sends *P* and *C* a [=Delete=] activity where:
+    - [=origin=] refers to *P*
+    - [=object=] refers to the [=TicketDependency=]
+    - [=capability=] refers to a [=Grant=] authorizing the operation
+2. *P* validates the authorization and removes the [=TicketDependency=] object
+    from *p*'s [=dependencies=] collection
+3. *P* sends an [=Accept=] activity where [=object=] refers to the [=Delete=]
+4. *C*, seeing the [=Delete=] and the [=Accept=], removes the
+    [=TicketDependency=] from *c*'s [=dependants=] collection
 
 ## Commenting ## {#commenting}
 
@@ -4712,6 +4843,26 @@ Same as for [=Factory=], see [[#factory-beh-invite]].
 
 Same as for [=Factory=], see [[#factory-beh-join]].
 
+### Like ### {#project-beh-like}
+
+Meanings:
+
+- Someone wants to star me
+
+Processes:
+
+- [[#s2s-star]]
+
+Behavior:
+
+- Verify the [=Like=] is authorized with [=visit=] access (unless I'm
+    considered a public resource and then the [=capability=] can be omitted)
+- Verify [=actor=] is a [=Person=]
+- Verify the [=actor=] hasn't already Liked me
+- Insert the [=Like=] to my [=likes=] collection
+- If [=capability=] was specified:
+    - Send back an [=Accept=], see [[#s2s-star-add]] step 4
+
 ### Reject ### {#project-beh-reject}
 
 Same as for [=TicketTracker=], see [[#tt-beh-reject]].
@@ -4799,10 +4950,12 @@ Behavior:
 Meanings:
 
 - Someone is asking to unfollow me
+- Someone wants to unstar me
 
 Processes:
 
 - [[#following]]
+- [[#s2s-star]]
 
 Behavior:
 
@@ -4812,6 +4965,14 @@ Check the Undo's [=object=].
     - Verify the [=actor=] is a follower of the Follow's [=object=]
     - Remove [=actor=] from the list of followers of the Follow's [=object=]
     - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
+- If it's a [=Like=] whose [=object=] is me:
+    - Verify the [=Like=] is authorized with [=visit=] access (unless I'm
+        considered a public resource and then the [=capability=] can be omitted)
+    - Verify the [=actor=] has Liked me
+    - Remove the [=actor=]'s past [=Like=] from my [=likes=] collection
+    - If [=capability=] was specified:
+        - Send back an [=Accept=], see [[#s2s-star-remove]] step 4
 
 ## Repository ## {#repo-iface}
 
@@ -4972,6 +5133,26 @@ Same as for [=Factory=], see [[#factory-beh-invite]].
 
 Same as for [=Factory=], see [[#factory-beh-join]].
 
+### Like ### {#repo-beh-like}
+
+Meanings:
+
+- Someone wants to star me
+
+Processes:
+
+- [[#s2s-star]]
+
+Behavior:
+
+- Verify the [=Like=] is authorized with [=visit=] access (unless I'm
+    considered a public resource and then the [=capability=] can be omitted)
+- Verify [=actor=] is a [=Person=]
+- Verify the [=actor=] hasn't already Liked me
+- Insert the [=Like=] to my [=likes=] collection
+- If [=capability=] was specified:
+    - Send back an [=Accept=], see [[#s2s-star-add]] step 4
+
 ### Reject ### {#repo-beh-reject}
 
 Same as for [=TicketTracker=], see [[#tt-beh-reject]].
@@ -5004,10 +5185,12 @@ Behavior:
 Meanings:
 
 - Someone is asking to unfollow me
+- Someone wants to unstar me
 
 Processes:
 
 - [[#following]]
+- [[#s2s-star]]
 
 Behavior:
 
@@ -5017,6 +5200,14 @@ Check the Undo's [=object=].
     - Verify the [=actor=] is a follower of the Follow's [=object=]
     - Remove [=actor=] from the list of followers of the Follow's [=object=]
     - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
+- If it's a [=Like=] whose [=object=] is me:
+    - Verify the [=Like=] is authorized with [=visit=] access (unless I'm
+        considered a public resource and then the [=capability=] can be omitted)
+    - Verify the [=actor=] has Liked me
+    - Remove the [=actor=]'s past [=Like=] from my [=likes=] collection
+    - If [=capability=] was specified:
+        - Send back an [=Accept=], see [[#s2s-star-remove]] step 4
 
 ## TicketTracker ## {#tt-iface}
 
@@ -5034,6 +5225,7 @@ Meanings:
 - I'm becoming a component of a Project
 - Someone is being assigned to one of my tickets
 - I'm becoming a collaborator in a [=Workflow=]
+- A dependency on one of my tickets is being added or removed
 
 Processes:
 
@@ -5043,6 +5235,7 @@ Processes:
 - [[#linking-projects-components]]
 - [[#issue-assign]]
 - [[#s2s-wf-link]]
+- [[#s2s-dep]]
 
 Behavior:
 
@@ -5131,6 +5324,18 @@ Check the Accept's [=object=] as follows.
     - Verify Accept [=actor=] is the [=Workflow=]
     - Verify I don't have a [=trackerWorkflow=]
     - Send an [=Accept=], see [[#access-via-invite]] step 2
+
+- If it's an [=Offer=] I've seen, of a [=TicketDependency=] where one of my
+    tickets is the child:
+    - Verify the [=actor=] is the parent ticket's tracker
+    - Insert the [=TicketDependency=], referred by the Accept's [=result=], to
+        the child's [=dependants=] collection
+
+- If it's an [=Delete=] I've seen, of a [=TicketDependency=] where one of my
+    tickets is the child:
+    - Verify the [=actor=] is the parent ticket's tracker
+    - Remove the [=TicketDependency=] from the child's [=dependants=]
+        collection
 
 ### Add ### {#tt-beh-add}
 
@@ -5224,12 +5429,14 @@ Meanings:
 - Someone is deleting their comment on a ticket of mine
 - Someone is asking to delete a ticket of mine
 - Someone is asking to delete me
+- Someone is removing a ticket dependency
 
 Processes:
 
 - [[#commenting]]
 - [[#deleting-issue]]
 - [[#deleting-resource-actors]]
+- [[#s2s-dep-remove]]
 
 Behavior:
 
@@ -5248,6 +5455,23 @@ Behavior:
     - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
+
+- If [=origin=] is me and [=object=] is a [=TicketDependency=]:
+    - Verify the Delete is authorized with [=triage=] access
+    - Verify it's a [=TicketDependency=] I'm hosting, whose [=subject=] is one
+        of my tickets
+    - Remove the [=TicketDependency=] from the [=subject=]'s [=dependencies=]
+        collection
+    - Send an [=Accept=], see [[#s2s-dep-remove]] step 3
+    - If the [=TicketDependency=]'s [=object=] is one of my tickets:
+        - Remove the [=TicketDependency=] from the [=object=]'s [=dependants=]
+            collection
+
+- If [=origin=] isn't me and [=object=] is a [=TicketDependency=]:
+    - Verify the [=TicketDependency=]'s [=object=] is one of my tickets
+    - Verify the [=TicketDependency=] is listed in the ticket's [=dependants=]
+        collection
+    - Just insert to my inbox & forward to my followers
 
 ### Edit ### {#tt-beh-edit}
 
@@ -5380,16 +5604,34 @@ Same as for [=Factory=], see [[#factory-beh-join]].
 Meanings:
 
 - Someone is submitting a new ticket
+- Someone is submitting a ticket dependency
 
 Processes:
 
 - [[#opening-issue]]
+- [[#s2s-dep-add]]
 
 Behavior:
 
-- Verify the [=target=] is me and [=object=] is a [=Ticket=]
-- Create new Ticket in DB
-- Publish an [=Accept=], see [[#opening-issue]]
+- If [=target=] is me and [=object=] is a [=Ticket=]:
+    - Create new Ticket in DB
+    - Publish an [=Accept=], see [[#opening-issue]]
+
+- If [=target=] is me and [=object=] is a [=TicketDependency=]:
+    - Verify the Offer is authorized with [=triage=] access
+    - Verify the [=TicketDependency=]'s [=subject=] is one of my tickets
+    - Verify the [=TicketDependency=]'s [=relationship=] is [=dependsOn=]
+    - Insert the [=TicketDependency=] to the [=subject=]'s [=dependencies=]
+        collection
+    - Send an [=Accept=], see [[#s2s-dep-add]] step 3
+    - If the [=TicketDependency=]'s [=object=] is one of my tickets:
+        - Insert the [=TicketDependency=] to the [=object=]'s [=dependants=]
+            collection
+
+- If [=target=] isn't me and [=object=] is a [=TicketDependency=]:
+    - Verify the [=TicketDependency=]'s [=object=] is one of my tickets
+    - Verify the [=TicketDependency=]'s [=relationship=] is [=dependsOn=]
+    - Just insert to my inbox & forward to my followers
 
 ### Reject ### {#tt-beh-reject}
 
@@ -5565,12 +5807,14 @@ Meanings:
 - Someone is deleting their comment on a MR of mine
 - Someone is asking to delete a MR of mine
 - Someone is asking to delete me
+- Someone is removing a ticket dependency
 
 Processes:
 
 - [[#commenting]]
 - [[#deleting-mr]]
 - [[#deleting-resource-actors]]
+- [[#s2s-dep-remove]]
 
 Behavior:
 
@@ -5589,6 +5833,23 @@ Behavior:
     - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
+
+- If [=origin=] is me and [=object=] is a [=TicketDependency=]:
+    - Verify the Delete is authorized with [=triage=] access
+    - Verify it's a [=TicketDependency=] I'm hosting, whose [=subject=] is one
+        of my MRs
+    - Remove the [=TicketDependency=] from the [=subject=]'s [=dependencies=]
+        collection
+    - Send an [=Accept=], see [[#s2s-dep-remove]] step 3
+    - If the [=TicketDependency=]'s [=object=] is one of my MRs:
+        - Remove the [=TicketDependency=] from the [=object=]'s [=dependants=]
+            collection
+
+- If [=origin=] isn't me and [=object=] is a [=TicketDependency=]:
+    - Verify the [=TicketDependency=]'s [=object=] is one of my MRs
+    - Verify the [=TicketDependency=] is listed in the MRs's [=dependants=]
+        collection
+    - Just insert to my inbox & forward to my followers
 
 ### Edit ### {#pt-beh-edit}
 
@@ -5663,17 +5924,35 @@ Same as for [=Factory=], see [[#factory-beh-join]].
 Meanings:
 
 - Someone is submitting a new MR
+- Someone is submitting a ticket dependency
 
 Processes:
 
 - [[#opening-mr]]
+- [[#s2s-dep-add]]
 
 Behavior:
 
-- Verify the [=target=] is me and [=object=] is a [=Ticket=] with an
-    [=attachment=], see [[#opening-mr]] step 3
-- Create new MR in DB
-- Publish an [=Accept=] on the [=Offer=], see [[#opening-mr]]
+- If [=target=] is me and [=object=] is a [=Ticket=] with an [=attachment=],
+    see [[#opening-mr]] step 3:
+    - Create new MR in DB
+    - Publish an [=Accept=] on the [=Offer=], see [[#opening-mr]]
+
+- If [=target=] is me and [=object=] is a [=TicketDependency=]:
+    - Verify the Offer is authorized with [=triage=] access
+    - Verify the [=TicketDependency=]'s [=subject=] is one of my MRs
+    - Verify the [=TicketDependency=]'s [=relationship=] is [=dependsOn=]
+    - Insert the [=TicketDependency=] to the [=subject=]'s [=dependencies=]
+        collection
+    - Send an [=Accept=], see [[#s2s-dep-add]] step 3
+    - If the [=TicketDependency=]'s [=object=] is one of my MRs:
+        - Insert the [=TicketDependency=] to the [=object=]'s [=dependants=]
+            collection
+
+- If [=target=] isn't me and [=object=] is a [=TicketDependency=]:
+    - Verify the [=TicketDependency=]'s [=object=] is one of my MRs
+    - Verify the [=TicketDependency=]'s [=relationship=] is [=dependsOn=]
+    - Just insert to my inbox & forward to my followers
 
 ### Reject ### {#pt-beh-reject}
 
@@ -6362,7 +6641,7 @@ Properties:
 </xmp>
 </div>
 
-## Project ## {#Project}
+## Project ## {#model-project}
 
 Properties:
 
@@ -6383,6 +6662,8 @@ Properties:
     A [=Collection=] of the subprojects of this project
 [=context=]:
     The parent [=Project=](s) to which this project belongs
+[=likes=]:
+    Collection of [=Like=] activities the project received
 </pre>
 
 <div class=example>
@@ -6422,7 +6703,8 @@ Properties:
 
     "inbox": "https://dev.example/projects/wanderer/inbox",
     "outbox": "https://dev.example/projects/wanderer/outbox",
-    "followers": "https://dev.example/projects/wanderer/followers"
+    "followers": "https://dev.example/projects/wanderer/followers",
+    "likes": "https://dev.example/projects/wanderer/likes"
 }
 </xmp>
 </div>
@@ -6531,7 +6813,7 @@ Properties:
 </xmp>
 </div>
 
-## Repository ## {#Repository}
+## Repository ## {#model-repo}
 
 To represent a version control repository, use the ForgeFed
 [=Repository=] type.
@@ -6571,6 +6853,8 @@ Properties:
     whom the repository belongs.
 [=context=]:
     The [=Project=](s) to which this repository belongs
+[=likes=]:
+    Collection of [=Like=] activities the repo received
 </pre>
 
 <div class=example>
@@ -6592,6 +6876,7 @@ Properties:
     "inbox": "https://dev.example/aviva/treesim/inbox",
     "outbox": "https://dev.example/aviva/treesim/outbox",
     "followers": "https://dev.example/aviva/treesim/followers",
+    "likes": "https://dev.example/aviva/treesim/likes",
     "team": "https://dev.example/aviva/treesim/team",
     "ticketsTrackedBy": "https://dev.example/aviva/treesim",
     "sendPatchesTo": "https://dev.example/aviva/treesim",
@@ -8459,7 +8744,7 @@ Range: [=Collection=]
 Functional: Yes
 Inverse of:
     None, but see the usage of [=context=] in the Modeling specification, e.g.
-    in [[#Repository]]
+    in [[#model-repo]]
 Description:
     Identifies a [=Collection=] listing actors whose services and resources are
     considered to be components of this project.
@@ -8505,7 +8790,7 @@ Domain: [=Project=]
 Range: [=Collection=] of [=Project=]s
 Functional: Yes
 Inverse of:
-    None, but see the usage of [=context=] in [[#Project]]
+    None, but see the usage of [=context=] in [[#model-project]]
 Description:
     Identifies a [=Collection=] listing the subprojects of this [=Project=].
 </pre>
@@ -10091,6 +10376,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: Invite
     text: Join
     text: Leave
+    text: Like
     text: Move
     text: Offer
     text: Reject
@@ -10135,9 +10421,11 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: tag
     text: target
     text: to
+    text: totalItems
     text: type
 urlPrefix: https://www.w3.org/TR/activitypub/#; type: dfn; spec: activitypub
     text: Public; url: https://www.w3.org/TR/activitypub/#public-addressing
     text: followers
     text: following
+    text: likes
 </pre>
