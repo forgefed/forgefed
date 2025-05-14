@@ -3185,6 +3185,7 @@ via a [=Factory=] actor.
 - [=PatchTracker=]
 - [=Workflow=]
 - [=Roadmap=]
+- [=ReleaseTracker=]
 - [=Project=]
 - [=Team=]
 
@@ -3224,6 +3225,7 @@ Given:
     - [=PatchTracker=]
     - [=Workflow=]
     - [=Roadmap=]
+    - [=ReleaseTracker=]
     - [=Project=]
     - [=Team=]
 - A person with [=admin=] access to *R*, Philip
@@ -3384,6 +3386,15 @@ Other requirements: None
 
 <pre class=simpledef>
 Type: [=Roadmap=]
+Properties: [=name=], [=summary=]
+Role: [=admin=]
+Other requirements: None
+</pre>
+
+### Edit a ReleaseTracker's name and description ### {#s2s-edit-release-tracker}
+
+<pre class=simpledef>
+Type: [=ReleaseTracker=]
 Properties: [=name=], [=summary=]
 Role: [=admin=]
 Other requirements: None
@@ -3838,16 +3849,18 @@ following steps:
 
 #### Adding
 
-A link between a [=TicketTracker=]/[=PatchTracker=] and a [=Roadmap=]
-essentially means:
+A link between a [=TicketTracker=]/[=PatchTracker=]/[=ReleaseTracker=] and a
+[=Roadmap=] essentially means:
 
-1. The Roadmap says "I track this tracker's [=Ticket=]s that use my milestones"
-2. The tracker says "I use this roadmap's milestones in my [=Ticket=]s"
+1. The Roadmap says "I track this tracker's [=Ticket=]s/[=Release=]s that use
+    my milestones"
+2. The tracker says "I use this roadmap's milestones in my
+    [=Ticket=]s/[=Release=]s"
 
 Given:
 
 - A [=Roadmap=] *R*
-- A [=TicketTracker=] or [=PatchTracker=] *T*
+- A [=TicketTracker=] or [=PatchTracker=] or [=ReleaseTracker=] *T*
 - An actor with [=admin=] access to *R*, Luke
 - An actor with [=admin=] access to *T*, Aviva
 
@@ -3867,7 +3880,7 @@ Upon successful completion of the process:
 Given:
 
 - A [=Roadmap=] *R*
-- A [=TicketTracker=] or [=PatchTracker=] *T*
+- A [=TicketTracker=] or [=PatchTracker=] or [=ReleaseTracker=] *T*
 - *R* and *T* have been linked as described above
 - An actor with [=admin=] access to *R*, Luke
 - An actor with [=admin=] access to *T*, Aviva
@@ -3876,6 +3889,155 @@ Luke or Aviva can remove the link by revoking the [=visit=] access, see
 [[#revoking-access]]. Once the [=Grant=] is revoked, *R* and *T* MUST stop
 pointing to each another via the [=roadmapTrackers=] and [=trackerRoadmap=]
 properties.
+
+## Releases ## {s2s-release}
+
+### Edit tracker name and description ### {#s2s-release-tracker-edit}
+
+See [[#s2s-edit-release-tracker]].
+
+### Tracker-Repo Link ### {#s2s-release-tracker-repo-link}
+
+### Adding
+
+A link between a [=Repository=] and a [=ReleaseTracker=] essentially means:
+
+1. The repository says "This tracker tracks my releases"
+2. The tracker says "I track releases for this repostory"
+
+Given:
+
+- A [=ReleaseTracker=] *T*
+- A [=Repository=] *R*
+- An actor with [=admin=] access to *T*, Luke
+- An actor with [=admin=] access to *R*, Aviva
+
+Luke and Aviva can form the link by a direct Grant of the [=visit=] role for
+*T* to access *R*. See [[#granting-access]]. The process can be initiated via
+an [[#access-via-invite|Invite]] or [[#access-via-join|Join]] activity.
+
+Upon successful completion of the process:
+
+- *R* SHOULD point to *T* via [=releasesTrackedBy=]
+- *T* SHOULD point to *R* via [=tracksReleasesFor=]
+- *T* SHOULD start following *R*, to be able to update releases accordingly
+    (see [[#following]])
+
+### Removing
+
+Given:
+
+- A [=ReleaseTracker=] *T*
+- A [=Repository=] *R*
+- *T* and *R* have been linked as described above
+- An actor with [=admin=] access to *T*, Luke
+- An actor with [=admin=] access to *R*, Aviva
+
+Luke or Aviva can remove the link by revoking the [=visit=] access, see
+[[#revoking-access]]. Once the [=Grant=] is revoked, *T* and *R* MUST stop
+pointing to each another via the [=tracksReleasesFor=] and
+[=releasesTrackedBy=] properties.
+
+### Tracker-Roadmap Link ### {#s2s-release-tracker-roadmap-link}
+
+See [[#s2s-roadmap-link]].
+
+### Create release ### {#s2s-release-create}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=Repository=] actor, *R*
+- A [=ReleaseTracker=] actor, *T*
+- *R* and *T* are linked as described in [[#s2s-release-tracker-repo-link]]
+- An actor with [=write=] access to *T*, Alice
+
+Alice can create a new release under *T* via the following steps:
+
+1. Alice sends *T* an [=Offer=] activity where:
+    - [=object=] is a an object where:
+        - [=type=] is [=Release=]
+        - [=name=] is the tag to use
+        - [=summary=] is the release title
+        - [=content=] and [=source=] are the release notes
+        - [=origin=] is a [=Commit=] specifying [=context=] (the
+            [=Repository=], *R*) and [=hash=]
+    - [=target=] is *T*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *T* inserts the new [=Release=] into its [=releases=] collection, assigning
+    it a new [=id=] URI and generating source archive assets
+3. *T* sends an [=Accept=] where:
+    - [=object=] refers to the [=Offer=]
+    - [=result=] is the [=id=] URI of the new [=Release=]
+
+### Delete release ### {#s2s-release-delete}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=ReleaseTracker=] actor, *T*
+- A [=Release=] under *T*, *r*
+- An actor with [=write=] access to *T*, Alice
+
+Alice can remove *r* from *T* via the following steps:
+
+1. Alice sends *T* a [=Delete=] activity where:
+    - [=object=] refers to *r*
+    - [=origin=] refers to *T*
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *T* removes *r* from its [=releases=] collection
+3. *T* sends an [=Accept=] where [=object=] refers to the [=Delete=]
+
+### Associate milestone ### {#s2s-release-milestone-add}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=ReleaseTracker=] actor, *T*
+- A [=Release=] under *T*, *r*
+- A [=Roadmap=] actor *R*
+- A [=Milestone=] under *R*, *m*
+- An actor with [=write=] access to *T*, Alice
+
+Alice can associate *m* with *r* (i.e. *m* represents work towards the release)
+via the following steps:
+
+1. Alice sends an [=Add=] activity where:
+    - [=object=] refers to *m*
+    - [=target=] refers to *r*'s [=releaseMilestones=] collection
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *T* inserts *m* to *r*'s [=releaseMilestones=] collection
+3. *T* sends an [=Accept=] where [=object=] refers to the [=Add=]
+4. *R* inserts *r* to *m*'s [=milestoneReleases=] collection
+
+### Unassociate milestone ### {#s2s-release-milestone-remove}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=ReleaseTracker=] actor, *T*
+- A [=Release=] under *T*, *r*
+- A [=Roadmap=] actor *R*
+- A [=Milestone=] under *R*, *m*, associated with *r*
+- An actor with [=write=] access to *T*, Alice
+
+Alice can remove the association of *m* with *r* via the following steps:
+
+1. Alice sends a [=Remove=] activity where:
+    - [=object=] refers to *m*
+    - [=origin=] refers to *r*'s [=releaseMilestones=] collection
+    - [=capability=] specifies a [=Grant=] activity that gives the relevant
+        access
+2. *T* removes *m* from *r*'s [=releaseMilestones=] collection
+3. *T* sends an [=Accept=] where [=object=] refers to the [=Remove=]
+4. *R* removes *r* from *m*'s [=milestoneReleases=] collection
 
 <!-- -------------------------------------------------------------------------
 
@@ -4250,7 +4412,7 @@ authorized, and now they can decide whether to accept/reject/ignore it.
 ### Join ### {#factory-beh-join}
 
 *Same as Join handler for the Component actors (TicketTracker, PatchTracker,
-Repository, Workflow, Roadmap) and for Project.*
+Repository, Workflow, Roadmap, ReleaseTracker) and for Project.*
 
 Meanings:
 
@@ -5181,14 +5343,18 @@ Check the Accept's [=object=] as follows.
     - Verify Accept [=actor=] is the Invite's [=target=]
     - Verify this collaborator hasn't been enabled already
     - Enable this collaborator in DB
-    - Insert the Accept to my inbox & forward to my followers
+    - If [=instrument=] is [=visit=] and [=object=] is a [=ReleaseTracker=]:
+        - Verify my [=releasesTrackedBy=] isn't set
+        - Point to the [=object=] via [=releasesTrackedBy=]
     - Send a Grant as described in [[#access-via-invite]] step 3
 
 - If it's a Join whose [=object=] is my [=collaborators=] collection:
     - Verify the Accept is authorized with [=admin=] access
     - Verify this collaborator hasn't been enabled already
     - Enable this collaborator in DB
-    - Insert the Accept to my inbox & forward to my followers
+    - If [=instrument=] is [=visit=] and [=actor=] is a [=ReleaseTracker=]:
+        - Verify my [=releasesTrackedBy=] isn't set
+        - Point to the [=object=] via [=releasesTrackedBy=]
     - Send a Grant as described in [[#access-via-join]] step 2
 
 - If it's an Add whose [=target=] is my [=teams=] collection,
@@ -5338,7 +5504,52 @@ Same as for [=TicketTracker=], see [[#tt-beh-reject]].
 
 ### Remove ### {#repo-beh-remove}
 
-Same as for [=TicketTracker=], see [[#tt-beh-remove]].
+Meanings:
+
+- One of my Collaborators is being removed
+- One of my Team Collaborators is being removed
+- I'm being removed from one of my Projects
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+- [[#linking-projects-components]]
+
+Behavior:
+
+- If [=origin=] is my [=collaborators=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my collaborators
+    - Remove the [=object=] actor from my list of collaborators and invalidate
+        the direct-Grant I had sent them
+    - If [=object=] is my [=releasesTrackedBy=], unset my [=releasesTrackedBy=]
+        field
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+
+- If [=origin=] is my [=context=] (i.e. projects) collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of the projects in which I'm a component
+    - Remove the [=object=] actor from my list of projects and invalidate the
+        start-Grant I had sent it
+    - Publish an [=Revoke=], see [[#unlinking-projects-components-c]] step 2
+
+- If [=origin=] is my [=teams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my Team Collaborators
+    - Remove the [=object=] actor from my list of Team Collaborators and
+        invalidate the start-Grant I had sent it
+    - Publish an [=Accept=], see [[#removing-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=components=] collection of a Project of mine:
+        - Just forward to my followers
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=teamResources=] collection of a Team Collaborator of mine:
+        - Nothing to do, just waiting for the Team to send a Revoke on the
+            delegate-Grant it had sent me
 
 ### Revoke ### {#tt-beh-revoke}
 
@@ -5525,8 +5736,7 @@ Check the Accept's [=object=] as follows.
 
 ### Add ### {#tt-beh-add}
 
-*Same as Accept handler for the other Component actors (PatchTracker,
-Repository).*
+*Same as Accept handler for PatchTracker and Repository.*
 
 Meanings:
 
@@ -5835,7 +6045,7 @@ Behavior:
 ### Reject ### {#tt-beh-reject}
 
 *Same as Reject handler for the other Component actors (PatchTracker,
-Repository, Workflow, Roadmap).*
+Repository, Workflow, Roadmap, ReleaseTracker).*
 
 Meanings:
 
@@ -5862,8 +6072,7 @@ Check the Reject's [=object=].
 
 ### Remove ### {#tt-beh-remove}
 
-*Same as Remove handler for the other Component actors (PatchTracker,
-Repository).*
+*Same as Remove handler for PatchTracker.*
 
 Meanings:
 
@@ -6647,6 +6856,8 @@ Meanings:
 - I'm becoming a component of a Project
 - A ticket that uses one of my milestones is being deleted
 - The milestone of a ticket is being edited
+- One of my milestones is being associated or unassociated with a release
+- A release associated with a milestone(s) of mine is being deleted
 
 Processes:
 
@@ -6656,6 +6867,9 @@ Processes:
 - [[#linking-projects-components]]
 - [[#deleting-issue]]
 - [[#s2s-edit-ticket-milestone]]
+- [[#s2s-release-milestone-add]]
+- [[#s2s-release-milestone-remove]]
+- [[#s2s-release-delete]]
 
 Behavior:
 
@@ -6666,7 +6880,7 @@ Check the Accept's [=object=] as follows.
     - Verify this collaborator hasn't been enabled already
     - Enable this collaborator in DB
     - If [=instrument=] is [=visit=] and [=object=] is a [=TicketTracker=] or a
-        [=PatchTracker=]:
+        [=PatchTracker=] or a [=ReleaseTracker=]:
         - Insert the [=object=] to my [=roadmapTrackers=] collection
     - Send a Grant as described in [[#access-via-invite]] step 3
 
@@ -6675,7 +6889,7 @@ Check the Accept's [=object=] as follows.
     - Verify this collaborator hasn't been enabled already
     - Enable this collaborator in DB
     - If [=instrument=] is [=visit=] and [=actor=] is a [=TicketTracker=] or a
-        [=PatchTracker=]:
+        [=PatchTracker=] or a [=ReleaseTracker=]:
         - Insert the [=actor=] to my [=roadmapTrackers=] collection
     - Send a Grant as described in [[#access-via-join]] step 2
 
@@ -6731,17 +6945,40 @@ Check the Accept's [=object=] as follows.
     - If the new [=ticketMilestone=] value isn't `null`, add the ticket to the
         [=milestoneTickets=] collection of the new chosen milestone
 
+- If it's an [=Add=] I've seen, where [=object=] is one of my milestones and
+    [=target=] is the [=releaseMilestones=] collection of a [=Release=]:
+    - Verify the release's [=context=] belong to one of my [=roadmapTrackers=]
+    - Verify [=actor=] is that [=ReleaseTracker=]
+    - Insert the release to the milestone's [=milestoneReleases=] collection
+
+- If it's an [=Remove=] I've seen, where [=object=] is one of my milestones and
+    [=origin=] is the [=releaseMilestones=] collection of a [=Release=]:
+    - Verify the release's [=context=] belong to one of my [=roadmapTrackers=]
+    - Verify [=actor=] is that [=ReleaseTracker=]
+    - Verify the release appears in the milestone's [=milestoneReleases=]
+        collection
+    - Remove the release from the milestone's [=milestoneReleases=] collection
+
+- If it's a [=Delete=] I've seen, whose [=object=] is a [=Release=]:
+    - Verify the release's [=context=] is one of my [=roadmapTrackers=]
+    - Verify [=actor=] is that [=ReleaseTracker=]
+    - Verify the release is associated with at least one milestone of mine
+    - Remove the release from the [=milestoneReleases=] collections of all such
+        milestones
+
 ### Add ### {#roadmap-beh-add}
 
 Meanings:
 
 - A Team collaborator is being added to me
 - I'm being added as a component of a Project
+- One of my milestones is being associated with a release
 
 Processes:
 
 - [[#forming-team-resource-link]]
 - [[#linking-projects-components]]
+- [[#s2s-release-milestone-add]]
 
 Behavior:
 
@@ -6775,6 +7012,11 @@ Behavior:
     - Verify I'm not already a component of this Project
     - Insert to my inbox & forward to my followers
 
+- If [=object=] is one of my milestones and [=target=] is the
+    [=releaseMilestones=] collection of a [=Release=]:
+    - Verify the release's [=context=] is one of my [=roadmapTrackers=]
+    - Just insert to my inbox & forward to my followers and milestone followers
+
 ### Delete ### {#roadmap-beh-delete}
 
 Meanings:
@@ -6782,12 +7024,14 @@ Meanings:
 - Someone is asking to delete a [=Milestone=] of mine
 - Someone is asking to delete me
 - Someone is asking to delete a ticket that belongs to a milestone of mine
+- A release associated with a milestone(s) of mine is being deleted
 
 Processes:
 
 - [[#s2s-milestone-delete]]
 - [[#deleting-resource-actors]]
 - [[#deleting-issue]]
+- [[#s2s-release-delete]]
 
 Behavior:
 
@@ -6810,6 +7054,11 @@ Check the [=object=].
     - Verify the ticket's milestone is one of my milestones
     - Just insert to my inbox & forward to my followers and milestone
         followers, now waiting for the tracker's Accept
+
+- If it's a [=Release=]:
+    - Verify it belongs to one of my [=roadmapTrackers=]
+    - Verify I have at least one milestone associated with this release
+    - Just insert to my inbox & forward to my followers and milestone followers
 
 ### Edit ### {#roadmap-beh-edit}
 
@@ -6930,12 +7179,14 @@ Meanings:
 - One of my Collaborators is being removed
 - One of my Team Collaborators is being removed
 - I'm being removed from one of my Projects
+- One of my milestones is being unassigned from a release
 
 Processes:
 
 - [[#taking-away-access-using-remove-activities]]
 - [[#removing-team-resource-link]]
 - [[#linking-projects-components]]
+- [[#s2s-release-milestone-remove]]
 
 Behavior:
 
@@ -6971,6 +7222,13 @@ Behavior:
     [=teamResources=] collection of a Team Collaborator of mine:
         - Nothing to do, just waiting for the Team to send a Revoke on the
             delegate-Grant it had sent me
+
+- If [=object=] is one of my milestones and [=origin=] is the
+    [=releaseMilestones=] collection of a [=Release=]:
+    - Verify the release's [=context=] is one of my [=roadmapTrackers=]
+    - Verify the release is listed in the milestone's [=milestoneReleases=]
+        collection
+    - Just insert to my inbox & forward to my followers and milestone followers
 
 ### Resolve ### {#roadmap-beh-resolve}
 
@@ -7014,6 +7272,426 @@ Check the Undo's [=object=].
     - Verify the Resolve is authorized with [=write=] access
     - Update the milestone in DB
     - Publish an [=Accept=], see [[#s2s-milestone-reopen]] step 3
+
+## ReleaseTracker ## {#rt-beh}
+
+Vervis implementation: None currently
+
+### Accept ### {#rt-beh-accept}
+
+Meanings:
+
+- Someone is becoming a Collaborator in me
+- A Team is becoming a Team Collaborator in me
+- I'm becoming a component of a Project
+- I'm becoming a collaborator in a [=Repository=]
+- A milestone is being deleted
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#s2s-release-tracker-repo-link]]
+- [[#s2s-milestone-delete]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an Add whose [=target=] is my [=teams=] collection,
+    i.e. a Team Collaborator is being added to me and the process is
+    initiated on *our* side:
+    - Error/ignore, we aren't supposed get any Accept
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Option 1: If I haven't yet seen the Team's Accept:
+        Verify the Accept's [=actor=] is the Team
+    - Option 2: If I saw Team's Acccept but not yet my collaborator's
+        Accept: Verify the Accept is authorized with [=admin=] access
+    - Otherwise, error/ignore, no Accept is needed
+    - For option 1: Record Team's Accept in DB
+    - For option 2: Record my collaborator's Accept in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - For option 2, send an Accept, see [[#forming-team-resource-link-t]]
+        step 4
+
+- If it's an Add whose [=target=] is my [=context=] (i.e. projects) collection,
+    i.e. I'm being added to a project and the process is initiated on *our*
+    side:
+    - Nothing to do, just ignore the Accept, waiting for the delegate-Grant
+        from the Project
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Project=] that points back to the collection via
+    its [=components=] field, i.e. I'm being added to a project and the process
+    is initiated on *their* side:
+    - If I haven't yet seen the project's approval:
+        - Verify the author is the project
+        - Insert to my inbox & forward to my followers
+    - If I saw project's approval, but not my collaborators' approval:
+        - Verify the Accept is authorized with [=admin=] access
+        - Insert to my inbox & forward to my followers
+        - Publish an Accept, see [[#linking-projects-components-p]] step 4
+    - If I already saw both approvals, respond with error
+
+- If it's an Invite I've seen, whose [=object=] is me, and whose [=target=] is
+    some [=Repository=]'s [=collaborators=] collection, and whose
+    [=instrument=] is [=visit=]:
+    - Verify Accept [=actor=] is the [=Repository=]
+    - Send an [=Accept=], see [[#access-via-invite]] step 2
+
+- If it's a [=Delete=] I've seen, of a [=Milestone=] that belongs to my
+    [=trackerRoadmap=]:
+    - Update my releases, unsetting their milestone if they're associated with
+        the milestone being deleted
+
+### Add ### {#rt-beh-add}
+
+Meanings:
+
+- A Team collaborator is being added to me
+- I'm being added as a component of a Project
+- A milestone is being assigned to one of my releases
+
+Processes:
+
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#s2s-release-milestone-add]]
+
+Behavior:
+
+- If [=target=] is my [=teams=] collection, i.e. a Team Collaborator is being
+    added to me and the process is initiated on *our* side:
+    - Verify the [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already an active team of mine
+    - Insert the Add to my inbox & forward the Add to my followers
+    - Publish an Accept, see [[#forming-team-resource-link-r]] step 2
+
+- If [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Verify it's not already an active team of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=target=] is my [=context=] (i.e. projects) collection, i.e. I'm being
+    added to a project and the process is initiated on *our* side:
+    - Verify the Add is authorized with [=admin=] access
+    - Verify the [=object=] is a [=Project=]
+    - Verify I'm not yet a component of this Project
+    - Insert to my inbox & forward to my followers
+    - Publish an Accept, see [[#linking-projects-components-c]] step 2
+
+- If [=object=] is me and [=target=] points to a collection whose [=context=]
+    is a [=Project=] that points back to the collection via its [=components=]
+    field, i.e. I'm being added to a project and the process is initiated on
+    *their* side:
+    - Verify I'm not already a component of this Project
+    - Insert to my inbox & forward to my followers
+
+- If [=target=] is the [=releaseMilestones=] collection of one of my releases:
+    - Verify [=object=] is a [=Milestone=] that belongs to my [=trackerRoadmap=]
+    - Verify the Add is authorized with [=write=] access
+    - Insert the milestone to the release's [=releaseMilestones=] collection
+    - Send an [=Accept=], see [[#s2s-release-milestone-add]] step 3
+
+### Create ### {#rt-beh-create}
+
+Meanings:
+
+- Someone is commenting on a release of mine
+
+Processes:
+
+- [[#commenting]]
+
+Behavior:
+
+- Verify [=object=] is a [=Note=] whose [=context=] is a [=Release=] of mine
+- Insert to inbox & forward to my followers
+
+### Delete ### {#rt-beh-delete}
+
+Meanings:
+
+- Someone is deleting their comment on a release of mine
+- Someone is asking to delete a release of mine
+- Someone is asking to delete me
+- A milestone is being deleted
+
+Processes:
+
+- [[#commenting]]
+- [[#s2s-release-delete]]
+- [[#deleting-resource-actors]]
+- [[#s2s-milestone-delete]]
+
+Behavior:
+
+- If [=object=] is a [=Note=] whose [=context=] is a [=Release=] of mine:
+    - Verify sender is the actual author of the Note
+    - Insert to inbox & forward to my followers
+
+- If [=object=] is a [=Release=] of mine:
+    - Verify the Delete is authorized with [=write=] access
+    - Delete the release from DB, such that GET requests for it now return 404
+        or 410 status
+    - Send an [=Accept=], see [[#s2s-release-delete]] step 3
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
+
+- If [=origin=] is my [=trackerRoadmap=] and [=object=] is a [=Milestone=]:
+    - Just insert to my inbox & forward to my followers
+
+### Edit ### {#rt-beh-edit}
+
+Meanings:
+
+- Someone is asking to edit my name and/or description
+- Someone is deleting their comment on a release of mine
+
+Processes:
+
+- [[#s2s-edit-release-tracker]]
+- [[#commenting]]
+
+Behavior:
+
+- If it's me:
+    - Verify the Edit is authorized with [=admin=] access
+    - Update me in DB from the Edit [=object=]'s fields: [=name=], [=summary=]
+
+- If it's a [=Note=] whose [=context=] is a [=Release=] of mine:
+    - Verify sender is the actual author of the Note
+    - Insert to inbox & forward to my followers
+
+### Follow ### {#rt-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#rt-beh-grant}
+
+Meanings:
+
+- A Project-in-process is sending me the delegate-Grant
+- A Team-Collaborator-in-process is sending me the delegate-Grant
+- A [=Repository=] is sending me the direct-Grant
+
+Processes:
+
+- [[#linking-projects-components]]
+- [[#forming-team-resource-link]]
+- [[#s2s-release-tracker-repo-link]]
+
+Behavior:
+
+Check the Grant's [=fulfills=] field, verify it's an
+[=Add=]/[=Invite=]/[=Join=] activity that I've seen:
+
+- If it's a Project-in-process which is now sending me the delegate-Grant, and
+    the previous steps in the process successfully happened:
+    - Insert the Project to my list of Projects and enable in DB
+    - Send the Project a start-Grant, see [[#linking-projects-components-c]]
+        step 5 or [[#linking-projects-components-p]] step 6
+
+- If it's a Team-Collaborator-in-process which is now sending me the
+    delegate-Grant, and the previous steps in the process successfully
+    happened:
+    - Insert the Team to my list of Team Collaborators and enable in DB
+    - Send the Team a start-Grant, see [[#deleg-step-tr]] step 1
+
+- If it's a [=Repository=], in which I'm becoming a [=visit=] Collaborator, now
+    sending me the direct-Grant:
+    - Verify I'm not already tracking releases for this repository
+    - Add the repository's URI to the values specified by [=tracksReleasesFor=]
+
+### Invite ### {#rt-beh-invite}
+
+Meanings:
+
+- Someone is inviting someone else to be a collaborator in me
+- Someone is inviting me to be a collaborator in a [=Repository=]
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#s2s-release-tracker-repo-link]]
+
+Behavior:
+
+- If [=target=] is my [=collaborators=] collection:
+    - Verify the Invite is authorized with [=admin=] access
+    - Verify the [=object=] isn't already a collaborator of me
+    - Publish an [=Accept=] whose [=object=] points to the Invite
+
+Note: The Accept in the last step does NOT indicate that a collaborator has
+been added. It merely signals to the potential collaborator that the Invite is
+authorized, and now they can decide whether to accept/reject/ignore it.
+
+- If [=object=] is me and [=target=] is some [=Repository=]'s [=collaborators=]
+    collection:
+    - Verify [=instrument=] is [=visit=]
+    - Just insert to my inbox & forward to my followers
+
+### Join ### {#rt-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Offer ### {#rt-beh-offer}
+
+Meanings:
+
+- Someone is submitting a new release
+
+Processes:
+
+- [[#s2s-release-create]]
+
+Behavior:
+
+- If [=target=] is me and [=object=] is a [=Release=]:
+    - Verify the Offer is authorized with [=write=] access
+    - Verify the [=Repository=] referred via the [=origin=]'s [=context=] is
+        one of my [=tracksReleasesFor=] repos
+    - Create new release in DB
+    - Publish an [=Accept=] on the [=Offer=], see [[#s2s-release-create]] step
+        3
+
+### Reject ### {#rt-beh-reject}
+
+Same as for [=TicketTracker=], see [[#tt-beh-reject]].
+
+### Remove ### {#rt-beh-remove}
+
+Meanings:
+
+- One of my Collaborators is being removed
+- One of my Team Collaborators is being removed
+- I'm being removed from one of my Projects
+- A milestone is being unassigned from one of my releases
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#s2s-release-milestone-remove]]
+
+Behavior:
+
+- If [=origin=] is my [=collaborators=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my collaborators
+    - Remove the [=object=] actor from my list of collaborators and invalidate
+        the direct-Grant I had sent them
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+
+- If [=origin=] is my [=context=] (i.e. projects) collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of the projects in which I'm a component
+    - Remove the [=object=] actor from my list of projects and invalidate the
+        start-Grant I had sent it
+    - Publish an [=Revoke=], see [[#unlinking-projects-components-c]] step 2
+
+- If [=origin=] is my [=teams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my Team Collaborators
+    - Remove the [=object=] actor from my list of Team Collaborators and
+        invalidate the start-Grant I had sent it
+    - Publish an [=Accept=], see [[#removing-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=components=] collection of a Project of mine:
+        - Just forward to my followers
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=teamResources=] collection of a Team Collaborator of mine:
+        - Nothing to do, just waiting for the Team to send a Revoke on the
+            delegate-Grant it had sent me
+
+- If [=origin=] is the [=releaseMilestones=] collection of one of my releases:
+    - Verify [=object=] is a milestone associated with that release
+    - Verify the Remove is authorized with [=write=] access
+    - Remove the milestone from the releases's [=releaseMilestones=] collection
+    - Send an [=Accept=], see [[#s2s-release-milestone-remove]] step 3
+
+### Revoke ### {#rt-beh-revoke}
+
+Meanings:
+
+- A direct-Grant given to me by the [=Repository=] is being revoked
+
+Processes:
+
+- [[#revoking-access]]
+
+Behavior:
+
+- Verify the [=actor=] is identical to the actor of the [=Grant=] referred by
+    the Revoke's [=object=]
+- Verify that Grant's [=target=] is me
+- Optional: Verify none of my releases are from this repo OR remove those
+    releases
+- Remove this repository from my [=tracksReleasesFor=] field
+
+### Undo ### {#rt-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
 
 <!-- -------------------------------------------------------------------------
 
@@ -7945,8 +8623,49 @@ Properties:
     The [=Roadmap=] that this field belongs to.
 [=milestoneTickets=]:
     [=Collection=] of [=Ticket=]s that belong to this milestone.
+[=milestoneReleases=]:
+    [=Collection=] of [=Release=]s associated with this milestone.
 [=isResolved=]:
     Whether the milestone is closed.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+## Release ## {#model-release}
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Release=]
+[=name=]:
+    The tag this release was generated from.
+[=summary=]:
+    Title, as HTML-escaped plain text.
+[=content=], [=mediaType=]:
+    Release notes, in rendered form
+[=source=]:
+    Source form of release notes
+[=published=]:
+    The time the release was created on the server.
+[=context=]:
+    The [=ReleaseTracker=] that this release belongs to.
+[=origin=]:
+    The [=Commit=] this release was generated from - MUST specify at least
+    [=hash=] (commit hash) and [=context=] (the [=Repository=])
+[=attachment=]:
+    [=Link=] objects describing release assets, each specifying [=href=],
+    [=mediaType=] and [=name=]
+[=isPreRelease=]:
+    Whether this is a pre-release.
+[=releaseMilestones=]:
+    [=Collection=] of [=Milestone=]s this release is associated with
+[=replies=]:
+    Discussion on the release.
 </pre>
 
 <div class=example>
@@ -8720,6 +9439,20 @@ TODO
 </xmp>
 </div>
 
+<pre class=simpledef>
+Name: <dfn dfn export>ReleaseTracker</dfn>
+URI: https://forgefed.org/ns#ReleaseTracker
+Extends: [=Object=]
+Description:
+    Manages a set of software releases for a given [=Repository=]
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
 #### Organizational structure tools
 
 <pre class=simpledef>
@@ -9191,6 +9924,20 @@ URI: https://forgefed.org/ns#Milestone
 Extends: [=Object=]
 Description:
     Describes a project milestone, under which issues and MRs can be grouped.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Release</dfn>
+URI: https://forgefed.org/ns#Release
+Extends: [=Object=]
+Description:
+    Describes a software release.
 </pre>
 
 <div class=example>
@@ -10259,6 +11006,40 @@ Description:
 </xmp>
 </div>
 
+<pre class=simpledef>
+Name: <dfn dfn export>releasesTrackedBy</dfn>
+URI: https://forgefed.org/ns#releasesTrackedBy
+Domain: [=Repository=]
+Range: [=ReleaseTracker=]
+Functional: Yes
+Inverse of: [=tracksReleasesFor=]
+Description:
+    Identifies the actor which tracks releases for a given repository.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=10>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>tracksReleasesFor</dfn>
+URI: https://forgefed.org/ns#tracksReleasesFor
+Domain: [=ReleaseTracker=]
+Range: [=Repository=]
+Functional: No
+Inverse of: [=releasesTrackedBy=]
+Description:
+    Identifies a repository for which this tracker tracks releases.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
 ### Repository forking
 
 <pre class=simpledef>
@@ -10879,6 +11660,76 @@ TODO
 </xmp>
 </div>
 
+### Releases
+
+<pre class=simpledef>
+Name: <dfn dfn export>isPreRelease</dfn>
+URI: https://forgefed.org/ns#isPreRelease
+Domain: [=Release=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether this is a pre-release.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>releaseMilestones</dfn>
+URI: https://forgefed.org/ns#releaseMilestones
+Domain: [=Release=]
+Range: [=Collection=] of [=Milestone=]s
+Functional: Yes
+Inverse of: None, but see [=milestoneReleases=]
+Description:
+    For a given release, specifies the milestones it belongs to.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>milestoneReleases</dfn>
+URI: https://forgefed.org/ns#milestoneReleases
+Domain: [=Milestone=]
+Range: [=Collection=] of [=Release=]s
+Functional: Yes
+Inverse of: None, but see [=releaseMilestones=]
+Description:
+    For a given milestone, specifies the releases associated with it.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>releases</dfn>
+URI: https://forgefed.org/ns#releases
+Domain: [=ReleaseTracker=]
+Range: [=Collection=] of [=Release=]s
+Functional: Yes
+Inverse of: None, but see [=context=] in [[#model-release]]
+Description:
+    Specify the releases tracked by a release tracker.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
 ## Values
 
 ### Capability uses
@@ -11145,6 +11996,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: context
     text: duration
     text: endTime
+    text: href
     text: id
     text: inbox
     text: inReplyTo
