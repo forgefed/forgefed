@@ -8354,9 +8354,9 @@ A merge request is represented as a [[#Ticket]] as described above, with
 the following additional requirements:
 
 - [=context=] is the [=PatchTracker=] to which this merge request belongs
-- There is no [=attachment=] of type [=Offer=] (but there may be attachment of other types)
 - There is exactly one [=attachment=] of type [=Offer=], as described below
 - There MAY be more [=attachment=]s, but they MUST NOT be of type [=Offer=]
+- [=isWip=] may be specified
 
 In that special [=attachment=] of type [=Offer=]:
 
@@ -11722,6 +11722,26 @@ Functional: Yes
 Inverse of: None, but see [=context=] in [[#model-release]]
 Description:
     Specify the releases tracked by a release tracker.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+### Merge Requests
+
+<pre class=simpledef>
+Name: <dfn dfn export>isWip</dfn>
+URI: https://forgefed.org/ns#isWip
+Domain: [=Ticket=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether the Merge Request is considered work-in-progress and thus not ready
+    for merging.
 </pre>
 
 <div class=example>
