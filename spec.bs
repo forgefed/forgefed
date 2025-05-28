@@ -1157,6 +1157,222 @@ A Merge Request can be unassigned in the same process as for issues. See
 A Merge Request may be deleted. It is the same process as for issues, see
 [[#deleting-issue]].
 
+### Review ### {#s2s-mr-review}
+
+Minimal required role: [=report=]
+
+Given:
+
+- A [=PatchTracker=], *T*
+- A merge request (i.e. [=Ticket=]) under *T*, *t*
+- A [=Person=] with [=report=] access to *T*, Alice
+
+Alice can submit a review on *t* via the following steps:
+
+1. Via *t*'s [=mrDiff=] Alice obtains the changes that *t* introduces
+2. Alice publishes [=Note=] objects for the review comments - both the summary
+    comment, and a top comment for each review thread - see
+    [[#model-review-comment]]
+3. Alice sends an [=Offer=] activity, in which:
+    - [=target=] refers to *T*
+    - [=object=] is a [=Review=] object in which:
+        - [=context=] refers to *t*
+        - [=attachment=] refers to the [=Note=] that is the summary comment
+        - [=verdict=] is the review approval status
+        - [=reviewIsBinding=] may be set to `true` if Alice has [=write=] or
+            higher access to *T*
+        - [=object=] is *t*'s [=Offer=] attachment's [=object=]'s URI, i.e. the
+            latest version of changes proposed in *t*
+        - [=reviewThreads=] specifies zero or more [=ReviewThread=] objects, in
+            each of which:
+            - [=target=] is a [=CodeQuote=] object, see [[#model-review-code]]
+            - [=object=] refers to a [=Note=] that is the thread's top comment
+    - [=capability=] refers to a [=Grant=] that authorizes the action (for
+        [=report=] it MAY be omitted, but if [=reviewIsBinding=] is `true` it
+        MUST be provided)
+4. *T* publishes the [=Review=], assigning [=id=] URIs to the [=Review=] and to
+    each of the [=ReviewThread=]s
+5. *T* updates *t*'s [=individualApprovals=] collection, adding or updating the
+    item for Alice
+6. *T* sends an [=Accept=] in which:
+    - [=object=] refers to the [=Offer=]
+    - [=result=] is the [=id=] URI of the newly published [=Review=]
+
+### Comment on a review ### {#s2s-mr-review-comment}
+
+Review comments are [=Note=]s, optionally with [=Suggestion=] attachments, and
+with [=context=] referring to a [=ReviewThread=]. See [[#model-review-comment]]
+and [[#commenting]].
+
+### Resolve a review thread ### {#s2s-mr-review-resolve}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=PatchTracker=], *T*
+- A merge request (i.e. [=Ticket=]) under *T*, *t*
+- A [=ReviewThread=] under one of the [=Review=]s of *t*, *h*
+- A [=Person=] with [=write=] access to *T*, Alice
+
+If *h* is open, i.e. its [=isResolved=] isn't specified or is set to False, *h*
+may be closed via the following steps:
+
+1. Alice sends *T* a [=Resolve=] activity where:
+    - [=object=] is the URI of *h*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* sets *h*'s [=isResolved=] to True, and MAY set [=resolvedBy=] to Alice
+    or to the [=Resolve=], and MAY set [=resolved=] to the current time
+3. *T* publishes an [=Accept=] whose [=object=] points to the [=Resolve=]
+
+### Unresolve a review thread ### {#s2s-mr-review-unresolve}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=PatchTracker=], *T*
+- A merge request (i.e. [=Ticket=]) under *T*, *t*
+- A [=ReviewThread=] under one of the [=Review=]s of *t*, *h*
+- A [=Person=] with [=write=] access to *T*, Alice
+
+If *h* is closed, i.e. its [=isResolved=] is True, *h* may be reopened via the
+following steps:
+
+1. Alice sends *T* a [=Undo=] activity whose:
+    - [=object=] is a [=Resolve=] activity whose [=object=] is the URI of *h*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* sets *h*'s [=isResolved=] to False
+3. *T* publishes an [=Accept=] whose [=object=] points to the [=Undo=]
+
+### Dismiss a review ### {#s2s-mr-review-dismiss}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=PatchTracker=], *T*
+- A merge request (i.e. [=Ticket=]) under *T*, *t*
+- An [=Approval=] under *t*, *a*
+- A [=Person=] with [=write=] access to *T*, Alice
+
+Alice can switch the status of *a* to be [=dismissed=] (or
+[=dismissedAwaiting=], in case this review is required by a rule or codeowner
+setting) via the following steps:
+
+1. Alice sends *T* a [=Undo=] activity whose:
+    - [=object=] refers to *a*
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* sets *a*'s [=approvalStatus=] to [=dismissed=] (or
+    [=dismissedAwaiting=], see above) and updates the required approval count
+    if needed
+3. *T* publishes an [=Accept=] whose [=object=] points to the [=Undo=]
+
+### Request a review ### {#s2s-mr-review-request}
+
+Minimal required role: [=triage=]
+
+Given:
+
+- A [=PatchTracker=], *T*
+- A merge request (i.e. [=Ticket=]) under *T*, *t*
+- An [=Approval=] under *t*, *a*
+- A [=Person=] with [=triage=] access to *T*, Alice
+- A list of [=Person=]s and [=Team=]s requested to review
+
+1. Alice sends *T* a [=Invite=] activity whose:
+    - [=object=] refers to the people and teams
+    - [=target=] refers to *t*'s [=individualApprovals=] and [=teamApprovals=]
+    - [=capability=] is the URI of a [=Grant=] authorizing the action
+2. *T* makes updates, for each person or team listed:
+    - If there's no review by it, an [=Approval=] is added to the appropriate
+        collection
+    - If there's an existing approval, verify its current status is
+        [=dismissed=], and now its status changes to [=dismissedAwaiting=], and
+        [=reviewIsRequested=] changes to `true`
+3. *T* publishes an [=Accept=] whose:
+    - [=object=] points to the [=Invite=]
+    - [=result=] refers to all the [=Approval=]s added or updated
+
+### Indicate a pending review ### {#s2s-mr-review-pending}
+
+Minimal required role: [=report=]
+
+Given:
+
+- A [=PatchTracker=], *T*
+- A merge request (i.e. [=Ticket=]) under *T*, *t*
+- A [=Person=] with [=report=] access to *T*, Alice
+
+Alice can announce she has a review on *t* in progress, via the following steps:
+
+1. Alice sends an [=Announce=] activity, in which:
+    - [=target=] refers to *T*
+    - [=object=] is a [=Review=] object in which:
+        - [=context=] refers to *t*
+    - [=capability=] refers to a [=Grant=] that authorizes the action (if *T*
+        is a public resource it MAY be omitted)
+2. *T* makes updates:
+    - If there's no existing [=Approval=] by Alice, a new one is added to
+        *t*'s [=individualApprovals=]
+    - If there's an existing one, its [=newReviewInProgress=] is set to `true`
+3. *T* sends an [=Accept=] in which:
+    - [=object=] refers to the [=Announce=]
+    - [=result=] refers to the [=Approval=] that has been added or updated
+
+### List a review under a team ### {#s2s-mr-review-team-list}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=PatchTracker=], *M*
+- A [=Team=], *T*
+- A merge request (i.e. [=Ticket=]) under *M*, *m*
+- A [=Person=] with [=write=] access to *T*, Alice
+- An individual [=Approval=] under *m*, *a*
+- A team [=Approval=] under *m*, *b*, attributed to *T*
+
+Alice can mark *a* as a review made in the name of the team *T* via the
+following steps:
+
+1. Alice sends an [=Add=] activity, in which:
+    - [=object=] refers to *a*
+    - [=target=] refers to *b*
+    - [=capability=] refers to a [=Grant=] that authorizes the action
+2. *T* sends an [=Accept=] activity, whose [=object=] refers to the [=Add=]
+3. *M* inserts *a* to *b*'s [=attachment=]s
+4. *M* sends an [=Accept=] whose [=object=] refers to the [=Add=]
+
+### Send a team approval ### {#s2s-mr-review-team-approve}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=PatchTracker=], *M*
+- A [=Team=], *T*
+- A merge request (i.e. [=Ticket=]) under *M*, *m*
+- A [=Person=] with [=write=] access to *T*, Alice
+- A team [=Approval=] under *m*, *a*, attributed to *T*
+
+Alice can switch the status of *a* to [=approve=] via the following steps:
+
+1. Alice sends a [=Resolve=] activity, in which:
+    - [=object=] refers to *a*
+    - [=capability=] refers to a [=Grant=] that authorizes the action
+2. *T* sends an [=Offer=] activity, in which:
+    - [=target=] refers to *M*
+    - [=object=] is a [=Review=] object in which:
+        - [=context=] refers to *m*
+        - [=verdict=] is [=approve=]
+        - [=object=] is *m*'s [=Offer=] attachment's [=object=]'s URI, i.e. the
+            latest version of changes proposed in *m*
+3. *M* assigns an [=id=] URI to the Review and updates *a*'s status
+4. *M* sends an [=Accept=] whose:
+    - [=object=] refers to the [=Offer=]
+    - [=result=] refers to the new [=Review=]
+
 ## Issue and MR Dependencies ## {#s2s-dep}
 
 Issues and Merge Requests may have various relationships to other issues/MRs.
@@ -3890,7 +4106,7 @@ Luke or Aviva can remove the link by revoking the [=visit=] access, see
 pointing to each another via the [=roadmapTrackers=] and [=trackerRoadmap=]
 properties.
 
-## Releases ## {s2s-release}
+## Releases ## {#s2s-release}
 
 ### Edit tracker name and description ### {#s2s-release-tracker-edit}
 
@@ -4659,11 +4875,13 @@ Meanings:
 
 - I'm gaining access to a resource
 - A child/parent project is being added to me
+- Someone is asking to list their MR review as being in my name
 
 Processes:
 
 - [[#forming-team-resource-link]]
 - [[#linking-parent-child]]
+- [[#s2s-mr-review-team-list]]
 
 Behavior:
 
@@ -4705,6 +4923,13 @@ Behavior:
     process is initiated on *their* side:
     - Verify I'm not already a Team Collaborator of this resource
     - Insert to my inbox & forward to my followers
+
+- If [=object=] refers to an [=Approval=] and [=target=] refers to another
+    [=Approval=]:
+    - Verify the action is authorized with [=write=] access
+    - Verify the [=object=] approval is attributed to an individual
+    - Verify the [=target=] approval is attributed to me
+    - Send an [=Accept=], see [[#s2s-mr-review-team-list]] step 2
 
 ### Assign ### {#team-beh-assign}
 
@@ -4881,6 +5106,22 @@ Behavior:
 - If I'm the [=object=], being removed from the [=teams=] collection of one of
     my resources:
     - Just forward to my followers
+
+### Resolve ### {#team-beh-resolve}
+
+Meanings:
+
+- Someone wants to send a team approval on a MR
+
+Processes:
+
+- [[#s2s-mr-review-team-approve]]
+
+Behavior:
+
+- If [=object=] refers to an [=Approval=]:
+    - Verify the action is authorized with [=write=] access
+    - Send an [=Offer=] activity, see [[#s2s-mr-review-team-approve]] step 2
 
 ### Undo ### {#team-beh-undo}
 
@@ -5606,8 +5847,6 @@ Vervis implementation:
 
 ### Accept ### {#tt-beh-accept}
 
-*Same as Accept handler for PatchTracker.*
-
 Meanings:
 
 - Someone is becoming a Collaborator in me
@@ -5736,7 +5975,7 @@ Check the Accept's [=object=] as follows.
 
 ### Add ### {#tt-beh-add}
 
-*Same as Accept handler for PatchTracker and Repository.*
+*Same as Accept handler for Repository.*
 
 Meanings:
 
@@ -6183,11 +6422,213 @@ Vervis implementation:
 
 ### Accept ### {#pt-beh-accept}
 
-Same as for [=TicketTracker=], see [[#tt-beh-accept]].
+Meanings:
+
+- Someone is becoming a Collaborator in me
+- A Team is becoming a Team Collaborator in me
+- I'm becoming a component of a Project
+- Someone is being assigned to one of my tickets
+- I'm becoming a collaborator in a [=Workflow=]
+- A dependency on one of my tickets is being added or removed
+- A milestone is being deleted
+- Someone is asking to list a review as being in the name of a team
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#issue-assign]]
+- [[#s2s-wf-link]]
+- [[#s2s-dep]]
+- [[#s2s-milestone-delete]]
+- [[#s2s-mr-review-team-list]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an Add whose [=target=] is my [=teams=] collection,
+    i.e. a Team Collaborator is being added to me and the process is
+    initiated on *our* side:
+    - Error/ignore, we aren't supposed get any Accept
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Option 1: If I haven't yet seen the Team's Accept:
+        Verify the Accept's [=actor=] is the Team
+    - Option 2: If I saw Team's Acccept but not yet my collaborator's
+        Accept: Verify the Accept is authorized with [=admin=] access
+    - Otherwise, error/ignore, no Accept is needed
+    - For option 1: Record Team's Accept in DB
+    - For option 2: Record my collaborator's Accept in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - For option 2, send an Accept, see [[#forming-team-resource-link-t]]
+        step 4
+
+- If it's an Add whose [=target=] is my [=context=] (i.e. projects) collection,
+    i.e. I'm being added to a project and the process is initiated on *our*
+    side:
+    - Nothing to do, just ignore the Accept, waiting for the delegate-Grant
+        from the Project
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Project=] that points back to the collection via
+    its [=components=] field, i.e. I'm being added to a project and the process
+    is initiated on *their* side:
+    - If I haven't yet seen the project's approval:
+        - Verify the author is the project
+        - Insert to my inbox & forward to my followers
+    - If I saw project's approval, but not my collaborators' approval:
+        - Verify the Accept is authorized with [=admin=] access
+        - Insert to my inbox & forward to my followers
+        - Publish an Accept, see [[#linking-projects-components-p]] step 4
+    - If I already saw both approvals, respond with error
+
+- If it's an [=Assign=] I've seen and authorized, where [=target=] is one of my
+    tickets, and where [=actor=] and [=object=] aren't the same actor:
+    - Verify the Assign's [=object=] actor isn't already assigned to this
+        ticket
+    - If the Accept's [=actor=] is the Assign's [=object=]:
+        - Insert an item into *t*'s [=assignments=] collection, see
+            [[#issue-assign-other]] step 5
+        - Send an [=Accept=], see [[#issue-assign-other]] step 6
+    - Otherwise:
+        - If Assign's [=object=] is a [=Team=]:
+            - Just forward to my followers (hopefully this is one of the Team's
+                collaborators giving their approval)
+        - Otherwise:
+            - Ignore/error, not expecting such an Accept
+
+- If it's an Undo I've seen and authorized, whose [=object=] is an [=Assign=]
+    where [=target=] is one of my tickets, and where [=actor=] and [=object=]
+    aren't the same actor:
+    - Verify the Assign's [=object=] is currently assigned to the ticket
+    - Verify the Accept's [=actor=] is the Assign's [=object=]
+    - Update the ticket's [=assignments=] collection, see
+        [[#issue-unassign-other]] step 4
+    - Send an Accept, see [[#issue-unassign-other]] step 5
+
+- If it's an Invite I've seen, whose [=object=] is me, and whose [=target=] is
+    some [=Workflow=]'s [=collaborators=] collection, and whose [=instrument=]
+    is [=visit=]:
+    - Verify Accept [=actor=] is the [=Workflow=]
+    - Verify I don't have a [=trackerWorkflow=]
+    - Send an [=Accept=], see [[#access-via-invite]] step 2
+
+- If it's an [=Offer=] I've seen, of a [=TicketDependency=] where one of my
+    tickets is the child:
+    - Verify the [=actor=] is the parent ticket's tracker
+    - Insert the [=TicketDependency=], referred by the Accept's [=result=], to
+        the child's [=dependants=] collection
+
+- If it's an [=Delete=] I've seen, of a [=TicketDependency=] where one of my
+    tickets is the child:
+    - Verify the [=actor=] is the parent ticket's tracker
+    - Remove the [=TicketDependency=] from the child's [=dependants=]
+        collection
+
+- If it's a [=Delete=] I've seen, of a [=Milestone=] that belongs to my
+    [=trackerRoadmap=]:
+    - Update my tickets, unsetting their milestone if they belong to the
+        milestone being deleted
+
+- If it's on an [=Add=] I've seen, whose [=object=] refers to an [=Approval=]
+    and [=target=] refers to another [=Approval=]:
+    - Verify the [=object=] approval is attributed to an individual
+    - Verify the [=target=] approval is attributed to a team
+    - Verify both approvals are under one of my MRs
+    - Verify the Accept's [=actor=] is the team
+    - List the individual approval under the team approval's [=attachment=]s
+    - Send an [=Accept=], see [[#s2s-mr-review-team-list]] step 4
 
 ### Add ### {#pt-beh-add}
 
-Same as for [=TicketTracker=], see [[#tt-beh-add]].
+Meanings:
+
+- A Team collaborator is being added to me
+- I'm being added as a component of a Project
+- Someone is asking to mark a MR review as being in the name of a team
+
+Processes:
+
+- [[#forming-team-resource-link]]
+- [[#linking-projects-components]]
+- [[#s2s-mr-review-team-list]]
+
+Behavior:
+
+- If [=target=] is my [=teams=] collection, i.e. a Team Collaborator is being
+    added to me and the process is initiated on *our* side:
+    - Verify the [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already an active team of mine
+    - Insert the Add to my inbox & forward the Add to my followers
+    - Publish an Accept, see [[#forming-team-resource-link-r]] step 2
+
+- If [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Verify it's not already an active team of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=target=] is my [=context=] (i.e. projects) collection, i.e. I'm being
+    added to a project and the process is initiated on *our* side:
+    - Verify the Add is authorized with [=admin=] access
+    - Verify the [=object=] is a [=Project=]
+    - Verify I'm not yet a component of this Project
+    - Insert to my inbox & forward to my followers
+    - Publish an Accept, see [[#linking-projects-components-c]] step 2
+
+- If [=object=] is me and [=target=] points to a collection whose [=context=]
+    is a [=Project=] that points back to the collection via its [=components=]
+    field, i.e. I'm being added to a project and the process is initiated on
+    *their* side:
+    - Verify I'm not already a component of this Project
+    - Insert to my inbox & forward to my followers
+
+- If [=object=] refers to an [=Approval=] and [=target=] refers to another
+    [=Approval=]:
+    - Verify the [=object=] approval is attributed to an individual
+    - Verify the [=target=] approval is attributed to a team
+    - Verify both approvals are under a MR of mine
+    - Now just waiting for the team's Accept
+
+### Announce ### {#pt-beh-announce}
+
+Meanings:
+
+- Someone is indicating a pending review on a MR
+
+Processes:
+
+- [[#s2s-mr-review-pending]]
+
+Behavior:
+
+- If [=target=] is me and [=object=] is a [=Review=] object:
+    - Verify the action is authorized with [=report=] access
+    - Verify the Review's [=context=] is a MR of mine
+    - Update my [=Approval=]s, see [[#s2s-mr-review-pending]] step 2
+    - Send an [=Accept=], see [[#s2s-mr-review-pending]] step 3
 
 ### Assign ### {#pt-beh-assign}
 
@@ -6198,6 +6639,7 @@ Same as for [=TicketTracker=], see [[#tt-beh-assign]].
 Meanings:
 
 - Someone is commenting on a MR of mine
+- Someone is commenting on a review of a MR of mine
 
 Processes:
 
@@ -6205,7 +6647,8 @@ Processes:
 
 Behavior:
 
-- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine
+- Verify [=object=] is a [=Note=] whose [=context=] is a [=Ticket=] of mine or
+    one of its review threads
 - Insert to inbox & forward to my followers & MR followers
 
 ### Delete ### {#pt-beh-delete}
@@ -6334,7 +6777,39 @@ Same as for [=TicketTracker=], see [[#tt-beh-grant]].
 
 ### Invite ### {#pt-beh-invite}
 
-Same as for [=TicketTracker=], see [[#tt-beh-invite]].
+Meanings:
+
+- Someone is inviting someone else to be a collaborator in me
+- Someone is inviting me to be a collaborator in a [=Workflow=]
+- Someone is requesting reviews on a MR
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#s2s-wf-link]]
+- [[#s2s-mr-review-request]]
+
+Behavior:
+
+- If [=target=] is my [=collaborators=] collection:
+    - Verify the Invite is authorized with [=admin=] access
+    - Verify the [=object=] isn't already a collaborator of me
+    - Publish an [=Accept=] whose [=object=] points to the Invite
+
+Note: The Accept in the last step does NOT indicate that a collaborator has
+been added. It merely signals to the potential collaborator that the Invite is
+authorized, and now they can decide whether to accept/reject/ignore it.
+
+- If [=object=] is me and [=target=] is some [=Workflow=]'s [=collaborators=]
+    collection:
+    - Verify [=instrument=] is [=visit=]
+    - Just insert to my inbox & forward to my followers
+
+- If [=target=] refers to the [=individualApprovals=] and/or [=teamApprovals=]
+    collections of a MR of mine:
+    - Verify the action is authorized with [=triage=] access
+    - Update my [=Approval=]s, see [[#s2s-mr-review-request]] step 2
+    - Send an [=Accept=], see [[#s2s-mr-review-request]] step 3
 
 ### Join ### {#pt-beh-join}
 
@@ -6346,11 +6821,15 @@ Meanings:
 
 - Someone is submitting a new MR
 - Someone is submitting a ticket dependency
+- Someone is submitting a MR review
+- A team is submitting a MR approval
 
 Processes:
 
 - [[#opening-mr]]
 - [[#s2s-dep-add]]
+- [[#s2s-mr-review]]
+- [[#s2s-mr-review-team-approve]]
 
 Behavior:
 
@@ -6375,6 +6854,29 @@ Behavior:
     - Verify the [=TicketDependency=]'s [=relationship=] is [=dependsOn=]
     - Just insert to my inbox & forward to my followers
 
+- If [=target=] is me, [=object=] is a [=Review=] and [=actor=] is a
+    [=Person=]:
+    - Verify the action is authorized with [=report=] access
+    - If [=reviewIsBinding=] is `true`, require [=write=] access
+    - Verify the Review's [=object=] matches the latest version of the MR (the
+        MR itself is referred via the Review's [=context=])
+    - For each of the Review's [=reviewThreads=], find and specify the right
+        diff hunk via [=cqHunk=]
+    - Assign [=id=] URIs to the Review and the ReviewThreads
+    - Update the MR's [=individualApprovals=] collection, adding or updating
+        the item for [=actor=]
+    - Sends an [=Accept=], see [[#s2s-mr-review]] step 6
+
+- If [=target=] is me, [=object=] is a [=Review=] object and [=actor=] is a
+    [=Team=]:
+    - Verify the Review's [=context=] refers to one of my MRs
+    - Verify the Review's [=verdict=] is [=approve=]
+    - Verify the Review's [=object=] matches the latest version of the MR
+    - Verify I already have an [=Approval=] attributed to this [=Team=]
+    - Assign an [=id=] URI to the Review
+    - Update the approval's status
+    - Send an [=Accept=], see [[#s2s-mr-review-team-approve]] step 4
+
 ### Reject ### {#pt-beh-reject}
 
 Same as for [=TicketTracker=], see [[#tt-beh-reject]].
@@ -6392,17 +6894,24 @@ Same as for [=TicketTracker=], see [[#tt-beh-revoke]].
 Meanings:
 
 - Someone is requesting to close an open MR
+- Someone is requesting to resolve a review thread
 
 Processes:
 
 - [[#closing-mr]]
+- [[#s2s-mr-review-resolve]]
 
 Behavior:
 
-- Verify the [=object=] is one of my MRs
-- Verify the Resolve is authorized with [=triage=] access
-- Mark the MR as closed in DB
-- Publish an Accept, see [[#closing-issue]] step 3
+- If [=object=] is one of my MRs:
+    - Verify the Resolve is authorized with [=triage=] access
+    - Mark the MR as closed in DB
+    - Publish an Accept, see [[#closing-issue]] step 3
+
+- If [=object=] is a [=ReviewThread=] under a [=Review=] under one of my MRs:
+    - Verify the action is authorized with [=write=] access
+    - Update the thread's [=isResolved=]
+    - Send an [=Accept=], see [[#s2s-mr-review-resolve]] step 3
 
 ### Undo ### {#pt-beh-undo}
 
@@ -6411,12 +6920,16 @@ Meanings:
 - Someone is asking to unfollow me
 - Someone is asking to reopen one of my closed (but not merged) MRs
 - A [=Person=] or [=Team=] is being unassigned from one of my MRs
+- Someone is asking to unresolve a review thread
+- Someone is asking to dismiss a review
 
 Processes:
 
 - [[#following]]
 - [[#reopening-mr]]
 - [[#mr-assign]]
+- [[#s2s-mr-review-unresolve]]
+- [[#s2s-mr-review-dismiss]]
 
 Behavior:
 
@@ -6443,6 +6956,17 @@ It's a [=Resolve=] whose [=object=] is one of my closed but not merged MRs:
     - If Undo's [=actor=] and Assign's [=object=] aren't the same actor:
         - Verify the Undo is authorized with [=triage=] access
         - Send an [=Accept=], see [[#issue-unassign-other]] step 2
+
+- If it's a [=ReviewThread=] under a [=Review=] under one of my MRs:
+    - Verify the action is authorized with [=write=] access
+    - Verify the thread is resolved
+    - Set its [=isResolved=] to `false`
+    - Send an [=Accept=], see [[#s2s-mr-review-unresolve]] step 3
+
+- If it's an [=Approval=] under one of my MRs:
+    - Verify the action is authorized with [=write=] access
+    - Update the approval's status, see [[#s2s-mr-review-dismiss]] step 2
+    - Send ann [=Accept=], see [[#s2s-mr-review-dismiss]] step 3
 
 ## Workflow ## {#wf-beh}
 
@@ -8356,22 +8880,30 @@ the following additional requirements:
 - [=context=] is the [=PatchTracker=] to which this merge request belongs
 - There is exactly one [=attachment=] of type [=Offer=], as described below
 - There MAY be more [=attachment=]s, but they MUST NOT be of type [=Offer=]
-- [=isWip=] may be specified
 
 In that special [=attachment=] of type [=Offer=]:
 
 - [=type=] is [=Offer=]
 - [=origin=] is the [=Repository=] or [=Branch=] from which the proposed changes are proposed to be merged into the target repository/branch
 - [=target=] is the [=Repository=] or [=Branch=] into which the changes are proposed to be merged
+- [=mrDiff=] is a [=Link=] whose [=href=] points to a unified diff file with
+    the changes in the MR
 - [=object=] is an [=OrderedCollection=] of [=Patch=]es in reverse
     chronological order, in which, in addition to standard [=OrderedCollection=]
     properties:
         - [=context=] is (the [=id=] of) the [[#Ticket]]
+        - [=target=] is an object with a [=hash=] field specifying the commit
+            ID of the last patch in the collection
         - [=previousVersions=] is a list of previous versions
             of the merge request's proposed changes, i.e. previous versions of this
             [=OrderedCollection=]; each of those uses
             [=currentVersion=] to point back to this latest
             version
+- [=isWip=] may be specified
+- [=individualApprovals=] is a collection of review approval statuses by people
+- [=teamApprovals=] is a collection of review approval statuses by teams
+- [=requiredApprovalsNeeded=] may be specified
+- [=requiredApprovalsGiven=] may be specified
 
 <div class=example>
 <xmp highlight=json-ld>
@@ -8666,6 +9198,245 @@ Properties:
     [=Collection=] of [=Milestone=]s this release is associated with
 [=replies=]:
     Discussion on the release.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+## Review ## {#model-review}
+
+The representation of a review involves several main pieces:
+
+1. The set of approvals that each Merge Request has
+2. The reviews that reviewers have given
+3. The individual threads of discussion on specific lines of code within a
+    review
+4. The tree of comment in those threads
+5. The piece of code under which the thread begins
+6. Code suggestions
+
+### Code Quote ### {#model-review-code}
+
+The piece of code is represented as follows:
+
+<pre class=simpledef>
+[=type=]:
+    [=CodeQuote=]
+[=cqFile=]:
+    Path of the file being commented, e.g. "src/main.c"
+[=cqHunk=]:
+    A diff hunk that contains the line(s) being commented, and possibly context
+    lines before and/or after
+[=cqLine=], [=cqSide=]:
+    The line being commented
+[=cqStart=], [=cqEnd=], [=cqStartSide=], [=cqEndSide=]:
+    The line range being commented
+[=cqOutdated=]:
+    Whether these lines have been changed by a later version of the MR
+</pre>
+
+There are 3 options for the subject of a CodeQuote:
+
+1. If it refers to a file, only [=cqFile=] is specified
+2. If it refers to a line, [=cqLine=] and [=cqSide=] are also specified
+3. If it refers to a range of lines, then [=cqStart=], [=cqEnd=],
+    [=cqStartSide=] and [=cqEndSide=] are specified instead
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+### Code Suggestion ### {#model-review-suggestion}
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Suggestion=]
+[=attributedTo=]:
+    The author of the suggestion
+[=context=]:
+    The [=Note=] this suggestion belongs to
+[=source=]:
+    Raw text of the code suggestion
+[=content=], [=mediaType=]:
+    HTML rendered form of the suggestion, as diff view (+, -, line numbers)
+[=name=]:
+    Description of this suggestion, as plain text
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+### Comment ### {#model-review-comment}
+
+Every comment in the tree of comments within a review, including both the
+review comments by the reviewer and the replies on them, is represented as a
+regular [=Note=] (much like issue comments), except its [=attachment=]s may
+contain code suggestions.
+
+<pre class=simpledef>
+[=type=]:
+    [=Note=]
+[=attributedTo=]:
+    The author of the review comment
+[=context=]:
+    The [=ReviewThread=] this comment belongs to
+[=inReplyTo=]:
+    The [=Note=] being replied to, or the [=context=] [=ReviewThread=] itself
+[=content=], [=mediaType=], [=source=]:
+    The comment text, in rendered form and in source form
+[=attachment=]:
+    Zero or more [=Suggestion=]s
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+### Thread ### {#model-review-thread}
+
+While suggestions and comments are hosted by their authors, threads are hosted
+by the [=PatchTracker=]. However, the comment under the code quote, i.e. the
+top comment of the thread, is hosted by its author, just like any other
+comment.
+
+<pre class=simpledef>
+[=type=]:
+    [=ReviewThread=]
+[=context=]:
+    The [=Review=] this comment belongs to
+[=target=]:
+    The [=CodeQuote=], i.e. lines of code being commented on
+[=isResolved=], [=resolvedBy=], [=resolved=]:
+    Whether the thread is resolved
+[=object=]:
+    The [=Note=] that is the top comment of this thread
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+### Review ### {#model-review-review}
+
+A review is essentially a combination of:
+
+1. A set of [=ReviewThread=]s
+2. A summary comment
+3. A status: Approve / neutral / request changes
+
+<pre class=simpledef>
+[=type=]:
+    [=Review=]
+[=context=]:
+    The [=Ticket=] (i.e. Merge Request) to which this review belongs
+[=attachment=]:
+    The [=Note=] that is the summary comment of the review
+[=verdict=]:
+    The level of approval that the review gives on the merge request
+[=reviewIsBinding=]:
+    Whether the review is made by someone with [=write=] or higher access to
+    the [=PatchTracker=], i.e. someone with access to apply a merge request
+[=object=]:
+    URI of an [=OrderedCollection=] of [=Patch=]es, representing the version of
+    the merge request, on which the review was made. That collection's
+    [=target=] can be used to determine the commit hash, i.e. the repository
+    tree state on which the review was made.
+[=reviewThreads=]:
+    Zero or more [=ReviewThread=]s
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+### Approval ### {#model-review-approval}
+
+Every merge request has a set of review statuses. This includes the last review
+given by each reviewer, as well as review requests still awaiting review, and
+also reviews that have been dismissed.
+
+Since reviews can be requested and given by both individuals and teams, there
+are two collections of these review statuses. But both are represented as
+[=Approval=] objects.
+
+For an individual:
+
+<pre class=simpledef>
+[=type=]:
+    [=Approval=]
+[=attributedTo=]:
+    The [=Person=] to whom this approval relates
+[=published=]:
+    The time this approval has been created
+[=approvalStatus=]:
+    The [=ReviewStatus=] of this approval
+[=reviewIsBinding=]:
+    Whether the review is made by someone with [=write=] or higher access to
+    the [=PatchTracker=], i.e. someone with access to apply a merge request
+[=reviewIsRequested=]:
+    Whether a review from this person was specifically personally
+    requested/invited, or was is given without a personal request
+[=reviewIsByCodeOwner=]:
+    Whether this review/request is here because (perhaps among other reasons)
+    this person is a Code Owner of some of the files being changed by the merge
+    request
+[=reviewCountsInRule=]:
+    Whether this approval count towards required amount of approvals under some
+    rule
+[=newReviewInProgress=]:
+    Whether the person has indicated they're in the process of making a new
+    review
+[=attachment=]:
+    URI of the last [=Review=] by this person
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+For a team:
+
+<pre class=simpledef>
+[=type=]:
+    [=Approval=]
+[=attributedTo=]:
+    The [=Team=] to whom this approval relates
+[=published=]:
+    The time this approval has been created
+[=approvalStatus=]:
+    The [=ReviewStatus=] of this approval - note that values [=remark=] and
+    [=revise=] MUST NOT be used
+[=reviewIsRequested=]:
+    Whether a review from this team was specifically personally
+    requested/invited, or was is given without a personal request
+[=reviewIsByCodeOwner=]:
+    Whether this review/request is here because (perhaps among other reasons)
+    this team is a Code Owner of some of the files being changed by the merge
+    request
+[=reviewCountsInRule=]:
+    Whether this approval count towards required amount of approvals under some
+    rule
+[=attachment=]:
+    Zero or more [=Approval=]s by individuals, whose approval is in the name of
+    the team
 </pre>
 
 <div class=example>
@@ -9212,42 +9983,6 @@ Description:
 </xmp>
 </div>
 
-<pre class=simpledef>
-Name: <dfn dfn export>Apply</dfn>
-URI: https://forgefed.org/ns#Apply
-Extends: [=Activity=]
-Description:
-    Indicates a request to apply a Merge Request to a [=Repository=].
-</pre>
-
-<div class=example>
-<xmp highlight=json-ld line-highlight=7>
-{
-    "@context": [
-        "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.org/ns"
-    ],
-    "id": "https://fig.fr33domlover.site/people/qn870/outbox/ZnqL0",
-    "type": "Apply",
-    "actor": "https://fig.fr33domlover.site/people/qn870",
-    "object": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob",
-    "target": {
-        "type": "Branch",
-        "context": "https://fig.fr33domlover.site/repos/9nOkn",
-        "name": "main",
-        "ref": "/refs/heads/main"
-    },
-    "capability": "https://fig.fr33domlover.site/looms/9nOkn/outbox/kDJx0",
-    "to": [
-        "https://fig.fr33domlover.site/looms/9nOkn",
-        "https://fig.fr33domlover.site/people/qn870/followers",
-        "https://fig.fr33domlover.site/looms/9nOkn/followers",
-        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/followers"
-    ]
-}
-</xmp>
-</div>
-
 #### Related to ticket tracking
 
 <pre class=simpledef>
@@ -9301,6 +10036,44 @@ Description:
         "type": "DataIntegrityProof",
         "verificationMethod": "https://grape.fr33domlover.site/akey1"
     }
+}
+</xmp>
+</div>
+
+#### Related to merge requests
+
+<pre class=simpledef>
+Name: <dfn dfn export>Apply</dfn>
+URI: https://forgefed.org/ns#Apply
+Extends: [=Activity=]
+Description:
+    Indicates a request to apply a Merge Request to a [=Repository=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=7>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://fig.fr33domlover.site/people/qn870/outbox/ZnqL0",
+    "type": "Apply",
+    "actor": "https://fig.fr33domlover.site/people/qn870",
+    "object": "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/bundles/mbWob",
+    "target": {
+        "type": "Branch",
+        "context": "https://fig.fr33domlover.site/repos/9nOkn",
+        "name": "main",
+        "ref": "/refs/heads/main"
+    },
+    "capability": "https://fig.fr33domlover.site/looms/9nOkn/outbox/kDJx0",
+    "to": [
+        "https://fig.fr33domlover.site/looms/9nOkn",
+        "https://fig.fr33domlover.site/people/qn870/followers",
+        "https://fig.fr33domlover.site/looms/9nOkn/followers",
+        "https://fig.fr33domlover.site/looms/9nOkn/cloths/mbWob/followers"
+    ]
 }
 </xmp>
 </div>
@@ -9946,6 +10719,123 @@ TODO
 </xmp>
 </div>
 
+<pre class=simpledef>
+Name: <dfn dfn export>ReviewVerdict</dfn>
+URI: https://forgefed.org/ns#ReviewVerdict
+Extends: [=Object=]
+Values: [=approve=], [=remark=], [=revise=]
+Description:
+    Describes the level of approval given by a review.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>ReviewStatus</dfn>
+URI: https://forgefed.org/ns#ReviewStatus
+Extends: [=ReviewVerdict=]
+Values:
+    [=approve=], [=remark=], [=revise=],
+    [=awaiting=], [=dismissed=], [=dismissedAwaiting=]
+Description:
+    Describes the status of the review.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>ReviewThread</dfn>
+URI: https://forgefed.org/ns#ReviewThread
+Extends: [=Object=]
+Description:
+    A comment on a code change and the discussion on it.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Suggestion</dfn>
+URI: https://forgefed.org/ns#Suggestion
+Extends: [=Object=]
+Description:
+    A suggested edit within a review on a merge request
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>CodeQuote</dfn>
+URI: https://forgefed.org/ns#CodeQuote
+Extends: [=Object=]
+Description:
+    A reference to a part of a merge request diff being reviewed
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Approval</dfn>
+URI: https://forgefed.org/ns#Approval
+Extends: [=Object=]
+Description:
+    The status of a review or review request on a merge request
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>DiffSide</dfn>
+URI: https://forgefed.org/ns#DiffSide
+Extends: [=Object=]
+Values: [=diffSideOld=], [=diffSideNew=]
+Description:
+    Refers to either the old or new version of a file being changed.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>Review</dfn>
+URI: https://forgefed.org/ns#Review
+Extends: [=Object=]
+Description:
+    Describes a review on a Merge Request.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
 ## Properties
 
 ### General-purpose
@@ -10388,7 +11278,7 @@ TODO
 <pre class=simpledef>
 Name: <dfn dfn export>isResolved</dfn>
 URI: https://forgefed.org/ns#isResolved
-Domain: [=Ticket=] | [=Milestone=]
+Domain: [=Ticket=] | [=Milestone=] | [=ReviewThread=]
 Range: `xsd:boolean`
 Functional: Yes
 Inverse of: None
@@ -10406,7 +11296,7 @@ TODO
 <pre class=simpledef>
 Name: <dfn dfn export>resolvedBy</dfn>
 URI: https://forgefed.org/ns#resolvedBy
-Domain: [=Ticket=]
+Domain: [=Ticket=] | [=Milestone=] | [=ReviewThread=]
 Range: [=Object=] than is an actor, or [=Activity=]
 Functional: Yes
 Inverse of: None
@@ -10424,7 +11314,7 @@ TODO
 <pre class=simpledef>
 Name: <dfn dfn export>resolved</dfn>
 URI: https://forgefed.org/ns#resolved
-Domain: [=Ticket=]
+Domain: [=Ticket=] | [=Milestone=] | [=ReviewThread=]
 Range: `xsd:dateTime`
 Functional: Yes
 Inverse of: None
@@ -11735,13 +12625,400 @@ TODO
 <pre class=simpledef>
 Name: <dfn dfn export>isWip</dfn>
 URI: https://forgefed.org/ns#isWip
-Domain: [=Ticket=]
+Domain: [=Offer=]
 Range: `xsd:boolean`
 Functional: Yes
 Inverse of: None
 Description:
     Whether the Merge Request is considered work-in-progress and thus not ready
     for merging.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>mrDiff</dfn>
+URI: https://forgefed.org/ns#mrDiff
+Domain: [=Offer=]
+Range: [=Link=]
+Functional: Yes
+Inverse of: None
+Description:
+    The [=Link=]'s [=href=] points to a unified diff, without commit
+    information, that contains all the changes in the Merge Request merged
+    together (unlike the [=Collection=] of [=Patch=]es where each commit's
+    changes are kept separately)
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>verdict</dfn>
+URI: https://forgefed.org/ns#verdict
+Domain: [=Review=]
+Range: [=ReviewVerdict=]
+Functional: Yes
+Inverse of: None
+Description:
+    The level of approval this review gives on the merge request.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>reviewIsBinding</dfn>
+URI: https://forgefed.org/ns#reviewIsBinding
+Domain: [=Review=] | [=Approval=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether the review is made by someone with [=write=] or higher access to
+    the [=PatchTracker=]
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqFile</dfn>
+URI: https://forgefed.org/ns#cqFile
+Domain: [=CodeQuote=]
+Range: `xsd:string`
+Functional: Yes
+Inverse of: None
+Description:
+    Path, relative to repo root, of the file whose changes are being quoted
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqHunk</dfn>
+URI: https://forgefed.org/ns#cqHunk
+Domain: [=CodeQuote=]
+Range: `xsd:string`
+Functional: Yes
+Inverse of: None
+Description:
+    A diff hunk from the merge request's diff
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqLine</dfn>
+URI: https://forgefed.org/ns#cqLine
+Domain: [=CodeQuote=]
+Range: `xsd:integer`
+Functional: Yes
+Inverse of: None
+Description:
+    The line of code being commented. It may refer to the old or new version of
+    the file, depending on [=cqSide=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqStart</dfn>
+URI: https://forgefed.org/ns#cqStart
+Domain: [=CodeQuote=]
+Range: `xsd:integer`
+Functional: Yes
+Inverse of: None
+Description:
+    The first line in a range of lines of code being commented. It may refer to
+    the old or new version of the file, depending on [=cqStartSide=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqEnd</dfn>
+URI: https://forgefed.org/ns#cqEnd
+Domain: [=CodeQuote=]
+Range: `xsd:integer`
+Functional: Yes
+Inverse of: None
+Description:
+    The last line in a range of lines of code being commented. It may refer to
+    the old or new version of the file, depending on [=cqEndSide=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqSide</dfn>
+URI: https://forgefed.org/ns#cqSide
+Domain: [=CodeQuote=]
+Range: [=DiffSide=]
+Functional: Yes
+Inverse of: None
+Description:
+    To which version of the file [=cqLine=] refers.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqStartSide</dfn>
+URI: https://forgefed.org/ns#cqStartSide
+Domain: [=CodeQuote=]
+Range: [=DiffSide=]
+Functional: Yes
+Inverse of: None
+Description:
+    To which version of the file [=cqStart=] refers.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqEndSide</dfn>
+URI: https://forgefed.org/ns#cqEndSide
+Domain: [=CodeQuote=]
+Range: [=DiffSide=]
+Functional: Yes
+Inverse of: None
+Description:
+    To which version of the file [=cqEnd=] refers.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>cqOutdated</dfn>
+URI: https://forgefed.org/ns#cqOutdated
+Domain: [=CodeQuote=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether these line(s) have been changed by a later version of the MR
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>reviewThreads</dfn>
+URI: https://forgefed.org/ns#reviewThreads
+Domain: [=Review=]
+Range: [=ReviewThread=]
+Functional: No
+Inverse of: None
+Description:
+    Comments on code and their discussion
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>approvalStatus</dfn>
+URI: https://forgefed.org/ns#approvalStatus
+Domain: [=Approval=]
+Range: [=ReviewStatus=]
+Functional: Yes
+Inverse of: None
+Description:
+    The status of the approval
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>reviewIsRequested</dfn>
+URI: https://forgefed.org/ns#reviewIsRequested
+Domain: [=Approval=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether a review from this person/team was specifically personally
+    requested/invited, or was is given without a personal request
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>reviewIsByCodeOwner</dfn>
+URI: https://forgefed.org/ns#reviewIsByCodeOwner
+Domain: [=Approval=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether this review/request is here because (perhaps among other reasons)
+    this person/team is a Code Owner of some of the files being changed by the
+    merge request
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>reviewCountsInRule</dfn>
+URI: https://forgefed.org/ns#reviewCountsInRule
+Domain: [=Approval=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether this approval count towards required amount of approvals under some
+    rule
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>newReviewInProgress</dfn>
+URI: https://forgefed.org/ns#newReviewInProgress
+Domain: [=Approval=]
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether the person has indicated they're in the process of making a new
+    review
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>individualApprovals</dfn>
+URI: https://forgefed.org/ns#individualApprovals
+Domain: [=Offer=]
+Range: [=OrderedCollection=] of [=Approval=]s, in reverse chronological order
+Functional: Yes
+Inverse of: None
+Description:
+    Approval statuses by individuals.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>teamApprovals</dfn>
+URI: https://forgefed.org/ns#teamApprovals
+Domain: [=Offer=]
+Range: [=OrderedCollection=] of [=Approval=]s, in reverse chronological order
+Functional: Yes
+Inverse of: None
+Description:
+    Approval statuses by [=Team=]s.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>requiredApprovalsNeeded</dfn>
+URI: https://forgefed.org/ns#requiredApprovalsNeeded
+Domain: [=Offer=]
+Range: `xsd:integer`
+Functional: Yes
+Inverse of: None
+Description:
+    Total number of approvals required before the MR can be merged.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>requiredApprovalsGiven</dfn>
+URI: https://forgefed.org/ns#requiredApprovalsGiven
+Domain: [=Offer=]
+Range: `xsd:integer`
+Functional: Yes
+Inverse of: None
+Description:
+    Amount of required approvals given, out of the amount needed before the MR
+    can be merged.
 </pre>
 
 <div class=example>
@@ -11963,6 +13240,75 @@ Description:
     A certain specific [=Enum=].
 </pre>
 
+### Review Statuses
+
+<pre class=simpledef>
+Name: <dfn dfn export>approve</dfn>
+URI: https://forgefed.org/ns#approve
+Type: [=ReviewVerdict=]
+Description:
+    The reviewer is approving the merge request.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>remark</dfn>
+URI: https://forgefed.org/ns#remark
+Type: [=ReviewVerdict=]
+Description:
+    The reviewer is commenting on the merge request, without approving and
+    without requiring changes. Proposing changes but willing for the merge
+    request to be merged as is.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>revise</dfn>
+URI: https://forgefed.org/ns#revise
+Type: [=ReviewVerdict=]
+Description:
+    The reviewer is requesting/requiring that changes be made in the merge
+    request before it is merged. The merge request as it is now isn't approved.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>awaiting</dfn>
+URI: https://forgefed.org/ns#awaiting
+Type: [=ReviewStatus=]
+Description:
+    No review by this reviewer has been given yet.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>dismissed</dfn>
+URI: https://forgefed.org/ns#dismissed
+Type: [=ReviewStatus=]
+Description:
+    The review has been dismissed and doesn't count as an approval anymore.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>dismissedAwaiting</dfn>
+URI: https://forgefed.org/ns#dismissedAwaiting
+Type: [=ReviewStatus=]
+Description:
+    The review has been dismissed, and now waiting for a new review.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>diffSideOld</dfn>
+URI: https://forgefed.org/ns#diffSideOld
+Type: [=DiffSide=]
+Description:
+    Refers to the original version of the file.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>diffSideNew</dfn>
+URI: https://forgefed.org/ns#diffSideNew
+Type: [=DiffSide=]
+Description:
+    Refers to the modified version of the file.
+</pre>
+
 <pre class=biblio>
 {
     "wikipedia-ticket-tracker": {
@@ -11988,6 +13334,7 @@ urlPrefix: http://purl.org/dc/terms/; type: dfn; spec: dcterms
 urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; spec: activitystreams-vocabulary
     text: Accept
     text: Add
+    text: Announce
     text: Create
     text: Invite
     text: Join
