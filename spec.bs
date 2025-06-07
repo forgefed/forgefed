@@ -1680,7 +1680,12 @@ may be a service of a [=type=] defined in ForgeFed (such as
     - Scenario: A project delegates access-to-itself to a team that has been
         approved to access the project
     - [=allows=] value to use: Same as 3
-    - Conditions for the target project: Same as 3
+    - Conditions for the target team: Same as 3
+5. [=actor=] is a [=Team=], [=target=] is a [=Team=]
+    - Scenario: A team delegates access-to-itself to its newly added oversight
+        team
+    - [=allows=] value to use: Same as 3
+    - Conditions for the target team: Same as 3
 
 #### Extending a delegation chain #### {#extending-a-delegation-chain}
 
@@ -1802,11 +1807,11 @@ may be a service of a [=type=] defined in ForgeFed (such as
 
 2. Actor *A* is a [=Team=], AND *g*'s [=actor=] is either a
     component/[=Project=] in which *A* is a member or a
-    parent team (see [=subteams=]) of *A*, AND *g*'s [=allows=] is a
-    single value [=distribute=]
+    parent team (see [=subteams=]) of *A* or a team overseeing *A* (see
+    [=oversees=]), AND *g*'s [=allows=] is a single value [=distribute=]
     - Scenario: Team *A* received some access from a component/project that
-        considers *A* a member team, or from a parent team of *A*, and *A* is
-        requested to pass it on its member people and to its subteams
+        considers *A* a member team, or from a parent/overseen team of *A*, and
+        *A* is requested to pass it on its member people and to its subteams
     - Requirements for extending the delegation chain:
         1. For each team *T* that team *A* considers a
             [=subteam=], team *A* SHOULD publish and deliver to *T*
@@ -2584,7 +2589,7 @@ In particular, once the new member *M* sends the team *T* the
 [[#extending-a-delegation-chain|extension-Grants]] of:
 
 - Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
-    [=distribute=], that *T* has received from any of its parent teams
+    [=distribute=], that *T* has received from any of its parent/overseen teams
 - Every authorized (by a valid delegate-Grant) Grant whose [=allows=] is
     [=distribute=], that *T* has received from any of the projects it has
     direct access to
@@ -2997,8 +3002,8 @@ of *C*). The exchange of activities SHOULD be as follows:
     - [=object=] is *C*
     - [=target=] is the URI of *P*'s [=subteams=] (i.e. children) collection
     - [=instrument=] is the maximal [=Role=] that Philip would like to allow
-        for people (and bots) when authorizing their manipulation of *C* by
-        their access in *P* (normally it would be [=admin=], perhaps sometimes
+        for people (and bots) when authorizing their manipulation of *P* by
+        their access in *C* (normally it would be [=admin=], perhaps sometimes
         [=maintain=])
     - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
         access to *P*
@@ -3062,23 +3067,18 @@ below.
 Grant activities, as described in [[#extending-a-delegation-chain]], to its
 member humans and child teams.
 
-1. *P* sends a [[#start-grant-chain|start-Grant]] where:
-    - [=actor=] and [=context=] specify *P*
-    - [=target=] specifies *C*
-    - [=object=] specifies the role specified in the Add's [=instrument=]
-    - [=allows=] is [=distribute=]
-    - [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
-2. For each delegation Grant *g* that *P* has received from its projects,
-    components or parent teams, *P* sends an
-    [[#extending-a-delegation-chain|extension-Grant]] where:
-    - [=actor=] specifies *P*
-    - [=context=] is identical to *g*'s [=context=]
-    - [=target=] specifies *C*
-    - [=object=] specifies the lower role among the one specified by the
-        Add's [=instrument=], and the one specified by *g*'s [=object=]
-    - [=allows=] is [=distribute=]
-    - [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
-    - [=delegates=] specifies *g*'s URI
+For each delegation Grant *g* that *P* has received from its projects,
+components, parent teams and overseen teams, *P* sends an
+[[#extending-a-delegation-chain|extension-Grant]] where:
+
+- [=actor=] specifies *P*
+- [=context=] is identical to *g*'s [=context=]
+- [=target=] specifies *C*
+- [=object=] specifies the lower role among the one specified by the Add's
+    [=instrument=], and the one specified by *g*'s [=object=]
+- [=allows=] is [=distribute=]
+- [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
+- [=delegates=] specifies *g*'s URI
 
 When *C* sees these Grants, it delegates them further, as mentioned above.
 
@@ -3147,6 +3147,165 @@ being a parent of *C*). The exchange of activities SHOULD be as follows:
 
 Now, for each Grant *g* that *C* has published, as an extension of a Grant it
 had received from *P*:
+
+1. *C* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *C* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
+
+### Forming a team oversight link ### {#linking-oversight}
+
+#### Initiated by the overseen side #### {#linking-oversight-p}
+
+Assuming:
+
+- A team *P*
+- A team *C*
+- A person with admin access to *C*, Celia
+- A person with admin access to *P*, Philip
+
+Philip wants *C* to become an oversight team of *P* (which means *P* will
+overseen by *C*). The exchange of activities SHOULD be as follows:
+
+1. Philip sends an [=Add=] activity in which:
+    - [=object=] is *C*
+    - [=target=] is the URI of *P*'s [=overseenBy=] collection
+    - [=instrument=] is the maximal [=Role=] that Philip would like to allow
+        for people (and bots) when authorizing their manipulation of *P* by
+        their access in *C*
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+2. *P*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Celia, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+4. *C*, seeing the Add, seeing *P*'s Accept, and authorizing Celia's Accept,
+    publishes a [[#grant-delegate|delegate-Grant]] in which the [=target=] is
+    *P*, and now considers *P* an overseen team and lists *P* in the
+    [=oversees=] collection
+5. *P*, seeing *C*'s Grant, now considers *C* an overseeing team and lists *C*
+    in the [=overseenBy=] collection
+
+Now *P* sends a delegation Grant activity, see the [[#deleg-step-o]] section
+below.
+
+#### Initiated by the overseeing side #### {#linking-oversight-c}
+
+Assuming:
+
+- A team *P*
+- A team *C*
+- A person with admin access to *C*, Celia
+- A person with admin access to *P*, Philip
+
+Celia wants *C* to oversee *P* (which means *P* will be overseen by *C*). The
+exchange of activities SHOULD be as follows:
+
+1. Celia sends an [=Add=] activity in which:
+    - [=object=] is *P*
+    - [=target=] is the URI of *C*'s [=oversees=] collection
+    - [=instrument=] is the maximal [=Role=] that Celia would like to allow
+        for people (and bots) when authorizing their manipulation of *P* by
+        their access in *C*
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+2. *C*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. Philip, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] is the Add's URI
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+4. *P*, seeing the Add, seeing *C*'s Accept, and authorizing Philip's Accept,
+    publishes an [=Accept=] where [=object=] is the Add's URI
+5. *C*, seeing *P*'s Accept, publishes a [[#grant-delegate|delegate-Grant]] in
+    which the [=target=] is *P*, and now considers *P* an overseen team and
+    lists *P* in the [=oversees=] collection
+6. *P*, seeing *C*'s Grant, now considers *C* an overseeing team and lists *C*
+    in the [=overseenBy=] collection
+
+Now *P* sends a delegation Grant activity, see the [[#deleg-step-o]] section
+below.
+
+#### Delegation step #### {#deleg-step-o}
+
+*P* now sends a Grant activity, which *C* delegates further by sending its own
+Grant activities, as described in [[#extending-a-delegation-chain]], to its
+member humans and child teams.
+
+*P* sends a [[#start-grant-chain|start-Grant]] where:
+
+- [=actor=] and [=context=] specify *P*
+- [=target=] specifies *C*
+- [=object=] specifies the role specified in the Add's [=instrument=]
+- [=allows=] is [=distribute=]
+- [=capability=] is the URI of the delegate-Grant from step 4 or 5 above
+
+When *C* sees this Grant, it delegates it further, as mentioned above.
+
+### Removing a team oversight link ### {#unlinking-oversight}
+
+#### Initiated by the overseeing side #### {#unlinking-oversight-c}
+
+Assuming:
+
+- Teams *P* and *C*, where *P* is overseen by *C*
+- A person with admin access to *C*, Celia
+
+Celia wants *C* to stop overseeing *P* (which means *P* will stop
+being overseen by *C*). The exchange of activities SHOULD be as follows:
+
+1. Celia sends an [=Remove=] activity in which:
+    - [=object=] is *P*
+    - [=origin=] is the URI of *C*'s [=oversees=] collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Celia's admin
+        access to *C*
+2. *C*, seeing and authorizing the Remove, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *P*, and now
+    considers that Grant revoked, and removes *P* from its [=oversees=]
+    collection
+3. *P*, seeing *C*'s Revoke, removes *C* from its [=overseenBy=] collection,
+    and MAY publish an Accept (whose [=object=] is the Remove) to notify its
+    followers
+
+Now, for each Grant *g* that *C* has published, as an extension of the
+start-Grant it had received from *P*:
+
+1. *C* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
+    specifies *g*'s URI
+2. *C* considers *g* invalidated
+3. The recipient of the [=Revoke=], if it further published extensions of *g*,
+    now similarly publishes Revoke activities and considers those extension
+    Grants invalid
+
+#### Initiated by the overseen side #### {#unlinking-oversight-p}
+
+Assuming:
+
+- Teams *P* and *C*, where *P* is overseen by *C*
+- A person with admin access to *P*, Philip
+
+Philip wants *C* to stop overseeing *P* (which means *P* will stop being
+overseen by *C*). The exchange of activities SHOULD be as follows:
+
+1. Philip sends an [=Remove=] activity in which:
+    - [=object=] is *C*
+    - [=origin=] is the URI of *P*'s [=overseenBy=] collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+2. *P*, seeing and authorizing the Remove, publishes an [=Accept=] where
+    [=object=] is the Add's URI
+3. *C*, seeing the Remove and the Accept, publishes a [=Revoke=] activity in
+    which the [=object=] is the delegate-Grant it had sent to *P*, and now
+    considers that Grant revoked, and removes *P* from its [=oversees=]
+    collection
+4. *P*, seeing *C*'s Revoke, removes *C* from its [=overseenBy=] collection
+
+Now, for each Grant *g* that *C* has published, as an extension of the
+start-Grant it had received from *P*:
 
 1. *C* sends (to *g*'s [=target=]) a [=Revoke=] activity whose [=object=]
     specifies *g*'s URI
@@ -4114,7 +4273,7 @@ See [[#s2s-edit-release-tracker]].
 
 ### Tracker-Repo Link ### {#s2s-release-tracker-repo-link}
 
-### Adding
+#### Adding
 
 A link between a [=Repository=] and a [=ReleaseTracker=] essentially means:
 
@@ -4139,7 +4298,7 @@ Upon successful completion of the process:
 - *T* SHOULD start following *R*, to be able to update releases accordingly
     (see [[#following]])
 
-### Removing
+#### Removing
 
 Given:
 
@@ -4733,7 +4892,9 @@ Meanings:
 - Someone is becoming a Collaborator in me
 - I'm gaining access to a resource
 - I'm becoming a child/parent of another Team
-- My child/parent link with another project is being removed
+- I'm becoming an overseen/oversight of another Team
+- My child/parent link with another team is being removed
+- My overseen/oversight link with another team is being removed
 - I'm being um/assigned to/from a ticket/MR
 
 Processes:
@@ -4742,6 +4903,7 @@ Processes:
 - [[#access-via-join]]
 - [[#forming-team-resource-link]]
 - [[#linking-parent-child]]
+- [[#linking-oversight]]
 - [[#issue-assign]]
 
 Behavior:
@@ -4869,18 +5031,66 @@ Check the Accept's [=object=] as follows.
         Accept-with-[=result=]:
         - Just insert to my inbox & forward to my followers
 
+- If it's an Add whose [=target=] is my [=oversees=] collection,
+    and [=object=] is a [=Team=], i.e. I'm getting a new overseen team and the
+    process was initiated on *our* side:
+    - Verify I haven't seen the other team's Accept yet
+    - If Accept [=actor=] is the other team:
+        - Verify I've already published my own Accept
+        - Publish a delegate-Grant, see [[#linking-oversight-c]] step 5
+    - Otherwise:
+        - Just forward to my followers (hopefully this is the other team's
+            collaborator giving their approval)
+
+- If it's an Add whose [=object=] is me and whose [=target=] is the URI of the
+    [=overseenBy=] of some [=Team=], i.e. I'm getting a new overseen team and
+    the process was initiated on *their* side:
+    - If I haven't seen the other team's Accept yet:
+        - Verify the Accept [=actor=] is the other team
+        - Insert to my inbox & forward to my followers
+    - If I've already seen the other team's Accept, but not yet my
+        collaborator's Accept:
+        - Verify the (new) Accept is authorized with [=admin=] access
+        - Send a delegate-Grant, see [[#linking-oversight-p]] step 4
+
+- If it's an Add whose [=target=] is my [=overseenBy=] collection, and
+    [=object=] is some [=Team=], i.e. I'm getting a new oversight and the
+    process was initiated on *our* side:
+    - Ignore/error, I'm not expecting any Accept
+
+- If it's an Add whose [=object=] is me and whose [=target=] is the
+    [=oversees=] collection of some [=Team=], i.e. I'm getting a new oversight
+    and the process was initiated on *their* side:
+    - If I haven't yet seen the other team's Accept:
+        - Verify the Accept [=actor=] is the other team
+        - Insert to my inbox & forward to my followers
+    - If I've seen it, but haven't yet seen my collaborator's Accept:
+        - Verify the Accept is authorized with [=admin=] access
+        - Send an Accept, see [[#linking-oversight-c]] step 4
+
+- If it's a Remove whose [=object=] is me and whose [=origin=] is the URI of
+    the [=overseenBy=] of some [=Team=], i.e. an overseen team of mine is being
+    removed and the process was initiated on *their* side:
+    - Verify the [=actor=] is the other team
+    - Publish a [=Revoke=], see [[#unlinking-oversight-p]] step 3
+    - Remove the team from my [=oversees=] collection
+    - Publish a [=Revoke=] on every extension-Grant I've published as an
+        extension of the start-Grant I received from the team, see
+        [[#unlinking-oversight-p]] after step 4
+
 ### Add ### {#team-beh-add}
 
 Meanings:
 
 - I'm gaining access to a resource
-- A child/parent project is being added to me
+- A child/parent/oversight team is being added to me
 - Someone is asking to list their MR review as being in my name
 
 Processes:
 
 - [[#forming-team-resource-link]]
 - [[#linking-parent-child]]
+- [[#linking-oversight]]
 - [[#s2s-mr-review-team-list]]
 
 Behavior:
@@ -4930,6 +5140,32 @@ Behavior:
     - Verify the [=object=] approval is attributed to an individual
     - Verify the [=target=] approval is attributed to me
     - Send an [=Accept=], see [[#s2s-mr-review-team-list]] step 2
+
+- If [=target=] is my [=overseenBy=] collection, i.e. I'm getting a new
+    oversight and the process is initiated on *our* side:
+    - Verify [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not a parent of mine
+    - Publish an Accept, see [[#linking-oversight-p]] step 2
+
+- If [=target=] is my [=oversees=] collection, i.e. I'm getting a new overseen
+    and the process is initiated on *our* side:
+    - Verify [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not a child of mine
+    - Publish an Accept, see [[#linking-oversight-c]] step 2
+
+- If [=object=] is me and [=target=] is some [=Team=]'s [=oversees=]
+    collection, i.e. I'm getting a new oversight and the process is
+    initiated on *their* side:
+    - Verify it's not a parent of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=object=] is me and [=target=] is some [=Team=]'s [=overseenBy=]
+    collection, i.e. I'm getting a new overseen and the process is initiated on
+    *their* side:
+    - Verify it's not a child of mine
+    - Insert to my inbox & forward to my followers
 
 ### Assign ### {#team-beh-assign}
 
@@ -4994,14 +5230,17 @@ Meanings:
 
 - Resource sending me a start-Grant or extension-Grant
 - Member sending me the delegate-Grant
-- Parent team sending me a start-Grant or extension-Grant
+- Parent team sending me an extension-Grant
 - Almost-child team sending me the delegate-Grant
+- Overseen team sending me the start-Grant
+- Almost-oversight team sending me the delegate-Grant
 
 Processes:
 
 - [[#access-via-invite]]
 - [[#access-via-join]]
 - [[#linking-parent-child]]
+- [[#linking-oversight]]
 - [[#forming-team-resource-link]]
 
 Behavior:
@@ -5016,18 +5255,27 @@ Behavior:
     - Verify the Grant is authorized by the direct-Grant I had sent to the
         member
     - Verify I don't yet have a delegate-Grant from this member
-    - For each start-Grant or extension-Grant I received from a parent of
+    - For each start-Grant or extension-Grant I received from a parent or
         resource, send an extension-Grant to the member, see
         [[#extending-a-delegation-chain]]
 
-- Parent team sending me a start-Grant or extension-Grant:
+- Parent team sending me an extension-Grant:
     - Verify the Grant is authorized by the delegate-Grant I had sent to the
         parent
     - Send an extension-Grant to every team member and child team, see
         [[#extending-a-delegation-chain]]
 
-- Almost-child team sending me the delegate-Grant
-    - Send a start-Grant and extension-Grants, see [[#deleg-step-t]]
+- Almost-child team sending me the delegate-Grant:
+    - Send extension-Grants, see [[#deleg-step-t]]
+
+- Overseen team sending me the start-Grant:
+    - Verify the Grant is authorized by the delegate-Grant I had sent to that
+        team
+    - Send an extension-Grant to every team member and child team, see
+        [[#extending-a-delegation-chain]]
+
+- Almost-oversight team sending me the delegate-Grant:
+    - Send extension-Grants, see [[#deleg-step-o]]
 
 ### Invite ### {#team-beh-invite}
 
@@ -5051,12 +5299,14 @@ Meanings:
 - One of my members is being removed
 - One of my resources is being removed
 - One of my parents or children is being removed
+- One of my oversights or overseen is being removed
 
 Processes:
 
 - [[#taking-away-access-using-remove-activities]]
 - [[#removing-team-resource-link]]
 - [[#linking-parent-child]]
+- [[#linking-oversight]]
 
 Behavior:
 
@@ -5106,6 +5356,30 @@ Behavior:
 - If I'm the [=object=], being removed from the [=teams=] collection of one of
     my resources:
     - Just forward to my followers
+
+- If [=origin=] is my [=oversees=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my overseen teams
+    - Remove the [=object=] actor from my [=oversees=] collection
+    - Publish an [=Revoke=] on the delegate-Grant, see
+        [[#unlinking-oversight-c]] step 2
+    - Publish [=Revoke=]s on all extension-Grants I've sent, that extend the
+        start-Grant I'd received from the team
+
+- If [=origin=] is my [=overseenBy=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my oversight teams
+    - Remove the [=object=] actor from my [=overseenBy=] collection
+    - Send an [=Accept=], see [[#unlinking-oversight-p]] step 2
+
+- If I'm the [=object=], being removed from the [=overseenBy=] collection of an
+    overseen team of mine:
+    - Just forward to my followers
+
+- If I'm the [=object=], being removed from the [=oversees=] collection of a
+    oversight team of mine:
+    - Do nothing, just waiting for the team to send a Revoke on the
+        delegate-Grant
 
 ### Resolve ### {#team-beh-resolve}
 
@@ -8376,6 +8650,10 @@ Properties:
     access to projects, components and resources, e.g.  repositories, ticket
     trackers (and passes them to its [=members=] and inherits them to its own
     [=subteams=])
+[=oversees=]:
+    The teams who give access-to-themselves to this team
+[=overseenBy=]:
+    The teams to whom this team gives access-to-itself
 </pre>
 
 <div class=example>
@@ -11027,6 +11305,156 @@ Description: Specifies the actor types that can be created via this Factory.
 </xmp>
 </div>
 
+### Nesting
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasChild</dfn>
+URI: https://forgefed.org/ns#hasChild
+Domain: [=Project=] | [=Team=]
+Range: [=Project=] | [=Team=]
+Functional: No
+Inverse of: [=hasParent=]
+Description:
+    For a given project or team *A*, specifies an actor of the same type *B*
+    who is a child of *A* (a project from whom *A* receives delegations, or a
+    team to whom *B* extends delegations).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasParent</dfn>
+URI: https://forgefed.org/ns#hasParent
+Domain: [=Project=] | [=Team=]
+Range: [=Project=] | [=Team=]
+Functional: No
+Inverse of: [=hasChild=]
+Description:
+    For a given project or team *A*, specifies an actor of the same type *B*
+    who is a parent of *A* (a team from whom *A* receives delegations, or a
+    project to whom *B* extends delegations).
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasComponent</dfn>
+URI: https://forgefed.org/ns#hasComponent
+Domain: [=Project=]
+Range: An actor of a component type
+Functional: No
+Inverse of: [=componentOf=]
+Description:
+    For a given project *A*, specifies one of its components
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>componentOf</dfn>
+URI: https://forgefed.org/ns#componentOf
+Domain: An actor of a component type
+Range: [=Project=]
+Functional: No
+Inverse of: [=hasComponent=]
+Description:
+    For a given component *A*, specifies one of the projects it belongs to
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasOverseen</dfn>
+URI: https://forgefed.org/ns#hasOverseen
+Domain: [=Team=]
+Range: [=Team=]
+Functional: No
+Inverse of: [=hasOversight=]
+Description:
+    For a given team *A*, specifies a team *B* who has delegated access-to-*B*
+    to *A*.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasOversight</dfn>
+URI: https://forgefed.org/ns#hasOversight
+Domain: [=Team=]
+Range: [=Team=]
+Functional: No
+Inverse of: [=hasOverseen=]
+Description:
+    For a given team *A*, specifies a team *B* to whom who *A* has delegated
+    access-to-*A*
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=11>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>oversees</dfn>
+URI: https://forgefed.org/ns#oversees
+Domain: [=Team=]
+Range: [=Collection=] of [=Relationship=]s with other [=Team=]s.
+Functional: Yes
+Inverse of: None, but see [=overseenBy=]
+Description:
+    Teams overseen by this team. The collection items are [=Relationship=]
+    objects whose [=relationship=] is [=hasOverseen=] and whose [=instrument=]
+    is the maximal role allowed for delegation, specified when the overseen
+    team was added.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>overseenBy</dfn>
+URI: https://forgefed.org/ns#overseenBy
+Domain: [=Team=]
+Range: [=Collection=] of [=Relationship=]s with other [=Team=]s.
+Functional: Yes
+Inverse of: None, but see [=oversees=]
+Description:
+    Teams by whom this team is being overseen. The collection items are
+    [=Relationship=] objects whose [=relationship=] is [=hasOversight=] and
+    whose [=instrument=] is the maximal role allowed for delegation, specified
+    when the overseen team was added.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
 ### Projects
 
 <pre class=simpledef>
@@ -11036,11 +11464,13 @@ Domain: [=Project=]
 Range: [=Collection=]
 Functional: Yes
 Inverse of:
-    None, but see the usage of [=context=] in the Modeling specification, e.g.
-    in [[#model-repo]]
+    None, but see the usage of [=context=] in e.g. [[#model-repo]]
 Description:
     Identifies a [=Collection=] listing actors whose services and resources are
-    considered to be components of this project.
+    considered to be components of this project. The collection items are
+    [=Relationship=] objects whose [=relationship=] is [=hasComponent=] and
+    whose [=instrument=] is the maximal role allowed for delegation, specified
+    when the component was added.
 </pre>
 
 <div class=example>
@@ -11057,15 +11487,26 @@ Description:
     "summary": "3D nature exploration game",
     "components": {
         "type": "Collection",
-        "totalItems": 7,
+        "totalItems": 3,
         "items": [
-            "https://dev.example/repos/opengl-vegetation",
-            "https://dev.example/repos/opengl-vegetation/patch-tracker",
-            "https://dev.example/repos/treesim",
-            "https://dev.example/repos/treesim/patch-tracker",
-            "https://dev.example/repos/wanderer",
-            "https://dev.example/repos/wanderer/patch-tracker",
-            "https://dev.example/issue-trackers/wanderer"
+            { "type": "Relationship",
+              "subject": "https://dev.example/projects/wanderer",
+              "relationship": "hasComponent",
+              "object": "https://dev.example/repos/opengl-vegetation",
+              "instrument": "admin"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/projects/wanderer",
+              "relationship": "hasComponent",
+              "object": "https://dev.example/repos/opengl-vegetation/patch-tracker",
+              "instrument": "maintain"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/projects/wanderer",
+              "relationship": "hasComponent",
+              "object": "https://dev.example/repos/treesim",
+              "instrument": "write"
+            }
         ]
     },
 
@@ -11080,12 +11521,15 @@ Description:
 Name: <dfn dfn export>subprojects</dfn>
 URI: https://forgefed.org/ns#subprojects
 Domain: [=Project=]
-Range: [=Collection=] of [=Project=]s
+Range: [=Collection=]
 Functional: Yes
 Inverse of:
     None, but see the usage of [=context=] in [[#model-project]]
 Description:
     Identifies a [=Collection=] listing the subprojects of this [=Project=].
+    The collection items are [=Relationship=] objects whose [=relationship=] is
+    [=hasChild=] and whose [=instrument=] is the maximal role allowed for
+    delegation, specified when the child was added.
 </pre>
 
 <div class=example>
@@ -11104,8 +11548,18 @@ Description:
         "type": "Collection",
         "totalItems": 2,
         "items": [
-            "https://dev.example/projects/nature-3d-models",
-            "https://dev.example/projects/wanderer-fundraising"
+            { "type": "Relationship",
+              "subject": "https://dev.example/projects/wanderer",
+              "relationship": "hasChild",
+              "object": "https://dev.example/projects/nature-3d-models",
+              "instrument": "admin"
+            },
+            { "type": "Relationship",
+              "subject": "https://dev.example/projects/wanderer",
+              "relationship": "hasChild",
+              "object": "https://dev.example/projects/wanderer-fundraising"
+              "instrument": "write"
+            }
         ]
     },
 
@@ -11166,6 +11620,9 @@ Description:
     Identifies a collection of the subteams of this [=Team=], i.e. teams whose
     members inherit the access that this team's members have to projects and to
     project components (such as [=Repository=]s).
+    The collection items are [=Relationship=] objects whose [=relationship=] is
+    [=hasChild=] and whose [=instrument=] is the maximal role allowed for
+    delegation, specified when the child was added.
 </pre>
 
 <div class=example>
