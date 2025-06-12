@@ -1833,7 +1833,12 @@ may be a service of a [=type=] defined in ForgeFed (such as
             - [=context=] (i.e. the resource) is same as *g*'s [=context=]
             - [=target=] is actor *M*
             - [=object=] (i.e. the granted role) is the lower-access role
-                among *g*'s [=object=] and *p*
+                among:
+                    1. *g*'s [=object=]
+                    2. *p*
+                    3. If team *A* has a [=roleFilter=]: The role specified
+                        under the actor type that matches the [=type=] of *g*'s
+                        [=context=]
             - [=allows=] is a single value [=invoke=]
             - [=delegates=] is activity *g*
             - [=capability=]: *(optional)* Specifies a
@@ -3775,6 +3780,24 @@ Role: [=admin=]
 Other requirements: None
 </pre>
 
+### Edit a Team's name and description ### {#s2s-edit-team}
+
+<pre class=simpledef>
+Type: [=Team=]
+Properties: [=name=], [=summary=]
+Role: [=admin=]
+Other requirements: None
+</pre>
+
+### Edit a Team's role filter ### {#s2s-edit-team-role-filter}
+
+<pre class=simpledef>
+Type: [=Team=]
+Properties: [=roleFilter=]
+Role: [=admin=]
+Other requirements: None
+</pre>
+
 ## Repository-PatchTracker Links ## {#s2s-repo-pt-link}
 
 ### Adding
@@ -5203,7 +5226,25 @@ Behavior:
 
 ### Edit ### {#team-beh-edit}
 
-TODO editing team name and description
+Meanings:
+
+- Someone is asking to edit my name and/or description
+- Someone is asking to edit my role filter
+
+Processes:
+
+- [[#s2s-edit-team]]
+- [[#s2s-edit-team-role-filter]]
+
+Behavior:
+
+Check the Edit's [=object=]'s [=id=].
+
+- If it's me:
+    - Verify the Edit is authorized with [=admin=] access
+    - Update me in DB from the Edit [=object=]'s fields:
+        - Either [=name=] and [=summary=],
+        - Or [=roleFilter=]
 
 ### Follow ### {#team-beh-follow}
 
@@ -8654,6 +8695,8 @@ Properties:
     The teams who give access-to-themselves to this team
 [=overseenBy=]:
     The teams to whom this team gives access-to-itself
+[=roleFilter=]:
+    Optionally attenuate extension-Grants given to team members
 </pre>
 
 <div class=example>
@@ -11684,6 +11727,27 @@ Inverse of: None (but see [=teams=])
 Description:
     Identifies a collection of the [=Team=]s that have access to this resource,
     and are delegating it to their members and subteams.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>roleFilter</dfn>
+URI: https://forgefed.org/ns#roleFilter
+Domain: [=Team=]
+Range:
+    JSON object in which each key is either a component type or [=Project=],
+    and each key maps to exactly one value, that is either `null` or a [=Role=]
+    that isn't [=delegate=] and isn't [=admin=]
+Functional: Yes
+Inverse of: None
+Description:
+    If a [=Team=] specifies a role filter, this filter is now used for
+    attenuating the [=Grant=]s being extended to the team's members
 </pre>
 
 <div class=example>
