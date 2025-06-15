@@ -3568,6 +3568,7 @@ via a [=Factory=] actor.
 - [=ReleaseTracker=]
 - [=Project=]
 - [=Team=]
+- [=Organization=]
 
 A given factory specifies via the [=availableActorTypes=] the specific types it
 supports.
@@ -3608,6 +3609,7 @@ Given:
     - [=ReleaseTracker=]
     - [=Project=]
     - [=Team=]
+    - [=Organization=]
 - A person with [=admin=] access to *R*, Philip
 
 *R* can be deleted via the following sequence:
@@ -3794,6 +3796,15 @@ Other requirements: None
 <pre class=simpledef>
 Type: [=Team=]
 Properties: [=roleFilter=]
+Role: [=admin=]
+Other requirements: None
+</pre>
+
+### Edit an Organization's name and description ### {#s2s-edit-org}
+
+<pre class=simpledef>
+Type: [=Organization=]
+Properties: [=name=], [=summary=]
 Role: [=admin=]
 Other requirements: None
 </pre>
@@ -4437,6 +4448,153 @@ Alice can remove the association of *m* with *r* via the following steps:
 3. *T* sends an [=Accept=] where [=object=] refers to the [=Remove=]
 4. *R* removes *r* from *m*'s [=milestoneReleases=] collection
 
+## Organizations ## {#s2s-org}
+
+Organization actors are symbolic entities, whose collections of members and
+project aren't tied to the access control system. For example, an
+[=Organization=]'s collaborators might be just a few people with [=admin=]
+access, but its [=members=] may be a thousand people who belong to the
+organization.
+
+### Edit organization name and description ### {#s2s-org-edit}
+
+See [[#s2s-edit-org]].
+
+### Membership ### {#s2s-org-member}
+
+#### Add #### {#s2s-org-member-add}
+
+Minimal required role: [=admin=]
+
+Given:
+
+- An [=Organization=], *O*
+- A [=Person=] with [=admin=] access to *O*, Alice
+- Another [=Person=], Bob
+
+Alice can declare that Bob is a member of *O* via the following steps:
+
+1. Alice sends an [=Add=] activity where:
+    - [=object=] refers to Bob
+    - [=target=] refers to *O*'s [=members=] collection
+    - [=capability=] refers to a [=Grant=] that authorizes the action
+2. *O*, authorizing the [=Add=], sends an [=Accept=] whose [=object=] refers to
+    the [=Add=]
+3. Bob sends an [=Accept=] whose [=object=] refers to the [=Add=]
+4. *O*, seeing Bob's [=Accept=], inserts a new [=Relationship=] object to its
+    [=members=] collection, and sends an [=Accept=] again, where:
+    - [=object=] refers to the [=Add=]
+    - [=result=] refers to the new [=Relationship=] object
+
+#### Remove self #### {#s2s-org-member-remove-self}
+
+Minimal required role: None, just being a member
+
+Given:
+
+- An [=Organization=], *O*
+- A [=Person=] who is a member of *O*, Alice
+
+Alice can remove her membership in *O* via the following steps:
+
+1. Alice sends a [=Leave=] activity where:
+    - [=object=] refers to *O*'s [=members=] collection
+2. *O* removes Alice's [=Relationship=] object from its [=members=] collection
+3. *O* sends an [=Accept=] whose [=object=] refers to the [=Leave=]
+
+#### Remove other #### {#s2s-org-member-remove-other}
+
+Minimal required role: [=admin=]
+
+Given:
+
+- An [=Organization=], *O*
+- A [=Person=] with [=admin=] access to *O*, Alice
+- Another [=Person=], who is a member of *O*, Bob
+
+Alice can remove Bob's membership in *O* via the following steps:
+
+1. Alice sends a [=Remove=] activity where:
+    - [=object=] refers to Bob
+    - [=origin=] refers to *O*'s [=members=] collection
+    - [=capability=] refers to a [=Grant=] that authorizes the action
+2. *O* removes Bob's [=Relationship=] object from its [=members=] collection
+3. *O* sends an [=Accept=] whose [=object=] refers to the [=Remove=]
+
+### Projects ### {#s2s-org-project}
+
+Minimal required role: [=admin=]
+
+#### Add #### {#s2s-org-project-add}
+
+Assuming:
+
+- An organization *O*
+- A project or component *P*
+- A person with [=admin=] access to *O*, Ophelia
+- A person with [=admin=] access to *P*, Philip
+
+Ophelia can list *P* as a project of *O* via the following steps:
+
+1. Ophelia sends an [=Add=] activity in which:
+    - [=object=] refers to *P*
+    - [=target=] refers to *O*'s [=orgAssets=] collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Ophelia's admin
+        access to *O*
+2. *O*, seeing and authorizing the Add, publishes an [=Accept=] where
+    [=object=] refers to the Add
+3. Philip, seeing the Add and the Accept, sends an [=Accept=] where:
+    - [=object=] refers to the Add
+    - [=capability=] refers to a [=Grant=] that authorizes Philip's admin
+        access to *P*
+4. *P*, seeing the Add, seeing *O*'s Accept, and authorizing Philip's Accept,
+    publishes an [=Accept=] where [=object=] refers to the Add
+5. *O* inserts a new [=Relationship=] object to its [=orgAssets=] collection
+6. *O* sends an [=Accept=] where:
+    - [=object=] refers to the [=Add=]
+    - [=result=] refers to the new [=Relationship=]
+7. *P* inserts a [=Relationship=] to its [=organizations=] collection
+
+#### Remove via organization #### {#s2s-org-project-remove-o}
+
+Assuming:
+
+- An organization *O*
+- A project or component *P*, listed in *O*'s [=orgAssets=]
+- A person with [=admin=] access to *O*, Ophelia
+
+Ophelia can unlist *P* from being a project of *O* via the following steps:
+
+1. Ophelia sends a [=Remove=] activity in which:
+    - [=object=] refers to *P*
+    - [=origin=] refers to *O*'s [=orgAssets=] collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Ophelia's admin
+        access to *O*
+2. *O* removes the [=Relationship=] object from its [=orgAssets=] collection
+3. *O* sends an [=Accept=] where [=object=] refers to the [=Remove=]
+4. *P* removes the [=Relationship=] from its [=organizations=] collection
+5. *P* sends an [=Accept=] where [=object=] refers to the [=Remove=]
+
+#### Remove via asset #### {#s2s-org-project-remove-p}
+
+Assuming:
+
+- An organization *O*
+- A project or component *P*, listed in *O*'s [=orgAssets=]
+- A person with [=admin=] access to *P*, Philip
+
+Philip can unlist *P* from being a project of *O* via the following steps:
+
+1. Philip sends a [=Remove=] activity in which:
+    - [=object=] refers to *O*
+    - [=origin=] refers to *P*'s [=organizations=] collection
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's admin
+        access to *P*
+2. *P* removes the [=Relationship=] from its [=organizations=] collection
+3. *P* sends an [=Accept=] where [=object=] refers to the [=Remove=]
+4. *O* removes the [=Relationship=] from its [=orgAssets=] collection
+5. *O* sends an [=Accept=] where [=object=] refers to the [=Remove=]
+
 <!-- -------------------------------------------------------------------------
 
 #####  ###### #    #   ##   #    # #  ####  #####
@@ -4499,7 +4657,7 @@ Check the Accept's [=object=] as follows.
 
 - If it's an [=Invite=] where the [=object=] is me:
     - Verify the Accept [=actor=] is the resource (i.e. the actor whose
-        [=collaborators=] or [=members=] URI is the Invite's [=target=])
+        [=collaborators=] URI is the Invite's [=target=])
     - Insert to my inbox & forward to my followers
 
 - If it's on a [=Create=] I'd sent to a [=Factory=]:
@@ -4785,7 +4943,8 @@ Behavior:
 
 ### Invite ### {#factory-beh-invite}
 
-*Same as Invite handler for Repository, Workflow, Roadmap, Project.*
+*Same as Invite handler for Repository, Workflow, Roadmap, Project,
+Organization.*
 
 Meanings:
 
@@ -4810,7 +4969,7 @@ authorized, and now they can decide whether to accept/reject/ignore it.
 ### Join ### {#factory-beh-join}
 
 *Same as Join handler for the Component actors (TicketTracker, PatchTracker,
-Repository, Workflow, Roadmap, ReleaseTracker) and for Project.*
+Repository, Workflow, Roadmap, ReleaseTracker) and for Project, Organization.*
 
 Meanings:
 
@@ -4933,14 +5092,14 @@ Behavior:
 
 Check the Accept's [=object=] as follows.
 
-- If it's an Invite whose [=target=] is my [=members=] collection:
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
     - Verify Accept [=actor=] is the Invite's [=target=]
     - Verify this collaborator hasn't been enabled already
     - Enable this collaborator in DB
     - Insert the Accept to my inbox & forward to my followers
     - Send a Grant as described in [[#access-via-invite]] step 3
 
-- If it's a Join whose [=object=] is my [=members=] collection:
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
     - Verify the Accept is authorized with [=admin=] access
     - Verify this collaborator hasn't been enabled already
     - Enable this collaborator in DB
@@ -5320,18 +5479,15 @@ Behavior:
 
 ### Invite ### {#team-beh-invite}
 
-Same as for [=Factory=], see [[#factory-beh-invite]]. With the exception that
-[=target=] is my [=members=] URI rather than [=collaborators=].
+Same as for [=Factory=], see [[#factory-beh-invite]].
 
 ### Join ### {#team-beh-join}
 
-Same as for [=Factory=], see [[#factory-beh-join]]. With the exception that
-[=object=] is my [=members=] URI rather than [=collaborators=].
+Same as for [=Factory=], see [[#factory-beh-join]].
 
 ### Reject ### {#team-beh-reject}
 
-Same as for [=TicketTracker=], see [[#tt-beh-reject]]. With the exception that
-[=target=]/[=object=] is my [=members=] URI rather than [=collaborators=].
+Same as for [=TicketTracker=], see [[#tt-beh-reject]].
 
 ### Remove ### {#team-beh-remove}
 
@@ -5351,7 +5507,7 @@ Processes:
 
 Behavior:
 
-- If [=origin=] is my [=members=] collection:
+- If [=origin=] is my [=collaborators=] collection:
     - Verify the Remove is authorized with [=admin=] access
     - Verify the [=object=] is one of my members
     - Remove the [=object=] actor from my list of members and invalidate
@@ -5464,7 +5620,7 @@ Check the Undo's [=object=].
     - Verify I'm currently assigned to that ticket/MR
     - Insert to my inbox & forward to my followers
 
-## Project ## {#project-iface}
+## Project ## {#project-beh}
 
 Vervis implementation:
 [Vervis.Actor.Project](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Project.hs)
@@ -5478,6 +5634,7 @@ Meanings:
 - A Team is becoming a Team Collaborator in me
 - I'm becoming a child/parent of another Project
 - My child/parent link with another project is being removed
+- I'm being added/removed to/from an organization
 
 Processes:
 
@@ -5486,6 +5643,7 @@ Processes:
 - [[#linking-projects-components]]
 - [[#forming-team-resource-link]]
 - [[#linking-parent-child]]
+- [[#s2s-org-project]]
 
 Behavior:
 
@@ -5575,6 +5733,23 @@ Check the Accept's [=object=] as follows.
         extension of a Grant I received from the child, see
         [[#unlinking-parent-child-p-c]] step 5
 
+- If it's an [=Add=] whose [=object=] is me and whose [=target=] is some
+    [=Organization=]'s [=orgAssets=] collection:
+    - Verify I haven't yet seen the organization's Accept-with-result
+    - If [=actor=] is the organization and [=result=] is specified:
+        - Insert a [=Relationship=] object to my [=organizations=] collection
+    - If I haven't yet seen my collaborator's accept, and [=capability=] is
+        specified:
+        - Verify the Accept is authorized with [=admin=] access
+        - Send an [=Accept=], see [[#s2s-org-project-add]] step 4
+
+- If it's a [=Remove=] where [=object=] is me and [=origin=] is some
+    [=Organization=]'s [=orgAssets=] collection:
+    - Verify I haven't seen the organization's Accept yet
+    - Verify [=actor=] is the organization
+    - Remove the organization from my [=organizations=] collection
+    - Send an [=Accept=], see [[#s2s-org-project-remove-o]] step 5
+
 ### Add ### {#project-beh-add}
 
 Meanings:
@@ -5582,12 +5757,14 @@ Meanings:
 - A Team collaborator is being added to me
 - A component is being added to me
 - A child/parent project is being added to me
+- I'm being added to an organization
 
 Processes:
 
 - [[#forming-team-resource-link]]
 - [[#linking-projects-components]]
 - [[#linking-parent-child]]
+- [[#s2s-org-project-add]]
 
 Behavior:
 
@@ -5643,6 +5820,10 @@ Behavior:
     process is initiated on *their* side:
     - Verify it's not already a component of mine
     - Insert to my inbox & forward to my followers
+
+- If [=object=] is me and [=target=] is some [=Organization=]'s [=orgAssets=]
+    collection:
+    - Just waiting for the organization's Accept and my collaborator's Accept
 
 ### Delete ### {#project-beh-delete}
 
@@ -5772,6 +5953,7 @@ Meanings:
 - One of my Team Collaborators is being removed
 - One of my components is being removed
 - One of my parents or children is being removed
+- One of my organizations is being removed
 
 Processes:
 
@@ -5779,6 +5961,7 @@ Processes:
 - [[#removing-team-resource-link]]
 - [[#linking-projects-components]]
 - [[#linking-parent-child]]
+- [[#s2s-org-project]]
 
 Behavior:
 
@@ -5841,6 +6024,16 @@ Behavior:
     a Team Collaborator of mine:
     - Nothing to do, just waiting for the Team to send a Revoke on the
         delegate-Grant it had sent me
+
+- If [=object=] is me and [=origin=] is some [=Organization=]'s [=orgAssets=]
+    collection:
+    - Just waiting for the organization's Accept
+
+- If [=origin=] is my [=organizations=] collection and [=object=] is some
+    [=Organization=]:
+    - Verify the Remove is authorized with [=admin=] access
+    - Remove the organization from my [=organizations=] collection
+    - Send an [=Accept=], see [[#s2s-org-project-remove-p]] step 3
 
 ### Undo ### {#project-beh-undo}
 
@@ -6599,7 +6792,7 @@ Behavior:
 ### Reject ### {#tt-beh-reject}
 
 *Same as Reject handler for the other Component actors (PatchTracker,
-Repository, Workflow, Roadmap, ReleaseTracker).*
+Repository, Workflow, Roadmap, ReleaseTracker) and Project, Organization.*
 
 Meanings:
 
@@ -8532,6 +8725,293 @@ Check the Undo's [=object=].
     - Remove [=actor=] from the list of followers of the Follow's [=object=]
     - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
 
+## Organization ## {#org-beh}
+
+Vervis implementation: None currently
+
+### Accept ### {#org-beh-accept}
+
+Meanings:
+
+- Someone is becoming a Collaborator in me
+- Someone is becoming, or ceasing to be, a member in me
+- A project/component is becoming, or ceasing to be, a listed asset of mine
+- A Team Collaborator is being added to me
+
+Processes:
+
+- [[#access-via-invite]]
+- [[#access-via-join]]
+- [[#s2s-org-member]]
+- [[#s2s-org-project]]
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+Check the Accept's [=object=] as follows.
+
+- If it's an Invite whose [=target=] is my [=collaborators=] collection:
+    - Verify Accept [=actor=] is the Invite's [=target=]
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-invite]] step 3
+
+- If it's a Join whose [=object=] is my [=collaborators=] collection:
+    - Verify the Accept is authorized with [=admin=] access
+    - Verify this collaborator hasn't been enabled already
+    - Enable this collaborator in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - Send a Grant as described in [[#access-via-join]] step 2
+
+- If it's an Add whose [=target=] is my [=orgAssets=] collection and [=object=]
+    is some project/component actor:
+    - Verify I haven't yet seen the project's Accept
+    - If sender is the project:
+        - Insert a [=Relationship=] to my [=orgAssets=] collection
+        - Send an [=Accept=], see [[#s2s-org-member-add]] step 6
+    - Otherwise:
+        - Just forward to my followers
+
+- If it's a Remove whose [=object=] is me and whose [=origin=] refers to the
+    [=organizations=] of some project/component actor:
+    - Verify the [=actor=] is the project
+    - Remove the project from my [=orgAssets=] collection
+    - Publish an [=Accept=], see [[#s2s-org-project-remove-p]] step 5
+
+- If it's an [=Add=] whose [=target=] is my [=members=] collection:
+    - Verify I've seen and authorized the Add
+    - Verify I haven't seen the [=object=] person's Accept
+    - Verify the sender is the [=Person=] referred by the [=object=]
+    - Inserts a new [=Relationship=] object to my [=members=] collection
+    - Send an [=Accept=], see [[#s2s-org-member-add]] step 4
+
+- If it's an Add whose [=target=] is my [=teams=] collection,
+    i.e. a Team Collaborator is being added to me and the process is
+    initiated on *our* side:
+    - Error/ignore, we aren't supposed get any Accept
+
+- If it's an Add whose [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Option 1: If I haven't yet seen the Team's Accept:
+        Verify the Accept's [=actor=] is the Team
+    - Option 2: If I saw Team's Acccept but not yet my collaborator's
+        Accept: Verify the Accept is authorized with [=admin=] access
+    - Otherwise, error/ignore, no Accept is needed
+    - For option 1: Record Team's Accept in DB
+    - For option 2: Record my collaborator's Accept in DB
+    - Insert the Accept to my inbox & forward to my followers
+    - For option 2, send an Accept, see [[#forming-team-resource-link-t]]
+        step 4
+
+### Add ### {#org-beh-add}
+
+Meanings:
+
+- I'm getting a new Team Collaborator
+- A member is being added to me
+- A project is being added to me
+
+Processes:
+
+- [[#forming-team-resource-link]]
+- [[#s2s-org-member-add]]
+- [[#s2s-org-project-add]]
+
+Behavior:
+
+- If [=target=] is my [=teams=] collection, i.e. a Team Collaborator is being
+    added to me and the process is initiated on *our* side:
+    - Verify the [=object=] is a [=Team=]
+    - Verify the Add is authorized with [=admin=] access
+    - Verify it's not already an active team of mine
+    - Insert the Add to my inbox & forward the Add to my followers
+    - Publish an Accept, see [[#forming-team-resource-link-r]] step 2
+
+- If [=object=] is me and [=target=] points to a collection
+    whose [=context=] is a [=Team=] that points back to the collection via
+    its [=teamResources=] field, i.e. a Team Collaborator is being added to me
+    and the process is initiated on *their* side:
+    - Verify it's not already an active team of mine
+    - Insert to my inbox & forward to my followers
+
+- If [=target=] is my [=members=] collection:
+    - Verify the [=Add=] is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#s2s-org-member-add]] step 2
+
+- If [=target=] is my [=orgAssets=] collection:
+    - Verify the [=object=] is a project or component
+    - Verify the Add is authorized with [=admin=] access
+    - Verify I'm not already listing this actor as an asset
+    - Publish an Accept, see [[#s2s-org-project-add]] step 2
+
+- If [=object=] is me and [=target=] is some project/component's
+    [=organizations=] collection:
+    - Verify I'm not already listing this actor as an asset
+    - Insert to my inbox & forward to my followers
+
+### Delete ### {#org-beh-delete}
+
+Meanings:
+
+- Someone is asking to delete me
+
+Processes:
+
+- [[#deleting-resource-actors]]
+
+Behavior:
+
+- If [=object=] is me:
+    - Verify the Delete is authorized with [=admin=] access
+    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Delete myself, such that further GET requests for me or any of my
+        objects return 404 or 410 status
+
+### Edit ### {#org-beh-edit}
+
+Meanings:
+
+- Someone is asking to edit my name and/or description
+
+Processes:
+
+- [[#s2s-edit-team]]
+
+Behavior:
+
+Check the Edit's [=object=]'s [=id=].
+
+- If it's me:
+    - Verify the Edit is authorized with [=admin=] access
+    - Update me in DB from the Edit [=object=]'s fields: [=name=], [=summary=]
+
+### Follow ### {#org-beh-follow}
+
+Meanings:
+
+- Someone is asking to follow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+- Verify the [=object=] is me
+- Verify the [=actor=] isn't already a follower of the [=object=]
+- Verify the Follow is authorized with [=visit=] access (unless I'm considered
+    a publicly visible resource and then the [=capability=] can be omitted)
+- Insert [=actor=] to the list of followers of the [=object=]
+- Send back an [=Accept=] whose [=object=] points to the [=Follow=]
+
+### Grant ### {#org-beh-grant}
+
+Meanings:
+
+- A Team-Collaborator-in-process is sending me the delegate-Grant
+
+Processes:
+
+- [[#forming-team-resource-link]]
+
+Behavior:
+
+Check the Grant's [=fulfills=] field, verify it's an
+[=Add=]/[=Invite=]/[=Join=] activity that I've seen:
+
+- If it's a Team-Collaborator-in-process which is now sending me the
+    delegate-Grant, and the previous steps in the process successfully
+    happened:
+    - Insert the Team to my list of Team Collaborators and enable in DB
+    - Send the Team a start-Grant, see [[#deleg-step-tr]] step 1
+
+### Invite ### {#org-beh-invite}
+
+Same as for [=Factory=], see [[#factory-beh-invite]].
+
+### Join ### {#org-beh-join}
+
+Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Reject ### {#org-beh-reject}
+
+Same as for [=TicketTracker=], see [[#tt-beh-reject]].
+
+### Remove ### {#org-beh-remove}
+
+Meanings:
+
+- One of my Collaborators is being removed
+- One of my Team Collaborators is being removed
+- One of my members is being removed
+- One of my assets is being removed
+
+Processes:
+
+- [[#taking-away-access-using-remove-activities]]
+- [[#removing-team-resource-link]]
+- [[#s2s-org-member-remove-other]]
+- [[#s2s-org-project]]
+
+Behavior:
+
+- If [=origin=] is my [=collaborators=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my collaborators
+    - Remove the [=object=] actor from my list of collaborators and invalidate
+        the direct-Grant I had sent them
+    - Publish a [=Revoke=], see [[#taking-away-access-using-remove-activities]]
+        step 2.4
+
+- If [=origin=] is my [=teams=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my Team Collaborators
+    - Remove the [=object=] actor from my list of Team Collaborators and
+        invalidate the start-Grant I had sent it
+    - Publish an [=Accept=], see [[#removing-team-resource-link-r]] step 2
+
+- If I'm the [=object=], being removed from the [=origin=] specifying the
+    [=teamResources=] collection of a Team Collaborator of mine:
+        - Nothing to do, just waiting for the Team to send a Revoke on the
+            delegate-Grant it had sent me
+
+- If [=origin=] is my [=members=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Verify the [=object=] is one of my members
+    - Remove the [=object=] person from my [=members=] collection
+    - Send an [=Accept=], see [[#s2s-org-member-remove-other]] step 3
+
+- If [=origin=] is my [=orgAssets=] collection:
+    - Verify the Remove is authorized with [=admin=] access
+    - Remove the [=object=] actor from my [=orgAssets=] collection
+    - Send an [=Accept=], see [[#s2s-org-project-remove-o]] step 3
+
+- If [=object=] is me and [=origin=] is the [=organizations=] collection of
+    some project/component actor:
+    - Just waiting for the project's Accept
+
+### Undo ### {#org-beh-undo}
+
+Meanings:
+
+- Someone is asking to unfollow me
+
+Processes:
+
+- [[#following]]
+
+Behavior:
+
+Check the Undo's [=object=].
+
+- If it's a [=Follow=] whose [=object=] is me:
+    - Verify the [=actor=] is a follower of the Follow's [=object=]
+    - Remove [=actor=] from the list of followers of the Follow's [=object=]
+    - Send back an [=Accept=] whose [=object=] points to the [=Undo=]
+
 <!-- -------------------------------------------------------------------------
 
         #####
@@ -8643,7 +9123,7 @@ Properties:
 [=subject=]:
     A [=Team=]
 [=relationship=]:
-    [=hasMember=]
+    [=hasCollaborator=]
 [=object=]:
     A [=Person=] who is a member of the `Team`
 [=tag=]:
@@ -8660,7 +9140,7 @@ Properties:
     "id": "https://dev.example/teams/mobilizon-dev-team/members/ThmsicTj",
     "type": "Relationship",
     "subject": "https://dev.example/teams/mobilizon-dev-team",
-    "relationship": "hasMember",
+    "relationship": "hasCollaborator",
     "object": "https://dev.example/people/celine",
     "tag": "develop"
 }
@@ -8681,7 +9161,7 @@ Properties:
 [=summary=]:
     A one-line user provided description of the project, as HTML, e.g.
     `"We are creating a code hosting platform"`
-[=members=]:
+[=collaborators=]:
     [=Collection=] of the members of this team
 [=subteams=]:
     Subteams of this team, i.e. teams whose members (and subteams) inherit the
@@ -8689,7 +9169,7 @@ Properties:
 [=context=]:
     Parent [=Team=]s of this team, i.e. teams from which this team inherits
     access to projects, components and resources, e.g.  repositories, ticket
-    trackers (and passes them to its [=members=] and inherits them to its own
+    trackers (and passes them to its [=collaborators=] and inherits them to its own
     [=subteams=])
 [=oversees=]:
     The teams who give access-to-themselves to this team
@@ -9758,6 +10238,27 @@ For a team:
 [=attachment=]:
     Zero or more [=Approval=]s by individuals, whose approval is in the name of
     the team
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+## Organization Membership
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=Relationship=]
+[=subject=]:
+    An [=Organization=]
+[=relationship=]:
+    [=hasMember=]
+[=object=]:
+    A [=Person=] who is a member of the `Organization`
 </pre>
 
 <div class=example>
@@ -11614,37 +12115,6 @@ Description:
 </div>
 
 ### Team membership and nesting
-
-<pre class=simpledef>
-Name: <dfn dfn export>hasMember</dfn>
-URI: https://forgefed.org/ns#hasMember
-Domain: [=Team=]
-Range: [=Person=]
-Functional: No
-Inverse of: None
-Description:
-    Identifier a [=Person=] who is a member of this [=Team=].
-</pre>
-
-<div class=example>
-<xmp highlight=json-ld line-highlight=9>
-TODO
-</xmp>
-</div>
-
-<pre class=simpledef>
-Name: <dfn dfn export>members</dfn>
-URI: https://forgefed.org/ns#members
-Domain: [=Team=]
-Range:
-    [=Collection=] of [=Relationship=]s whose [=relationship=] is [=hasMember=]
-    and whose [=subject=] is this `Team`.
-Functional: Yes
-Inverse of: None
-Description:
-    Identifies a collection of the members of this [=Team=], represented as
-    [=hasMember=] [=Relationship=]s.
-</pre>
 
 <div class=example>
 <xmp highlight=json-ld line-highlight=9>
@@ -13548,6 +14018,94 @@ TODO
 </xmp>
 </div>
 
+### Organizations
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasMember</dfn>
+URI: https://forgefed.org/ns#hasMember
+Domain: [=Organization=]
+Range: [=Person=]
+Functional: No
+Inverse of: None
+Description:
+    Identifier a [=Person=] who is a member of this [=Organization=].
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>members</dfn>
+URI: https://forgefed.org/ns#members
+Domain: [=Organization=]
+Range:
+    [=Collection=] of [=Relationship=]s whose [=relationship=] is [=hasMember=]
+    and whose [=subject=] is this `Organization`.
+Functional: Yes
+Inverse of: None
+Description:
+    Identifies a collection of the members of this [=Organization=],
+    represented as [=hasMember=] [=Relationship=]s.
+</pre>
+
+<pre class=simpledef>
+Name: <dfn dfn export>orgAssets</dfn>
+URI: https://forgefed.org/ns#orgAssets
+Domain: [=Organization=]
+Range:
+    [=Collection=] of [=Relationship=]s whose [=relationship=] is [=hasAsset=]
+    and whose [=subject=] is this `Organization`.
+Functional: Yes
+Inverse of: None
+Description:
+    Projects considered as being developed under the organization.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>hasAsset</dfn>
+URI: https://forgefed.org/ns#hasAsset
+Domain: [=Organization=]
+Range: [=Project=] | component
+Functional: No
+Inverse of: None
+Description:
+    Identifies a project or component that belongs to the organization
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>organizations</dfn>
+URI: https://forgefed.org/ns#organizations
+Domain: [=Project=] | components
+Range:
+    [=Collection=] of [=Relationship=]s whose [=relationship=] is [=hasAsset=]
+    and whose [=subject=] is this `Organization`.
+Functional: Yes
+Inverse of: None, but see [=orgAssets=]
+Description:
+    Organizations considered as managing this project.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
+</xmp>
+</div>
+
 ## Values
 
 ### Capability uses
@@ -13875,6 +14433,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: Note
     text: Object
     text: OrderedCollection
+    text: Organization
     text: Person
 urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; spec: activitystreams-vocabulary
     text: actor
