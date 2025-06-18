@@ -384,11 +384,43 @@ Alice can remove her star from *R*'s star count via the following steps:
     [=object=] refers to the [=Undo=]. If [=capability=] wasn't specified, *R*
     MAY send such an [=Accept=].
 
-## Reporting Pushed Commits ## {#pushing}
+## SSH Keys and Remote Push ## {s2s-push}
 
-- Role required for pushing: [=write=]
-- Role required for reporting a Push: None (because the [=Repository=] itself
-    is publishing the Push)
+### Remote Push ### {#s2s-push-push}
+
+Minimal required role: [=write=]
+
+Given:
+
+- A [=Repository=], *R*
+- An actor with [=write=] access to *R*, Alice
+- The [=Grant=] activity giving the access, *g*
+- A [=SshPublicKey=] owned by Alice, *K*
+
+Alice first constructs a push URI as follows:
+
+- Encode *g* (i.e. the Grant's [=id=] URI) into base64URL form, let's call the
+    result *u*
+- Pick one of the URIs specified by *R*'s [=pushUri=] field, let's call it *p*
+- Append a trailing slash to *p* if it doesn't end with a slash
+- And finally append *u* after the slash
+
+Alice can now push commits to *R* via the following steps:
+
+1. Alice uses the VCS command for pushing, using the URL as constructed above,
+    and *K* as the SSH key to authenticate
+2. *R* extracts the last path component from the URL and base64URL-decodes it,
+    thus recovering *g*
+3. *R* determines who Alice is by observing *g*'s [=target=]
+4. Using the regular grant verification process described in
+    [[#s2s-grant-flow]], *R* verifies that *g* grants Alice valid [=write=]
+    access to *R*
+5. *R* verifies the SSH key used for authenticating the push matches one of the
+    [=sshKey=]s published by Alice
+6. *R* allows the push to happen, updating its VCS state
+7. *R* publishes a [=Push=] activity, see below
+
+### Reporting Pushed Commits ### {#pushing}
 
 The ForgeFed [=Push=] activity can be used for representing an action
 of pushing commits into a [=Repository=]. Two actors are
@@ -404,6 +436,26 @@ activity MUST provide the [=type=], [=actor=], [=attributedTo=] and [=target=]
 properties as described in [[#Push]].
 
 See example in [[#Push]].
+
+### SSH Key Updates ### {#s2s-push-keys}
+
+Actors MAY publish activities to notify on changes to their SSH keys, in order
+to aid repositories in keeping an up-to-date cache of the keys.
+
+To notify on a new key:
+
+- [=type=]: [=Create=]
+- [=object=]: An [=SshPublicKey=], see [[#model-ssh-key]]
+
+To notify on a key update:
+
+- [=type=]: [=Update=]
+- [=object=]: The updated [=SshPublicKey=], see [[#model-ssh-key]]
+
+To notify on key deletion/revocation:
+
+- [=type=]: [=Delete=]
+- [=object=]: The [=id=] URI of the [=SshPublicKey=]
 
 ## Issues
 
@@ -9424,6 +9476,9 @@ Properties:
 [=cloneUri=]:
     The endpoint from which the content of the repository can be obtained via
     the native protocol (Git, Hg, etc.)
+[=pushUri=]:
+    The endpoint through which repository commits can be pushed via the native
+    protocol
 [=attributedTo=]:
     The actor(s) in charge of the repository, e.g. a person or an organization;
     if their actor URI is unknown, it MAY be their email address as a `mailto`
@@ -9463,6 +9518,10 @@ Properties:
     ],
     "id": "https://dev.example/aviva/treesim",
     "cloneUri": "https://dev.example/aviva/treesim.git",
+    "pushUri": [
+        "https://dev.example/aviva/treesim.git",
+        "ssh://git@dev.example/aviva/treesim.git"
+    ],
     "type": "Repository",
     "publicKey": {
         "id": "https://dev.example/aviva/treesim#main-key",
@@ -10259,6 +10318,30 @@ Properties:
     [=hasMember=]
 [=object=]:
     A [=Person=] who is a member of the `Organization`
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld>
+TODO
+</xmp>
+</div>
+
+## SSH Key ## {#model-ssh-key}
+
+Properties:
+
+<pre class=simpledef>
+[=type=]:
+    [=SshPublicKey=]
+[=attributedTo=]:
+    The actor to whom this key belongs
+[=published=]:
+    The time this key has been published on the server
+[=name=]:
+    User-given key name
+[=content=]:
+    The actual key, in OpenSSH format, e.g.
+    `ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA7G1... user@laptop`
 </pre>
 
 <div class=example>
@@ -11658,6 +11741,20 @@ TODO
 </xmp>
 </div>
 
+<pre class=simpledef>
+Name: <dfn dfn export>SshPublicKey</dfn>
+URI: https://forgefed.org/ns#SshPublicKey
+Extends: [=Object=]
+Description:
+    A public SSH key.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=6>
+TODO
+</xmp>
+</div>
+
 ## Properties
 
 ### General-purpose
@@ -12431,13 +12528,13 @@ TODO
 </xmp>
 </div>
 
-### Repository cloning
+### Repository cloning and pushing
 
 <pre class=simpledef>
 Name: <dfn dfn export>cloneUri</dfn>
 URI: https://forgefed.org/ns#cloneUri
 Domain: [=Repository=]
-Range: [=Object=]
+Range: `xsd:anyURI`
 Functional: No
 Inverse of: None
 Description:
@@ -12451,7 +12548,23 @@ TODO
 </xmp>
 </div>
 
-### Repository pushing
+<pre class=simpledef>
+Name: <dfn dfn export>pushUri</dfn>
+URI: https://forgefed.org/ns#pushUri
+Domain: [=Repository=]
+Range: `xsd:anyURI`
+Functional: No
+Inverse of: None
+Description:
+    An endpoint that can be used with a VCS protocol such as Git or Mercurial
+    to push to a given repository.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
 
 <pre class=simpledef>
 Name: <dfn dfn export>hashBefore</dfn>
@@ -12481,6 +12594,23 @@ Inverse of: None
 Description:
     Specifies the hash of the commit that the pushed branch/repo was pointing
     to *right after* the push happpened.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=9>
+TODO
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>sshKey</dfn>
+URI: https://forgefed.org/ns#sshKey
+Domain: Any actor
+Range: [=SshPublicKey=]
+Functional: No
+Inverse of: None
+Description:
+    Specifies an SSH key this actor uses for pushing commits into repositories.
 </pre>
 
 <div class=example>
