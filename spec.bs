@@ -523,7 +523,7 @@ Alice can remove her star from *R*'s star count via the following steps:
     [=object=] refers to the [=Undo=]. If [=capability=] wasn't specified, *R*
     MAY send such an [=Accept=].
 
-## SSH Keys and Remote Push ## {s2s-push}
+## SSH Keys and Remote Push ## {#s2s-push}
 
 ### Remote Push ### {#s2s-push-push}
 
