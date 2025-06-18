@@ -297,7 +297,146 @@ activity:
 Issue: This section describes the whole flow of actor interactions, that allows
 the federated implementation of the various features of forges and related
 software. It provides a complete picture of interaction flows, which the actor
-API section can't, because it focuses on a single actor type at a time.
+behavior section can't, because it focuses on a single actor type at a time.
+
+## Creating Resource Actors ## {#s2s-actor-create}
+
+Minimal required role: [=write=]
+
+There are 2 types of actors whose process of creation is a special case:
+
+1. [=Person=]: Created by registering an account
+2. [=Factory=]: Can be created by a C2S [=Create=] activity, where the access
+    control to this operation is server-specific (for example perhaps only
+    server administrators can create Factories)
+
+All the other actor types, the resouce actors besides Factory, MUST be created
+via a [=Factory=] actor.
+
+- [=Repository=]
+- [=TicketTracker=]
+- [=PatchTracker=]
+- [=Workflow=]
+- [=Roadmap=]
+- [=ReleaseTracker=]
+- [=Project=]
+- [=Team=]
+- [=Organization=]
+
+A given factory specifies via the [=availableActorTypes=] the specific types it
+supports.
+
+Assuming:
+
+- A factory *F*
+- A person with [=write=] access to *F*, Philip
+
+Philip wants to create a new actor, of a type supported by *F*. The exchange of
+activities SHOULD be as follows:
+
+1. Philip sends a [=Create=] activity in which:
+    - [=object=] contains the properties of the new actor to be created
+    - [=origin=] is the URI of *F*
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's access
+        to *F*
+2. *F*, seeing and authorizing the Create, publishes an [=Accept=] where
+    [=object=] is the Create's URI and [=result=] is the URI of the newly
+    created actor *A*
+3. *A*, upon its creation, publishes a [[#direct-granting|direct-Grant]] in
+    which the [=target=] is Philip and [=object=] is [=admin=], thus giving
+    Philip full access to manage *A*
+
+NOTE: A resource actor may be created as a copy/fork of an existing actor. This
+involves some extra steps, see [[#s2s-fork]].
+
+## Deleting Resource Actors ## {#s2s-actor-delete}
+
+Minimal required role: [=admin=]
+
+Given:
+
+- A resource actor *R*, i.e. an actor whose type is one of:
+    - [=Factory=]
+    - [=Repository=]
+    - [=TicketTracker=]
+    - [=PatchTracker=]
+    - [=Workflow=]
+    - [=Roadmap=]
+    - [=ReleaseTracker=]
+    - [=Project=]
+    - [=Team=]
+    - [=Organization=]
+- A person with [=admin=] access to *R*, Philip
+
+*R* can be deleted via the following sequence:
+
+1. Philip sends a [=Delete=] activity in which:
+    - [=object=] is the URI of *R*
+    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's
+        [=admin=] access to *R*
+2. *R* sends, to its followers and to Philip, an [=Accept=] activity whose
+    [=object=] is the URI of the [=Delete=]
+3. *R* deletes itself, such that further GET requests for *R* or any of its
+    objects return 404 or 410 status
+
+## Forks and Migrations ## {#s2s-fork}
+
+After a resource actor is created by a [=Factory=], it can be populated with
+data copied from an existing actor of the same type. For repositories, this is
+often called forking. For data in general, especially when the existing actor
+won't be used anymore, it's often called migrating.
+
+Resource actors therefore SHOULD publish their data, at least when querying
+them via an authenticated request, using the [[f3]] format. The data is
+available for download by sending a GET request to the actor's [=id=] URI,
+using the appropriate HTTP `Accept` header.
+
+Given:
+
+- A project or component actor *R*
+- A [=Factory=] *F*
+- A person with [=write=] access to *F*, Philip
+
+Philip can create a new resource actor filled with a copy of the data of *R*
+via the following steps:
+
+1. Philip follows the steps in [[#s2s-actor-create]] to create the new actor
+    via *F*, but he additionally provides a reference to *R*, so that data from
+    *R* can be copied by the new actor. There are two ways to do so:
+    - One: In the properties of the new actor (described in the [=Create=]'s
+        [=object=]), Philip sets [=origin=] to refer to *R*
+    - Two: In the properties of the new actor, Philip sets [=origin=] to a JSON
+        object whose [=type=] is [=Link=] and whose [=href=] points to a
+        downloadable archive of F3 data
+2. Once the new actor - let's call it *S* - is created, it downloads the F3
+    data and stores and publishes copies of the data - the commits, tags,
+    tickets, MRs, comments, etc. - depending on the actor type
+3. For each such published object, its [=origin=] points to the original object
+    that was copied
+4. *S* itself, in its ActivityPub/ForgeFed representation, uses [=origin=] as
+    well, pointing back to *R*
+5. If *R* chooses (usually if *R* is a [=Repository=]), once *R* sees Philip's
+    [=Create=] and *F*'s [=Accept=], it updates its [=forks=] collection,
+    inserting *S*'s URI there
+
+Now *S* specifies where it was copied/forked from via [=origin=], and *R*
+(possibly) points back to *S* (and perhaps other forks) via [=forks=].
+
+Possibly, once the copy was made, we don't need the old actor anymore. In other
+words, sometimes we want to perform a move rather than a copy. In that case, a
+move can be performed via the following steps:
+
+Given a person with [=admin=] access to *R*, Randy:
+
+1. Follow the above steps to create actor *S* with data copied from *R*
+2. Randy sends a [=Move=] activity where:
+    - [=origin=] refers to *R*
+    - [=target=] refers to *S*
+    - [=capability=] refers to a [=Grant=] activity authorizing the action
+3. *R* verifies authorization and sends an [=Accept=] whose [=object=] refers
+    to the [=Move=]
+4. *R* sets its [=isArchived=] to `true` and is now in read-only mode
+5. *R* sets its [=movedTo=] to point to *S*
 
 ## Following ## {#following}
 
@@ -3598,83 +3737,6 @@ had received from *R*:
     now similarly publishes Revoke activities and considers those extension
     Grants invalid
 
-## Creating Resource Actors
-
-Minimal required role: [=write=]
-
-There are 2 types of actors whose process of creation is a special case:
-
-1. [=Person=]: Created by registering an account
-2. [=Factory=]: Can be created by a C2S [=Create=] activity, where the access
-    control to this operation is server-specific (for example perhaps only
-    server administrators can create Factories)
-
-All the other actor types, the resouce actors besides Factory, MUST be created
-via a [=Factory=] actor.
-
-- [=Repository=]
-- [=TicketTracker=]
-- [=PatchTracker=]
-- [=Workflow=]
-- [=Roadmap=]
-- [=ReleaseTracker=]
-- [=Project=]
-- [=Team=]
-- [=Organization=]
-
-A given factory specifies via the [=availableActorTypes=] the specific types it
-supports.
-
-Assuming:
-
-- A factory *F*
-- A person with [=write=] access to *F*, Philip
-
-Philip wants to create a new actor, of a type supported by *F*. The exchange of
-activities SHOULD be as follows:
-
-1. Philip sends a [=Create=] activity in which:
-    - [=object=] contains the properties of the new actor to be created
-    - [=origin=] is the URI of *F*
-    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's access
-        to *F*
-2. *F*, seeing and authorizing the Create, publishes an [=Accept=] where
-    [=object=] is the Create's URI and [=result=] is the URI of the newly
-    created actor *A*
-3. *A*, upon its creation, publishes a [[#direct-granting|direct-Grant]] in
-    which the [=target=] is Philip and [=object=] is [=admin=], thus giving
-    Philip full access to manage *A*
-
-## Deleting Resource Actors
-
-Minimal required role: [=admin=]
-
-Given:
-
-- A resource actor *R*, i.e. an actor whose type is one of:
-    - [=Factory=]
-    - [=Repository=]
-    - [=TicketTracker=]
-    - [=PatchTracker=]
-    - [=Workflow=]
-    - [=Roadmap=]
-    - [=ReleaseTracker=]
-    - [=Project=]
-    - [=Team=]
-    - [=Organization=]
-- A person with [=admin=] access to *R*, Philip
-
-*R* can be deleted via the following sequence:
-
-1. Philip sends a [=Delete=] activity in which:
-    - [=object=] is the URI of *R*
-    - [=capability=] is the URI of a [=Grant=] that authorizes Philip's
-        [=admin=] access to *R*
-2. *R* sends, to its followers and to Philip, an [=Accept=] activity whose
-    [=object=] is the URI of the [=Delete=]
-3. *R* deletes itself, such that further GET requests for *R* or any of its
-    objects return 404 or 410 status
-
 ## Editing an Object ## {#editing}
 
 Minimal required role: It varies
@@ -4697,7 +4759,7 @@ Processes:
 
 - [[#following]]
 - [[#access-via-invite]]
-- [[#creating-resource-actors]]
+- [[#s2s-actor-create]]
 
 Behavior:
 
@@ -4747,7 +4809,7 @@ Meanings:
 
 Processes:
 
-- [[#creating-resource-actors]]
+- [[#s2s-actor-create]]
 
 Behavior:
 
@@ -4911,7 +4973,8 @@ Meanings:
 
 Processes:
 
-- [[#creating-resource-actors]]
+- [[#s2s-actor-create]]
+- [[#s2s-fork]]
 
 Behavior:
 
@@ -4919,7 +4982,9 @@ Behavior:
 - Verify the Create is authorized with [=maintain=] access
 - Launch the new actor described by the Create's [=object=]
 - Insert the Create to my inbox & forward the Create to my followers
-- Publish an Accept, see [[#creating-resource-actors]] step 2
+- Publish an Accept, see [[#s2s-actor-create]] step 2
+- If the new actor specifies an [=origin=] - proceed with the actor copying
+    data from that origin, see [[#s2s-fork]]
 
 ### Delete ### {#factory-beh-delete}
 
@@ -4929,7 +4994,7 @@ Meanings:
 
 Processes:
 
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 
 Behavior:
 
@@ -4937,7 +5002,7 @@ Examine the Delete's [=object=].
 
 - If it's me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -5425,13 +5490,13 @@ Meanings:
 
 Processes:
 
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 
 Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -5885,13 +5950,13 @@ Meanings:
 
 Processes:
 
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 
 Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -5992,6 +6057,24 @@ Behavior:
 - Insert the [=Like=] to my [=likes=] collection
 - If [=capability=] was specified:
     - Send back an [=Accept=], see [[#s2s-star-add]] step 4
+
+### Move ### {#project-beh-move}
+
+Meanings:
+
+- Someone is marking me as "work continues elsewhere"
+
+Processes:
+
+- [[#s2s-fork]]
+
+Behavior:
+
+- If [=origin=] is me and [=target=] is another [=Project=]:
+    - Verify the [=Move=] is authorized with [=admin=] access
+    - Set my [=isArchived=] to `true`
+    - Set my [=movedTo=] to refer to that [=target=] project
+    - Send an [=Accept=] whose [=object=] refers to the [=Move=]
 
 ### Reject ### {#project-beh-reject}
 
@@ -6128,6 +6211,8 @@ Meanings:
 - Someone is becoming a Collaborator in me
 - A Team is becoming a Team Collaborator in me
 - I'm becoming a component of a Project
+- Someone is forking me
+- One of my forks is being deleted
 
 Processes:
 
@@ -6135,6 +6220,8 @@ Processes:
 - [[#access-via-join]]
 - [[#forming-team-resource-link]]
 - [[#linking-projects-components]]
+- [[#s2s-fork]]
+- [[#s2s-actor-delete]]
 
 Behavior:
 
@@ -6197,27 +6284,58 @@ Check the Accept's [=object=] as follows.
         - Publish an Accept, see [[#linking-projects-components-p]] step 4
     - If I already saw both approvals, respond with error
 
+- If it's a [=Create=] whose [=object=] is a [=Repository=] whose [=origin=] is
+    me:
+    - Verify [=actor=] is the [=Factory=] (specifies by the [=Create=]'s
+        [=origin=])
+    - Verify [=result=] is specified - the URI of the new actor
+    - Insert that URI to my [=forks=] collection
+
+- If it's a [=Delete=] whose [=object=] is a [=Repository=] listed in my
+    [=forks=]:
+    - Verify [=actor=] is the Repository
+    - Remove its URI from my [=forks=] collection
+
 ### Add ### {#repo-beh-add}
 
 Same as for [=TicketTracker=], see [[#tt-beh-add]].
+
+### Create ### {#repo-beh-create}
+
+Meanings:
+
+- Someone is forking me
+
+Processes:
+
+- [[#s2s-fork]]
+
+Behavior:
+
+- If [=object=] is a [=Repository=] whose [=origin=] is me:
+    - Just waiting for the [=Factory=]'s [=Accept=]
 
 ### Delete ### {#repo-beh-delete}
 
 Meanings:
 
 - Someone is asking to delete me
+- One of my forks is being deleted
 
 Processes:
 
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 
 Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
+
+- If [=object=] is one of [=forks=]:
+    - Just waiting for that actor's [=Accept=]
 
 ### Edit ### {#repo-beh-edit}
 
@@ -6298,6 +6416,24 @@ Behavior:
 - Insert the [=Like=] to my [=likes=] collection
 - If [=capability=] was specified:
     - Send back an [=Accept=], see [[#s2s-star-add]] step 4
+
+### Move ### {#repo-beh-move}
+
+Meanings:
+
+- Someone is marking me as "work continues elsewhere"
+
+Processes:
+
+- [[#s2s-fork]]
+
+Behavior:
+
+- If [=origin=] is me and [=target=] is another [=Repository=]:
+    - Verify the [=Move=] is authorized with [=admin=] access
+    - Set my [=isArchived=] to `true`
+    - Set my [=movedTo=] to refer to that [=target=] repo
+    - Send an [=Accept=] whose [=object=] refers to the [=Move=]
 
 ### Reject ### {#repo-beh-reject}
 
@@ -6631,7 +6767,7 @@ Processes:
 
 - [[#commenting]]
 - [[#deleting-issue]]
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 - [[#s2s-dep-remove]]
 - [[#s2s-milestone-delete]]
 
@@ -6649,7 +6785,7 @@ Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -6806,6 +6942,24 @@ authorized, and now they can decide whether to accept/reject/ignore it.
 ### Join ### {#tt-beh-join}
 
 Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Move ### {#tt-beh-move}
+
+Meanings:
+
+- Someone is marking me as "work continues elsewhere"
+
+Processes:
+
+- [[#s2s-fork]]
+
+Behavior:
+
+- If [=origin=] is me and [=target=] is another [=TicketTracker=]:
+    - Verify the [=Move=] is authorized with [=admin=] access
+    - Set my [=isArchived=] to `true`
+    - Set my [=movedTo=] to refer to that [=target=] tracker
+    - Send an [=Accept=] whose [=object=] refers to the [=Move=]
 
 ### Offer ### {#tt-beh-offer}
 
@@ -7225,7 +7379,7 @@ Processes:
 
 - [[#commenting]]
 - [[#deleting-mr]]
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 - [[#s2s-dep-remove]]
 - [[#s2s-milestone-delete]]
 
@@ -7243,7 +7397,7 @@ Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -7374,6 +7528,24 @@ authorized, and now they can decide whether to accept/reject/ignore it.
 ### Join ### {#pt-beh-join}
 
 Same as for [=Factory=], see [[#factory-beh-join]].
+
+### Move ### {#pt-beh-move}
+
+Meanings:
+
+- Someone is marking me as "work continues elsewhere"
+
+Processes:
+
+- [[#s2s-fork]]
+
+Behavior:
+
+- If [=origin=] is me and [=target=] is another [=PatchTracker=]:
+    - Verify the [=Move=] is authorized with [=admin=] access
+    - Set my [=isArchived=] to `true`
+    - Set my [=movedTo=] to refer to that [=target=] tracker
+    - Send an [=Accept=] whose [=object=] refers to the [=Move=]
 
 ### Offer ### {#pt-beh-offer}
 
@@ -7672,7 +7844,7 @@ Processes:
 
 - [[#s2s-enum-delete]]
 - [[#s2s-field-delete]]
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 
 Behavior:
 
@@ -7691,7 +7863,7 @@ Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -8113,7 +8285,7 @@ Meanings:
 Processes:
 
 - [[#s2s-milestone-delete]]
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 - [[#deleting-issue]]
 - [[#s2s-release-delete]]
 
@@ -8129,7 +8301,7 @@ Check the [=object=].
 
 - If it's me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -8527,7 +8699,7 @@ Processes:
 
 - [[#commenting]]
 - [[#s2s-release-delete]]
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 - [[#s2s-milestone-delete]]
 
 Behavior:
@@ -8544,7 +8716,7 @@ Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -8912,13 +9084,13 @@ Meanings:
 
 Processes:
 
-- [[#deleting-resource-actors]]
+- [[#s2s-actor-delete]]
 
 Behavior:
 
 - If [=object=] is me:
     - Verify the Delete is authorized with [=admin=] access
-    - Send an [=Accept=], see [[#deleting-resource-actors]] step 2
+    - Send an [=Accept=], see [[#s2s-actor-delete]] step 2
     - Delete myself, such that further GET requests for me or any of my
         objects return 404 or 410 status
 
@@ -9479,19 +9651,11 @@ Properties:
 [=pushUri=]:
     The endpoint through which repository commits can be pushed via the native
     protocol
-[=attributedTo=]:
-    The actor(s) in charge of the repository, e.g. a person or an organization;
-    if their actor URI is unknown, it MAY be their email address as a `mailto`
-    URI
 [=published=]:
     The time the repository was created on the server
 [=summary=]:
     A one-line user provided description of the repository, as HTML, e.g.
     "`<p>A command-line tool that does cool things</p>`"
-[=team=]:
-    [=Collection=] of actors who have management/push access to the repository,
-    or the subset of them who is available and wants to be
-    contacted/notified/responsible on repo access related activities/requests
 [=forks=]:
     [=OrderedCollection=] of repositories that are forks of this repository
 [=ticketsTrackedBy=]:
@@ -9505,7 +9669,11 @@ Properties:
 [=context=]:
     The [=Project=](s) to which this repository belongs
 [=likes=]:
-    Collection of [=Like=] activities the repo received
+    Collection of [=Like=] activities, i.e. stars, that the repo received
+[=isArchived=]:
+    Whether the repo is in read-only mode
+[=movedTo=]:
+    If the repo is archived, a new location it moved to
 </pre>
 
 <div class=example>
@@ -9532,11 +9700,9 @@ Properties:
     "outbox": "https://dev.example/aviva/treesim/outbox",
     "followers": "https://dev.example/aviva/treesim/followers",
     "likes": "https://dev.example/aviva/treesim/likes",
-    "team": "https://dev.example/aviva/treesim/team",
     "ticketsTrackedBy": "https://dev.example/aviva/treesim",
     "sendPatchesTo": "https://dev.example/aviva/treesim",
     "name": "Tree Growth 3D Simulation",
-    "attributedTo": "https://example.dev/bob",
     "summary": "<p>Tree growth 3D simulator for my nature exploration game</p>"
 }
 </xmp>
@@ -11902,7 +12068,7 @@ TODO
 </xmp>
 </div>
 
-### Factories
+### Resource actor creation
 
 <pre class=simpledef>
 Name: <dfn dfn export>availableActorTypes</dfn>
@@ -11943,6 +12109,60 @@ Description: Specifies the actor types that can be created via this Factory.
     "inbox": "https://grape.fr33domlover.site/factories/YGQoZ/inbox",
     "teams": "https://grape.fr33domlover.site/factories/YGQoZ/teams"
 }
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>forks</dfn>
+URI: https://forgefed.org/ns#forks
+Domain: Project or component actor
+Range: [=OrderedCollection=] of actor URIs
+Functional: Yes
+Inverse of: None, but see [=origin=] in e.g. [[#model-repo]]
+Description:
+    Identifies an [=OrderedCollection=] of actors which were created
+    as forks of this actor, i.e. by cloning it. The order of the
+    collection items is by reverse chronological order of the forking events.
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        "https://forgefed.org/ns"
+    ],
+    "id": "https://example.dev/luke/myrepo/",
+    "type": "Repository",
+    "forks": {
+        "type": "OrderedCollection",
+        "totalItems": 1,
+        "orderedItems": [
+            {
+                "id": "https://example.dev/alice/myfork",
+                "type": "Repository",
+            }
+        ]
+    },
+}
+</xmp>
+</div>
+
+<pre class=simpledef>
+Name: <dfn dfn export>isArchived</dfn>
+URI: https://forgefed.org/ns#isArchived
+Domain: Resource actor
+Range: `xsd:boolean`
+Functional: Yes
+Inverse of: None
+Description:
+    Whether this actor is in read-only mode, its data available as a viewable
+    archive but no further editing is allowed
+</pre>
+
+<div class=example>
+<xmp highlight=json-ld line-highlight=8>
+TODO
 </xmp>
 </div>
 
@@ -13048,73 +13268,6 @@ Description:
 <div class=example>
 <xmp highlight=json-ld line-highlight=8>
 TODO
-</xmp>
-</div>
-
-### Repository forking
-
-<pre class=simpledef>
-Name: <dfn dfn export>forkedFrom</dfn>
-URI: https://forgefed.org/ns#forkedFrom
-Domain: [=Repository=]
-Range: [=Repository=]
-Functional: Yes
-Inverse of: [=forks=]
-Description:
-    Identifies the [=Repository=] which this [=Repository=] was created as a
-    fork of, i.e. by cloning it.
-</pre>
-
-<div class=example>
-<xmp highlight=json-ld line-highlight=8>
-{
-    "@context": [
-        "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.org/ns"
-    ],
-    "id": "https://example.dev/alice/myfork/",
-    "type": "Repository",
-    "forkedFrom": {
-        "type": "Repository",
-        "id": "https://example.dev/luke/myrepo/"
-    }
-}
-</xmp>
-</div>
-
-<pre class=simpledef>
-Name: <dfn dfn export>forks</dfn>
-URI: https://forgefed.org/ns#forks
-Domain: [=Repository=]
-Range: [=OrderedCollection=] of items of type [=Repository=]
-Functional: Yes
-Inverse of: [=forkedFrom=]
-Description:
-    Identifies an [=OrderedCollection=] of [=Repository=]s which were created
-    as forks of this [=Repository=], i.e. by cloning it. The order of the
-    collection items is by reverse chronological order of the forking events.
-</pre>
-
-<div class=example>
-<xmp highlight=json-ld line-highlight=8>
-{
-    "@context": [
-        "https://www.w3.org/ns/activitystreams",
-        "https://forgefed.org/ns"
-    ],
-    "id": "https://example.dev/luke/myrepo/",
-    "type": "Repository",
-    "forks": {
-        "type": "OrderedCollection",
-        "totalItems": 1,
-        "orderedItems": [
-            {
-                "id": "https://example.dev/alice/myfork/",
-                "type": "Repository",
-            }
-        ]
-    },
-}
 </xmp>
 </div>
 
@@ -14531,6 +14684,10 @@ Description:
     "fep-8b32": {
         "href": "https://codeberg.org/fediverse/fep/src/branch/main/feps/fep-8b32.md",
         "title": "FEP-8b32: Object Integrity Proofs"
+    },
+    "f3": {
+        "href": "https://f3.forgefriends.org",
+        "title": "Friendly Forge Format"
     }
 }
 </pre>
@@ -14580,6 +14737,7 @@ urlPrefix: https://www.w3.org/TR/activitystreams-vocabulary/#dfn-; type: dfn; sp
     text: instrument
     text: items
     text: mediaType
+    text: movedTo
     text: name
     text: object
     text: orderedItems
