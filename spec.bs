@@ -438,6 +438,33 @@ Given a person with [=admin=] access to *R*, Randy:
 4. *R* sets its [=isArchived=] to `true` and is now in read-only mode
 5. *R* sets its [=movedTo=] to point to *S*
 
+NOTE: Another step that can be done on top of copying/forking an actor,
+specifically for [=Repository=], is to set it up as a pull mirror. In other
+words, it will periodically (or upon notification) pull from the origin
+repository. See below in [[#s2s-mirror]] how to do that.
+
+## Mirroring ## {#s2s-mirror}
+
+Given:
+
+- A [=Repository=] *R*
+- A [=Factory=] *F*
+- A person with [=write=] access to *F*, Philip
+
+Philip can create a pull mirror (periodically or upon notification pull updates
+from the origin repo) via the following steps:
+
+1. Follow the steps in [[#s2s-fork]] to create a fork of *R* - let's call it
+    *S* - except in addition to *S*'s [=origin=] pointing to *R*, *S* also
+    points to *R* via its [=mirrors=] field (including in the [=Create=]'s
+    [=object=] where *S* is described)
+2. Finally *S* is created and fills its VCS data by pulling from *R*, as in
+    [[#s2s-fork]]
+3. *S* continues to point to *R* via [=mirrors=] and is now considered a pull
+    mirror of it
+4. *S* MAY follow (see [[#following]]) *R* in order to detect new commits and
+    then pull them
+
 ## Following ## {#following}
 
 Minimal required role: [=visit=]
@@ -4975,6 +5002,7 @@ Processes:
 
 - [[#s2s-actor-create]]
 - [[#s2s-fork]]
+- [[#s2s-mirror]]
 
 Behavior:
 
@@ -4985,6 +5013,8 @@ Behavior:
 - Publish an Accept, see [[#s2s-actor-create]] step 2
 - If the new actor specifies an [=origin=] - proceed with the actor copying
     data from that origin, see [[#s2s-fork]]
+- If the new actor is a [=Repository=] and specifies [=mirrors=] - proceed with
+    setting it up as a pull mirror, see [[#s2s-mirror]]
 
 ### Delete ### {#factory-beh-delete}
 
@@ -6199,7 +6229,7 @@ Check the Undo's [=object=].
     - If [=capability=] was specified:
         - Send back an [=Accept=], see [[#s2s-star-remove]] step 4
 
-## Repository ## {#repo-iface}
+## Repository ## {#repo-beh}
 
 Vervis implementation:
 [Vervis.Actor.Repo](https://codeberg.org/ForgeFed/Vervis/src/branch/main/src/Vervis/Actor/Repo.hs)
@@ -6211,7 +6241,7 @@ Meanings:
 - Someone is becoming a Collaborator in me
 - A Team is becoming a Team Collaborator in me
 - I'm becoming a component of a Project
-- Someone is forking me
+- Someone is forking/mirroring me
 - One of my forks is being deleted
 
 Processes:
@@ -6221,6 +6251,7 @@ Processes:
 - [[#forming-team-resource-link]]
 - [[#linking-projects-components]]
 - [[#s2s-fork]]
+- [[#s2s-mirror]]
 - [[#s2s-actor-delete]]
 
 Behavior:
@@ -6290,11 +6321,14 @@ Check the Accept's [=object=] as follows.
         [=origin=])
     - Verify [=result=] is specified - the URI of the new actor
     - Insert that URI to my [=forks=] collection
+    - If that repository specifies [=mirrors=] as well:
+        - Verify it refers to me
+        - Start pointing to that repo via my [=mirroredBy=] field
 
 - If it's a [=Delete=] whose [=object=] is a [=Repository=] listed in my
     [=forks=]:
     - Verify [=actor=] is the Repository
-    - Remove its URI from my [=forks=] collection
+    - Remove its URI from my [=forks=] and [=mirroredBy=] collections
 
 ### Add ### {#repo-beh-add}
 
@@ -9674,6 +9708,8 @@ Properties:
     Whether the repo is in read-only mode
 [=movedTo=]:
     If the repo is archived, a new location it moved to
+[=mirrors=]:
+    Pull mirror target
 </pre>
 
 <div class=example>
