@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg version="1.1" width="512" height="512" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<svg version="1.1" width="350" height="150" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 	<defs>
 		<clipPath id="rect">
 			<rect width="512" height="512"/>
@@ -19,7 +19,7 @@
 			</cc:License>
 		</rdf:RDF>
 	</metadata>
-	<g clip-path="url(#rect)" transform="matrix(.7 0 0 .7 76.8 76.8)">
+	<g clip-path="url(#rect)" transform="matrix(.09765,0,0,.09765,50,50)">
 		<path d="m256 256-256 256h512z" fill="#ff851b"/>
 		<path d="m256 256-256 256v-256z" fill="#c8c8c8"/>
 		<path d="m256 256h256l-256-256z" fill="#c8c8c8"/>
@@ -36,4 +36,5 @@
 			<path stroke-width="36.9" d="M 128,384 256,506.65"/>
 		</g>
 	</g>
+	<text x="114.61" y="91.9525" dx="0 0.051 0 0.052 0 0.0525 0.0525 0.052" fill="#808080" font-size="53.3333" font-family="Open Sans Condensed">Forge<tspan fill="#ff851b">Fed</tspan></text>
 </svg>
