@@ -61,7 +61,7 @@ platform for testing the protocol and new features.
 [ActivityPub]: https://www.w3.org/TR/activitypub/
 [Codeberg]:    https://codeberg.org/ForgeFed/ForgeFed
 [Fediverse]:   https://floss.social/@forgefed
-[Matrix]:      https://matrix.to/#/#forgefed:libera.chat
+[Matrix]:      https://matrix.to/#/#general-forgefed:matrix.batsense.net
 [Vervis]:      https://vervis.peers.community/
 [Forgejo]:     https://forgejo.org
 [Pagure]:      https://pagure.io/forge-fed/forge-fed
