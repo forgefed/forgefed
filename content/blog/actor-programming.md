@@ -114,7 +114,7 @@ Spritely, which I mentioned above, already has the foundations for networked
 actor programming, and a possible route would have been to try implementing a
 little forge on top. This is a great direction! Anyone feels like trying it? I
 picked a different route: While Spritely focuses on the Scheme language, I
-started work, inspired by the CanProto Haskell implementation, to implement an
+started work, inspired by the CapnProto Haskell implementation, to implement an
 actor-programming system in Haskell.
 
 Haskell and its ecosystem do have facilities for actor programming, and the
